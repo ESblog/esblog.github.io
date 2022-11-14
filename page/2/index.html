@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="学而不思则罔，思而不学则殆">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ESON">
+<meta property="og:url" content="https://blog.eson.org/page/2/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="学而不思则罔，思而不学则殆">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="机器学习, 计算机视觉, 深度学习, 自然语言处理, ESON">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.eson.org/page/2/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : true,
+    isPost : false,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content index posts-expand">
+            
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/488fc27f/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/pub/488fc27f/" class="post-title-link" itemprop="url">【Hexo插件系列】流程图、时序图、</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-10-21 00:00:00" itemprop="dateCreated datePublished" datetime="2018-10-21T00:00:00+08:00">2018-10-21</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/demo/" itemprop="url" rel="index"><span itemprop="name">demo</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/demo/hexo/" itemprop="url" rel="index"><span itemprop="name">hexo</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>有些markdown支持流程图、时序图，比如<span class="exturl" data-url="aHR0cHM6Ly9tYXhpYW5nLmlvLw==">马克飞象<i class="fa fa-external-link-alt"></i></span>。</p>
+<p>实际上，这部分的渲染并非markdown引擎(后端渲染)做的，而是采用的第三方<code>前端渲染引擎</code>。其原理类似公式渲染引擎<code>mathjax</code>。</p>
+<p>因此，这种流程图和时序图很容易嵌入到hexo博客中，而且已经有了相关的插件。</p>
+<h2 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h2><div id="flowchart-0" class="flow-chart"></div>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/pub/488fc27f/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/7b76f7b5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/pub/7b76f7b5/" class="post-title-link" itemprop="url">非对称加密 - RSA</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-10-07 00:00:00" itemprop="dateCreated datePublished" datetime="2018-10-07T00:00:00+08:00">2018-10-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/security/" itemprop="url" rel="index"><span itemprop="name">security</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/security/%E5%AF%86%E7%A0%81%E5%AD%A6/" itemprop="url" rel="index"><span itemprop="name">密码学</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/security/%E5%AF%86%E7%A0%81%E5%AD%A6/%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86/" itemprop="url" rel="index"><span itemprop="name">非对称加密</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>令人费解的"公钥加密算法"</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/pub/7b76f7b5/">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/3a02a648/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/pub/3a02a648/" class="post-title-link" itemprop="url">【RNN系列】SRU</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-10-06 00:00:00" itemprop="dateCreated datePublished" datetime="2018-10-06T00:00:00+08:00">2018-10-06</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/model-basic/" itemprop="url" rel="index"><span itemprop="name">model-basic</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/model-basic/RNN/" itemprop="url" rel="index"><span itemprop="name">RNN</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>RNN、LSTM、GRU都存在一个严重的问题: 前后两个时刻 $t-1$ 和 $t$ 的计算存在完全的依赖性。这种自回归结构无法并行，不能充分利用GPU计算资源。</p>
+<blockquote>
+<p>the sequential dependencies that are central to recurrent architectures limit parallelization potential</p>
+</blockquote>
+<table border="1"><tbody><tr><td width="50%"><image title="LSTM的结构" src="/images/raw/NN - RNN - LSTM - tensorflow with Equation 2 - colah.png"></image></td><td width="50%"><img title="GRU的结构" src="/images/raw/NN - RNN - GRU with Equation - colah.png"></td></tr></tbody></table>
+
+
+<blockquote>
+<p>GRU对LSTM进行了简化，详见<a href="/pub/c79f2f90">GRU</a>。</p>
+</blockquote>
+<p>注意观察$c _  {t-1} $ 和 $ h _  {t-1}$的流向。很容易发现，这两个信息几乎影响每一个节点，因此LSTM和GRU是严重的autoregressive，严重的时序依赖。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/pub/3a02a648/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/fb455505/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/pub/fb455505/" class="post-title-link" itemprop="url">【比特币源码】交易 transaction</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-09-29 18:38:48" itemprop="dateCreated datePublished" datetime="2018-09-29T18:38:48+08:00">2018-09-29</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/block-chain/" itemprop="url" rel="index"><span itemprop="name">block-chain</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/block-chain/%E8%99%9A%E6%8B%9F%E8%B4%A7%E5%B8%81/" itemprop="url" rel="index"><span itemprop="name">虚拟货币</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/block-chain/%E8%99%9A%E6%8B%9F%E8%B4%A7%E5%B8%81/%E5%B8%81%E7%A7%8D/" itemprop="url" rel="index"><span itemprop="name">币种</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/block-chain/%E8%99%9A%E6%8B%9F%E8%B4%A7%E5%B8%81/%E5%B8%81%E7%A7%8D/%E6%AF%94%E7%89%B9%E5%B8%81-BTC/" itemprop="url" rel="index"><span itemprop="name">比特币-BTC</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/block-chain/%E8%99%9A%E6%8B%9F%E8%B4%A7%E5%B8%81/%E5%B8%81%E7%A7%8D/%E6%AF%94%E7%89%B9%E5%B8%81-BTC/%E6%BA%90%E7%A0%81/" itemprop="url" rel="index"><span itemprop="name">源码</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/block-chain/%E8%99%9A%E6%8B%9F%E8%B4%A7%E5%B8%81/%E5%B8%81%E7%A7%8D/%E6%AF%94%E7%89%B9%E5%B8%81-BTC/%E6%BA%90%E7%A0%81/%E5%9F%BA%E6%9C%AC%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">基本的数据结构</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/block-chain/%E8%99%9A%E6%8B%9F%E8%B4%A7%E5%B8%81/%E5%B8%81%E7%A7%8D/%E6%AF%94%E7%89%B9%E5%B8%81-BTC/%E6%BA%90%E7%A0%81/%E5%9F%BA%E6%9C%AC%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/primitive/" itemprop="url" rel="index"><span itemprop="name">primitive</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="名词-术语"><a href="#名词-术语" class="headerlink" title="名词 术语"></a>名词 术语</h1><ul>
+<li><strong>交易</strong>: 简单地说，交易指把⽐特币从⼀个地址转到另⼀个地址。更准确地说，⼀笔“交易”指⼀个经过签名运算的，表达价值转移的<br>数据结构。每⼀笔“交易”都经过⽐特币⽹络传输，由矿⼯节点收集并封包⾄区块中，永久保存在区块链某处。</li>
+<li><strong>交易验证</strong>: 被验证成功的交易放入本地内存交易池中（Local Memory Tx Pool，交易池是存储在本地内存中，并不是存储在硬盘里，因此不同节点的两池内容可能有很大差别。原则是，要保证任何在<strong>本地内存交易池中的交易均是未确认的</strong>。</li>
+<li><strong>交易确认</strong>: 当⼀项交易被区块收录时，我们可以说它有⼀次确认。矿⼯们在此区块之后每再产⽣⼀个区块，此项交易的确认数就再加⼀。当确认数达到六及以上时，通常认为这笔交易⽐较安全并难以逆转。<ul>
+<li>确认数+1什么意思？</li>
+</ul>
+</li>
+<li><strong>交易权重</strong>: 挨个打包进入到区块体中；优先处理权重最高的交易；偶尔会出现提示：”当前网路交易拥堵，建议提高交易费用”。正是因为按照优先级处理，所以在网络交易拥堵的时候，有可能造成<strong>低优先级的交易“永远”不会被打包</strong>。交易的权重大小取决于三个因素：1）交易创建时间越早；2）交易UTXO大小越大；3）交易费用越高，则权重越大。</li>
+<li><strong>⼯作量证明</strong>: ⼯作量证明指通过有效计算得到的⼀⼩块数据。具体到⽐特币，矿⼯必须要在满⾜全⽹⽬标难度的情况下求解SHA256算法</li>
+</ul>
+<ul>
+<li><strong>难度</strong>: 整个⽹络会通过调整“难度”这个变量来控制⽣成⼯作量证明所需要的计算⼒。难度怎样调整的，见。。</li>
+<li><strong>难度⽬标</strong>: 使整个⽹络的计算⼒⼤致每10分钟产⽣⼀个区块所需要的难度数值即为难度⽬标。</li>
+<li><strong>难度调整</strong>: 整个⽹络每产⽣2,106个区块后会根据之前2,106个区块的算⼒进⾏难度调整。</li>
+</ul>
+<h1 id="ss"><a href="#ss" class="headerlink" title="ss"></a>ss</h1><p>⽐特币交易是⽐特币系统中最重要的部分。根据⽐特币系统的设计原理，<strong>系统中任何其他的部分都是为了确保⽐特币交易可<br>以被⽣成、能在⽐特币⽹络中得以传播和通过验证，并最终添加⼊全球⽐特币交易总账簿</strong>（⽐特币区块链）。⽐特币交易的<br>本质是数据结构，这些数据结构中含有⽐特币交易参与者价值转移的相关信息。⽐特币区块链是全球复式记账总账簿，每个⽐特币交易都是在⽐特币区块链上的⼀个公开记录。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/pub/fb455505/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/ab933edd/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/pub/ab933edd/" class="post-title-link" itemprop="url">python c java 的变量、堆、栈</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-09-16 00:00:00" itemprop="dateCreated datePublished" datetime="2018-09-16T00:00:00+08:00">2018-09-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/" itemprop="url" rel="index"><span itemprop="name">programing</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/lan/" itemprop="url" rel="index"><span itemprop="name">lan</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="背景知识"><a href="#背景知识" class="headerlink" title="背景知识"></a>背景知识</h1><ul>
+<li><strong>栈</strong>: 是向<code>低地址扩展</code>的数据结构，是一块<code>连续的内存区域</code>。 栈顶的地址和栈的最大容量是系统预先规定好的，在 WINDOWS 下，栈的大小是 2M （也有的说是 1M ，总之是一个编译时就确定的常数），如果申请的空间超过栈的剩余空间时，将提示 overflow 。因此，能从栈获得的空间较小。<ul>
+<li>由系统自动分配，速度较快。但程序员是无法控制的</li>
+</ul>
+</li>
+<li><strong>堆</strong>：是向<code>高地址扩展</code>的数据结构，是<code>不连续的内存区域</code>。这是由于系统是用链表来存储的空闲内存地址的，自然是不连续的，而链表的遍历方向是由低地址向高地址。堆的大小受限于计算机系统中有效的虚拟内存。由此可见，堆获得的空间比较灵活，也比较大。<ul>
+<li>堆是由 new 分配的内存，一般速度比较慢，而且容易产生内存碎片 , 不过用起来最方便 。</li>
+</ul>
+</li>
+<li>变量</li>
+<li>二进制存储，数值在内存中的表示</li>
+<li></li>
+</ul>
+<h1 id="many-languages-have-“variables”"><a href="#many-languages-have-“variables”" class="headerlink" title="many languages have “variables”"></a>many languages have “variables”</h1><p>计算机内存就像是很多盒子的集合体，每个盒子都有地址。<br>在很多语言中，给变量赋值可以理解成把value放入盒子，比如：</p>
+<table width="auto !important" border="1"><colgroup><col width="120"><col width="120"></colgroup><tbody><tr><td><code>int a = 1;</code></td><td><img src="/images/raw/Language - Python - a1box.png"></td></tr></tbody></table>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/pub/ab933edd/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/c6654282/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/pub/c6654282/" class="post-title-link" itemprop="url">递归</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-09-16 00:00:00" itemprop="dateCreated datePublished" datetime="2018-09-16T00:00:00+08:00">2018-09-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/" itemprop="url" rel="index"><span itemprop="name">programing</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/algorithm/" itemprop="url" rel="index"><span itemprop="name">algorithm</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/algorithm/%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/" itemprop="url" rel="index"><span itemprop="name">编程思想</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/algorithm/%E7%BC%96%E7%A8%8B%E6%80%9D%E6%83%B3/%E5%88%86%E8%80%8C%E6%B2%BB%E4%B9%8B/" itemprop="url" rel="index"><span itemprop="name">分而治之</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>832</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="递归"><a href="#递归" class="headerlink" title="递归"></a>递归</h1><p>递归是⼀种优雅的问题解决⽅法，<br>是一种分⽽治之(divide and conquer，D&amp;C)的⽅法。<br>递归，就是函数调⽤⾃⼰。</p>
+<p>递归的<strong>核心思想</strong> 就是：把问题分解成规模更小，但和原问题有着相同解法的问题。</p>
+<h2 id><a href="#" class="headerlink" title></a></h2><p>编写递归函数时，必须告诉它何时停⽌递归。正因为如此，每个递归函数都有两部分：</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/pub/c6654282/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/4e753448/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/pub/4e753448/" class="post-title-link" itemprop="url">数学体系架构</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-08-26 00:00:00" itemprop="dateCreated datePublished" datetime="2018-08-26T00:00:00+08:00">2018-08-26</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Math/" itemprop="url" rel="index"><span itemprop="name">Math</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><script src="//cdn.jsdelivr.net/npm/echarts@5.1.1/dist/echarts.min.js"></script>
+<div id="mathchart" style="height:600px;"></div>
+<script type="text/javascript">var myChart = echarts.init(document.getElementById('mathchart')); myChart.showLoading(); var data1 = { "name": "数学", "children": [ { "name": "代数", "children": [ {"name": "表示论", "value": 1616}, {"name": "调换代数", "value": 1027}, {"name": "同调代数", "value": 3891}, {"name": "李代数", "value": 891}, {"name": "代数数论", "value": 2893}, { "name": "其他", "children": [ {"name": "add", "value": 593}, {"name": "and", "value": 330} ] } ] }, { "name": "几何", "children": [ {"name": "代数几何", "value": 2105}, {"name": "微分几何", "value": 1316}, {"name": "黎曼几何", "value": 3151}, {"name": "代数拓扑", "value": 3770} ] }, { "name": "分析", "children": [ {"name": "泛函分析", "value": 2105}, {"name": "调和分析", "value": 1316}, {"name": "数学物理", "value": 3151}, {"name": "动力系统", "value": 3770}, {"name": "偏微分方程", "value": 3151}, {"name": "变分", "value": 3151} ] } ] }; myChart.hideLoading(); myChart.setOption(option = { tooltip: { trigger: 'item', triggerOn: 'mousemove' }, legend: { top: '2%', left: '3%', orient: 'vertical', data: [{ name: 'tree1', icon: 'rectangle' } , { name: 'tree2', icon: 'rectangle' }], borderColor: '#c23531' }, series:[ { type: 'tree', name: 'tree1', data: [data1], top: '5%', left: '7%', bottom: '2%', right: '60%', symbolSize: 7, label: { normal: { position: 'left', verticalAlign: 'middle', align: 'right' } }, leaves: { label: { normal: { position: 'right', verticalAlign: 'middle', align: 'left' } } }, expandAndCollapse: true, animationDuration: 550, animationDurationUpdate: 750 } ] });</script>
+
+<!-- edit in  https://jsfiddle.net/xusong/z2qnLvcd/1/ -->
+<div id="mathchart2" style="height:600px;"></div>
+ <script type="text/javascript"> var myChart = echarts.init(document.getElementById('mathchart2')); myChart.showLoading(); var data = { "name": "数学", "children": [{ "name": "数论", "children": [{ "name": "初等数论" }, { "name": "解析数论" }, { "name": "代数数论" }, { "name": "超越数论" }, { "name": "概率数论" }, { "name": "计算数论" }, { "name": "其他" } ] }, { "name": "代数学", "children": [{ "name": "线性代数" }, { "name": "群论" }, { "name": "域论", "value": 1041 }, { "name": "李群", "value": 5176 }, { "name": "李代数", "value": 449 }, { "name": "Kac-Moody代数", "value": 5593 }, { "name": "环论", "value": 5534 }, { "name": "同调代数", "value": 9201 }, { "name": "微分代数", "value": 19975 }, { "name": "其他", "value": 1116 } ] }, { "name": "几何学", "children": [{ "name": "几何学基础" }, { "name": "欧式几何", "value": 1759 }, { "name": "非欧几何", "value": 2165 }, { "name": "球面几何", "value": 586 }, { "name": "向量和张量分析", "value": 3331 }, { "name": "仿射几何", "value": 772 }, { "name": "射影几何", "value": 3322 }, { "name": "微分几何", "value": 3322 }, { "name": "计算几何", "value": 3322 }, { "name": "分数维几何", "value": 3322 }, { "name": "其他", "value": 3322 } ] }, { "name": "拓扑学", "children": [{ "name": "点集拓扑学", "value": 1103110 }, { "name": "代数拓扑学", "value": 1732 }, { "name": "几何拓扑学", "value": 3623 }, { "name": "奇点理论", "value": 10066 }, { "name": "微分拓扑学", "value": 10066 } ] }, { "name": "数学分析", "children": [{ "name": "微分学", "value": 4116 }, { "name": "积分学", "value": 4116 }, { "name": "级数论", "value": 4116 }, { "name": "泛函分析", "children": [{ "name": "线性算子理论", "value": 1082 }, { "name": "变分法", "value": 1336 }, { "name": "拓扑线性空间", "value": 319 }, { "name": "希尔伯特空间", "value": 10498 }, { "name": "函数空间", "value": 2822 }, { "name": "算子代数", "value": 9983 }, { "name": "广义函数论", "value": 2213 }, { "name": "非线性泛函分析", "value": 1681 } ] } ] }, { "name": "计算数学", "children": [{ "name": "常微分方程数值解", "value": 1082 }, { "name": "偏微分方程数值解", "value": 1336 }, { "name": "积分变换与积分方程数值方法", "value": 319 }, { "name": "数值计算", "value": 10498 }, { "name": "优化计算方法", "value": 2822 }, { "name": "数值逼近与计算几何", "value": 9983 }, { "name": "小波分析与傅立叶分析的数值方法", "value": 2213 } ] }, { "name": "概率论", "children": [{ "name": "几何概率", "value": 1616 }, { "name": "概率分布", "value": 1027 }, { "name": "极限理论", "value": 3891 }, { "name": "随机过程", "value": 891 }, { "name": "马尔科夫过程", "value": 2893 }, { "name": "随机分析", "value": 5103 }, { "name": "鞅论", "value": 3677 }, { "name": "应用概率论", "value": 781 } ] }, { "name": "数理统计学", "children": [{ "name": "抽样理论", "value": 2105 }, { "name": "假设检验", "value": 1316 }, { "name": "非参数统计", "value": 3151 }, { "name": "方差分析", "value": 3770 }, { "name": "相关回归分析", "value": 2435 }, { "name": "统计推断", "value": 4839 }, { "name": "贝叶斯统计", "value": 1756 }, { "name": "试验设计", "value": 4268 }, { "name": "多元分析", "value": 1821 }, { "name": "时间序列分析", "value": 5833 } ] } ] }; myChart.hideLoading(); echarts.util.each(data.children, function(datum, index) { index % 2 === 0 && (datum.collapsed = true); }); myChart.setOption(option = { tooltip: { trigger: 'item', triggerOn: 'mousemove' }, series: [{ type: 'tree', data: [data], top: '1%', left: '7%', bottom: '1%', right: '20%', symbolSize: 7, label: { normal: { position: 'left', verticalAlign: 'middle', align: 'right', fontSize: 9 } }, leaves: { label: { normal: { position: 'right', verticalAlign: 'middle', align: 'left' } } }, expandAndCollapse: true, animationDuration: 550, animationDurationUpdate: 750 }] }); </script>
+维基百科这样分
+
+<ul>
+<li>代数（初等 线性 多重线性 抽象）</li>
+<li>分析/微积分学</li>
+<li>几何 (离散 代数 解析 微分 有限)</li>
+</ul>
+<h1 id="概念-amp-分支"><a href="#概念-amp-分支" class="headerlink" title="概念 &amp; 分支"></a>概念 &amp; 分支</h1>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/pub/4e753448/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/e85b0673/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/pub/e85b0673/" class="post-title-link" itemprop="url">softmax的困扰、改进</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-08-23 00:00:00" itemprop="dateCreated datePublished" datetime="2018-08-23T00:00:00+08:00">2018-08-23</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/trick/" itemprop="url" rel="index"><span itemprop="name">trick</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><h2 id="数学上的softmax"><a href="#数学上的softmax" class="headerlink" title="数学上的softmax"></a>数学上的softmax</h2><p>在数学，尤其是概率论和相关领域中，Softmax函数，或称归一化指数函数，是逻辑函数的一种推广。它能将一个含任意实数的K维向量  ${\displaystyle \mathbf {z} }$“压缩”到另一个K维实向量  ${\displaystyle \sigma (\mathbf {z} )}$ 中，使得每一个元素的范围都在 ${\displaystyle (0,1)}$ 之间，并且所有元素的和为1。该函数的形式通常按下面的式子给出：</p>
+<p>$${\displaystyle \sigma (\mathbf {z} ) _ {j}={\frac {e^{z_ {j}}}{\sum _ {k=1}^{K}e^{z_ {k}}}}}   \quad j = 1, …, K.$$</p>
+<h2 id="softmax的应用"><a href="#softmax的应用" class="headerlink" title="softmax的应用"></a>softmax的应用</h2>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/pub/e85b0673/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/ed599e37/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/pub/ed599e37/" class="post-title-link" itemprop="url">python collection</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-08-23 00:00:00" itemprop="dateCreated datePublished" datetime="2018-08-23T00:00:00+08:00">2018-08-23</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/" itemprop="url" rel="index"><span itemprop="name">programing</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/lan/" itemprop="url" rel="index"><span itemprop="name">lan</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/lan/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/lan/python/%E5%86%85%E5%BB%BA%E6%A8%A1%E5%9D%97/" itemprop="url" rel="index"><span itemprop="name">内建模块</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/lan/python/%E5%86%85%E5%BB%BA%E6%A8%A1%E5%9D%97/collection/" itemprop="url" rel="index"><span itemprop="name">collection</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>569</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>collections — High-performance container datatypes¶</p>
+</blockquote>
+<p>collections是Python内建的一个集合模块，<br>在2.4版本开始被引入，该模块实现了<code>专用容器数据类型</code>来<strong>替代</strong>python的<code>通用内置容器</code>：dict（字典），list（列表）， set（集合）和tuple（元组）。</p>
+<table>
+<thead>
+<tr>
+<th>容器</th>
+<th>中文名</th>
+<th>简介</th>
+<th>引入版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>namedtuple()</td>
+<td>命名元组</td>
+<td>使用工厂方法创建带有命名的字段的元组的子类</td>
+<td>2.6</td>
+</tr>
+<tr>
+<td>deque</td>
+<td>双向队列</td>
+<td>类似列表的容器，能够快速响应在任何一端进行pop</td>
+<td>2.4</td>
+</tr>
+<tr>
+<td>Counter</td>
+<td>计数器</td>
+<td>字典子类，为可以进行<strong>哈希</strong>的对象计数</td>
+<td>2.7</td>
+</tr>
+<tr>
+<td>OrderedDict</td>
+<td>有序字典</td>
+<td>字典子类，记录了字典的添加次序</td>
+<td>2.7</td>
+</tr>
+<tr>
+<td>defaultdict</td>
+<td>字典</td>
+<td>字典子类，调用一个工厂方法来提供缺失的值</td>
+<td>2.5</td>
+</tr>
+</tbody></table>
+<p>除了具体的容器类，collections模块还提供了abstract_base_classes来测试一个类是否体用了一个特定的接口，例如，这是可哈希的还是一个映射。</p>
+<p>在2.4版本中新加入，。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/pub/ed599e37/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/3da24a26/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/pub/3da24a26/" class="post-title-link" itemprop="url">tensorflow中的几种模型文件</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-08-08 00:00:00" itemprop="dateCreated datePublished" datetime="2018-08-08T00:00:00+08:00">2018-08-08</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/toolbox/" itemprop="url" rel="index"><span itemprop="name">toolbox</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/toolbox/tensorflow/" itemprop="url" rel="index"><span itemprop="name">tensorflow</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/toolbox/tensorflow/graph-checkpoint/" itemprop="url" rel="index"><span itemprop="name">graph-checkpoint</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>TensorFlow 支持多种模型格式，但这些格式都有什么区别？</p>
+<h2 id="名词"><a href="#名词" class="headerlink" title="名词"></a>名词</h2><ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly93d3cudGVuc29yZmxvdy5vcmcvZ3VpZGUvdmFyaWFibGVz">variable<i class="fa fa-external-link-alt"></i></span>: 变量</li>
+<li><span class="exturl" data-url="aHR0cHM6Ly93d3cudGVuc29yZmxvdy5vcmcvZ3VpZGUvZ3JhcGhz">graph<i class="fa fa-external-link-alt"></i></span>: 计算图</li>
+<li><span class="exturl" data-url="aHR0cHM6Ly93d3cudGVuc29yZmxvdy5vcmcvYXBpX2d1aWRlcy9weXRob24vbWV0YV9ncmFwaCNXaGF0X3NfaW5fYV9NZXRhR3JhcGg=">MetaGraph<i class="fa fa-external-link-alt"></i></span><br>  包含Graph和metadata信息</li>
+</ul>
+<p><span class="exturl" data-url="aHR0cHM6Ly93d3cudGVuc29yZmxvdy5vcmcvZXh0ZW5kL3Rvb2xfZGV2ZWxvcGVycy8jcHJvdG9jb2xfYnVmZmVycw==">protobuf<i class="fa fa-external-link-alt"></i></span><br>    全称Protocol Buffers，是Google开源的一个<strong>语言无关</strong>、<strong>平台无关</strong> 的序列化协议，用于不同应用或进程之间的通信。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/pub/3da24a26/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+
+  
+  <nav class="pagination">
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/14/">14</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+  </nav>
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+
+</body>
+</html>

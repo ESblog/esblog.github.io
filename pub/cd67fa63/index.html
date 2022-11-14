@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="简介首先，这不是一个git命令教程，这是一个用于快速理解git命令的辅助文档。 用了git几年了，每次遇到疑难杂症都要现查，归其原因，是不了解git命令背后到底做了什么。 于是决定整理一下思路。 术语">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一图知git">
+<meta property="og:url" content="https://blog.eson.org/pub/cd67fa63/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="简介首先，这不是一个git命令教程，这是一个用于快速理解git命令的辅助文档。 用了git几年了，每次遇到疑难杂症都要现查，归其原因，是不了解git命令背后到底做了什么。 于是决定整理一下思路。 术语">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.eson.org/images/raw/Git%20-%20summary.svg">
+<meta property="article:published_time" content="2018-01-25T19:08:53.000Z">
+<meta property="article:modified_time" content="2021-06-21T08:48:04.064Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="git">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.eson.org/images/raw/Git%20-%20summary.svg">
+
+<link rel="canonical" href="https://blog.eson.org/pub/cd67fa63/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>一图知git | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/cd67fa63/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          一图知git
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-01-26 03:08:53" itemprop="dateCreated datePublished" datetime="2018-01-26T03:08:53+08:00">2018-01-26</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/tools/" itemprop="url" rel="index"><span itemprop="name">tools</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/tools/%E5%90%8C%E6%AD%A5%E4%B8%8E%E7%89%88%E6%9C%AC%E7%AE%A1%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">同步与版本管理</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/tools/%E5%90%8C%E6%AD%A5%E4%B8%8E%E7%89%88%E6%9C%AC%E7%AE%A1%E7%90%86/git/" itemprop="url" rel="index"><span itemprop="name">git</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>首先，这不是一个git命令教程，这是一个用于快速理解git命令的辅助文档。</p>
+<p>用了git几年了，每次遇到疑难杂症都要现查，归其原因，是不了解git命令背后到底做了什么。</p>
+<p>于是决定整理一下思路。</p>
+<h2 id="术语"><a href="#术语" class="headerlink" title="术语"></a>术语</h2><p><strong>存储位置</strong></p>
+<ul>
+<li><p>工作区：working_directory，working_tree，workspace</p>
+</li>
+<li><p>暂存区：stage, index  (加入到暂存区的更改：staged/indexed changes, add changes to stage/index)</p>
+</li>
+<li><p>本地仓库： local_repository, local_commit_history，history</p>
+</li>
+<li><p>远程仓库：remote_repository</p>
+</li>
+<li><p>快照：snapshot</p>
+</li>
+<li><p>Blobs:   即files</p>
+</li>
+</ul>
+<p><strong>文件状态</strong></p>
+<ul>
+<li>Untrack file：新文件，从未被add的文件。下一步操作往往是<code>git add</code>或者加入<code>.gitignore</code>中</li>
+<li></li>
+</ul>
+<p>**changes **</p>
+<ul>
+<li>Changes to be committed</li>
+<li>Changes not staged for commit</li>
+</ul>
+<p><strong>操作</strong><br>stage操作：git add<br>commit操作：git commit</p>
+<p><strong>指针</strong><br>指针指向实体</p>
+<ul>
+<li>HEAD指针<ul>
+<li>正常状态: 指向一个<branch> (确切说是named branch)</li>
+<li>Detached HEAD: 指向了anonymous branch，即<commit></li>
+<li>null: 不可能出现这个状态</li>
+</ul>
+</li>
+<li>master</li>
+</ul>
+<p><strong>HEAD指针状态</strong></p>
+<p><strong>实体</strong><br>hash<br><commit>、<branch>、<tree-ish>、<start point>什么区别？<br>能写master<del>吗？能写 jkjdka</del>吗？</p>
+<p>参考 <span class="exturl" data-url="aHR0cHM6Ly9zdGFja292ZXJmbG93LmNvbS9xdWVzdGlvbnMvMjMzMDM1NDkvd2hhdC1hcmUtY29tbWl0LWlzaC1hbmQtdHJlZS1pc2gtaW4tZ2l0">https://stackoverflow.com/questions/23303549/what-are-commit-ish-and-tree-ish-in-git<i class="fa fa-external-link-alt"></i></span></p>
+<h2 id="上图"><a href="#上图" class="headerlink" title="上图"></a>上图</h2><img src="/images/raw/Git - summary.svg" height="110%" width="110%">
+
+
+
+<p>有点紧凑，建议放大看</p>
+<h2 id="看图说话"><a href="#看图说话" class="headerlink" title="看图说话"></a>看图说话</h2><p><strong>入门</strong>：<br><span class="exturl" data-url="aHR0cHM6Ly9naXQtc2NtLmNvbS9kb2NzL2dpdC1hZGQ=">git add<i class="fa fa-external-link-alt"></i></span> : 读取工作区文件，写入暂存区 (1个箭头代表1个写操作)</p>
+<p><strong>进阶</strong>：</p>
+<p><span class="exturl" data-url="aHR0cHM6Ly9naXQtc2NtLmNvbS9kb2NzL2dpdC1jaGVja291dA==">git checkout &lt;branch&gt;<i class="fa fa-external-link-alt"></i></span>: 移动本地仓库中的HEAD指针到指定branch，更新index，更新工作区文件 (3个箭头)</p>
+<p><span class="exturl" data-url="aHR0cHM6Ly9naXQtc2NtLmNvbS9kb2NzL2dpdC1yZXNldA==">git reset –soft<i class="fa fa-external-link-alt"></i></span>：撤销指定commit，移动HEAD (不涉及工作区、暂存区、远程仓库的操作)</p>
+<p>soft mixed hard三个参数的区别也一目了然<br>…</p>
+<h2 id="所有涉及更改index区域的操作"><a href="#所有涉及更改index区域的操作" class="headerlink" title="所有涉及更改index区域的操作"></a><span class="exturl" data-url="aHR0cHM6Ly9naXQtc2NtLmNvbS9kb2NzL2dpdC1jb21taXQ=">所有涉及更改index区域的操作<i class="fa fa-external-link-alt"></i></span></h2><ul>
+<li><p>git add</p>
+</li>
+<li><p>git rm</p>
+</li>
+<li><p>by listing files as arguments to the commit command (without –interactive or –patch switch), in which case the commit will ignore changes staged in the index, and instead record the current content of the listed files (which must already be known to Git);</p>
+</li>
+<li><p>by using the -a switch with the commit command to automatically “add” changes from all known files (i.e. all files that are already listed in the index) and to automatically “rm” files in the index that have been removed from the working tree, and then perform the actual commit;</p>
+</li>
+<li><p>by using the –interactive or –patch switches with the commit command to decide one by one which files or hunks should be part of the commit in addition to contents in the index, before finalizing the operation. See the “Interactive Mode” section of git-add[1] to learn how to operate these modes.</p>
+</li>
+</ul>
+<h2 id="逆向操作-undo"><a href="#逆向操作-undo" class="headerlink" title="逆向操作(undo)"></a>逆向操作(undo)</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">git add                 <span class="comment"># 加入index</span></span><br><span class="line">git reset –mixed HEAD   <span class="comment"># 撤销index  对不，是checkout吗？</span></span><br><span class="line"></span><br><span class="line">git commit              <span class="comment">#</span></span><br><span class="line">git commit --amend  </span><br><span class="line"></span><br><span class="line">git reset –soft HEAD~   <span class="comment"># 撤销尚未push的commit</span></span><br><span class="line"></span><br><span class="line">git add + git commit    <span class="comment">#</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">git push    </span><br><span class="line">push不支持撤销操作       <span class="comment"># 如何撤销已经push的commit？</span></span><br><span class="line"></span><br><span class="line">git push –force         <span class="comment"># 覆盖远程仓库提交历史(太狠)</span></span><br><span class="line">                        <span class="comment"># 参考 https://www.borfast.com/blog/2014/10/19/how-to-undo-a-git-push---force-and-undelete-things/</span></span><br><span class="line">git rm file             <span class="comment"># 删除文件和index</span></span><br><span class="line">git checkout HEAD file  <span class="comment"># 恢复文件和index (index中已经没有该文件的信息，只能从仓库的HEAD中恢复文件)</span></span><br><span class="line"></span><br><span class="line">git rm -r dir           <span class="comment"># 删除整个目录及相应index</span></span><br><span class="line">git checkout HEAD dir   <span class="comment"># 恢复</span></span><br><span class="line"></span><br><span class="line">git add −p</span><br><span class="line">git reset −p</span><br><span class="line"></span><br><span class="line">git stash</span><br><span class="line">git stash pop</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">git pull --rebase origin master  <span class="comment"># rebase操作过程是把本地提交一次一个地迁移到更新了的中央仓库master分支之上。</span></span><br><span class="line">                                 <span class="comment"># 如果你忘加了这个选项，pull操作仍然可以完成，但每次pull操作要同步中央仓库中别人修改时，提交历史会以一个多余的『合并提交』结尾。 </span></span><br><span class="line">git rebase --<span class="built_in">continue</span></span><br><span class="line">git rebase --abort       <span class="comment"># 碰到了冲突，但发现搞不定，这可以回到 git pull --rebase命令前的样子</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>两个git add 会怎样？会merge为一个吧？git add + rm 前面的add的changes就完全丢了吧？</p>
+<p>If you don’t have <code>uncommited changes</code> for removed files, the</p>
+<p>如何撤销已经push的commit？</p>
+<p>如何撤销已经force push的commit？</p>
+<p><span class="exturl" data-url="aHR0cHM6Ly93d3cuYm9yZmFzdC5jb20vYmxvZy8yMDE0LzEwLzE5L2hvdy10by11bmRvLWEtZ2l0LXB1c2gtLS1mb3JjZS1hbmQtdW5kZWxldGUtdGhpbmdzLw==">https://www.borfast.com/blog/2014/10/19/how-to-undo-a-git-push---force-and-undelete-things/<i class="fa fa-external-link-alt"></i></span></p>
+<p>Reset</p>
+<h2 id="关于该图的改进"><a href="#关于该图的改进" class="headerlink" title="关于该图的改进"></a>关于该图的改进</h2><ul>
+<li>捡重要的命令放 (init clone不要放)</li>
+<li>布局，整体，有点丑</li>
+</ul>
+<h2 id="待看"><a href="#待看" class="headerlink" title="待看"></a>待看</h2><p><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2dlZWVlZWVlZWVrL2dpdC1yZWNpcGVzL2Jsb2IvbWFzdGVyL3NvdXJjZXMvJUU2JUEzJTgwJUU1JTg3JUJBJUU0JUJCJUE1JUU1JTg5JThEJUU3JTlBJTg0JUU2JThGJTkwJUU0JUJBJUE0Lm1k">https://github.com/geeeeeeeeek/git-recipes/blob/master/sources/%E6%A3%80%E5%87%BA%E4%BB%A5%E5%89%8D%E7%9A%84%E6%8F%90%E4%BA%A4.md<i class="fa fa-external-link-alt"></i></span></p>
+<p><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2dlZWVlZWVlZWVrL2dpdC1yZWNpcGVzL2Jsb2IvbWFzdGVyL3NvdXJjZXMvJUU0JUJCJUEzJUU3JUEwJTgxJUU1JTkwJTg4JUU1JUI5JUI2TWVyZ2UlRTglQkYlOTglRTYlOTglQUZSZWJhc2UubWQ=">代码合并：Merge、Rebase 的选择<i class="fa fa-external-link-alt"></i></span><br><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2dlZWVlZWVlZWVrL2dpdC1yZWNpcGVzL2Jsb2IvbWFzdGVyL3NvdXJjZXMvJUU5JTg3JThEJUU1JTg2JTk5JUU5JUExJUI5JUU3JTlCJUFFJUU1JThFJTg2JUU1JThGJUIyLm1k">重写项目历史<i class="fa fa-external-link-alt"></i></span><br><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2dlZWVlZWVlZWVrL2dpdC1yZWNpcGVzL2Jsb2IvbWFzdGVyL3NvdXJjZXMvJUU1JUI4JUI4JUU4JUE3JTgxJUU1JUI3JUE1JUU0JUJEJTlDJUU2JUI1JTgxJUU2JUFGJTk0JUU4JUJFJTgzLm1k">常见工作流比较<i class="fa fa-external-link-alt"></i></span></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly9zdGFja292ZXJmbG93LmNvbS9xdWVzdGlvbnMvMjkyMzU3L3doYXQtaXMtdGhlLWRpZmZlcmVuY2UtYmV0d2Vlbi1naXQtcHVsbC1hbmQtZ2l0LWZldGNoLzI5MjM1OQ==">https://stackoverflow.com/questions/292357/what-is-the-difference-between-git-pull-and-git-fetch/292359<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXQtc2NtLmNvbS9kb2Nz">官方doc<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cDovL21hcmtsb2RhdG8uZ2l0aHViLmlvL3Zpc3VhbC1naXQtZ3VpZGUvaW5kZXgtemgtY24uaHRtbA==">图解git<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+<h2 id="待续"><a href="#待续" class="headerlink" title="待续"></a>待续</h2>
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/d2f02b9b/" rel="bookmark">Coding Pages托管静态博客-原理浅析</a></div>
+    </li>
+  </ul>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/git/" rel="tag"># git</a>
+          </div>
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/87420f16/" rel="prev" title="DNS解析之“记录类型”">
+      <i class="fa fa-chevron-left"></i> DNS解析之“记录类型”
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/pub/8f55a23/" rel="next" title="Python 对象初探">
+      Python 对象初探 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%AF%E8%AF%AD"><span class="nav-number">2.</span> <span class="nav-text">术语</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8A%E5%9B%BE"><span class="nav-number">3.</span> <span class="nav-text">上图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9C%8B%E5%9B%BE%E8%AF%B4%E8%AF%9D"><span class="nav-number">4.</span> <span class="nav-text">看图说话</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%80%E6%9C%89%E6%B6%89%E5%8F%8A%E6%9B%B4%E6%94%B9index%E5%8C%BA%E5%9F%9F%E7%9A%84%E6%93%8D%E4%BD%9C"><span class="nav-number">5.</span> <span class="nav-text">所有涉及更改index区域的操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%86%E5%90%91%E6%93%8D%E4%BD%9C-undo"><span class="nav-number">6.</span> <span class="nav-text">逆向操作(undo)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E%E8%AF%A5%E5%9B%BE%E7%9A%84%E6%94%B9%E8%BF%9B"><span class="nav-number">7.</span> <span class="nav-text">关于该图的改进</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BE%85%E7%9C%8B"><span class="nav-number">8.</span> <span class="nav-text">待看</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">9.</span> <span class="nav-text">参考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BE%85%E7%BB%AD"><span class="nav-number">10.</span> <span class="nav-text">待续</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : 'cd67fa63',
+      //id          : 'f763a8845ac4dfd44852eecf75e1be73',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="简介在2017年5月Facebook发布了ConvSeq2Seq模型吊打了GNMT一个月之后，Google发出了最强有力的反击，发表了一篇论文Attention is all you need，文中提出了一种新的架构叫做Transformer，用以来实现机器翻译。它抛弃了传统的CNN、RNN，只采用attention，取得了很好的效果，激起了工业界和学术界的广泛讨论。 背景，motivation如">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【机器翻译】transformer">
+<meta property="og:url" content="https://blog.eson.org/pub/664e9bad/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="简介在2017年5月Facebook发布了ConvSeq2Seq模型吊打了GNMT一个月之后，Google发出了最强有力的反击，发表了一篇论文Attention is all you need，文中提出了一种新的架构叫做Transformer，用以来实现机器翻译。它抛弃了传统的CNN、RNN，只采用attention，取得了很好的效果，激起了工业界和学术界的广泛讨论。 背景，motivation如">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20Attention%20-%20Encoder-Decoder%20Attention.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20Attention%20-%20Encoder%20Self-Attention.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20Attention%20-%20MaskedDecoder%20Self-Attention.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20transformer%20-%20scaled%20dot%20product%20attention.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20transformer%20-%20multi%20head%20attention.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20transformer%20-%20FFN.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20transformer%20-%20dataflow.gif">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20transformer%20-%20attention%20visualization%201.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20transformer%20-%20attention%20visualization%202.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20transformer%20-%20attention%20visualization%203.png">
+<meta property="article:published_time" content="2018-04-30T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-21T08:48:04.227Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="self-attention">
+<meta property="article:tag" content="机器翻译">
+<meta property="article:tag" content="seq2seq">
+<meta property="article:tag" content="attention">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.eson.org/images/raw/NN%20-%20Attention%20-%20Encoder-Decoder%20Attention.png">
+
+<link rel="canonical" href="https://blog.eson.org/pub/664e9bad/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>【机器翻译】transformer | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/664e9bad/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【机器翻译】transformer
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-05-01 00:00:00" itemprop="dateCreated datePublished" datetime="2018-05-01T00:00:00+08:00">2018-05-01</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/app/" itemprop="url" rel="index"><span itemprop="name">app</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/app/nlp/" itemprop="url" rel="index"><span itemprop="name">nlp</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/app/nlp/translation/" itemprop="url" rel="index"><span itemprop="name">translation</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/app/nlp/translation/2-%E4%B8%BB%E6%B5%81model-%E7%A0%94%E7%A9%B6%E7%8E%B0%E7%8A%B6/" itemprop="url" rel="index"><span itemprop="name">2. 主流model-研究现状</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/app/nlp/translation/2-%E4%B8%BB%E6%B5%81model-%E7%A0%94%E7%A9%B6%E7%8E%B0%E7%8A%B6/2-NMT/" itemprop="url" rel="index"><span itemprop="name">2. NMT</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/app/nlp/translation/2-%E4%B8%BB%E6%B5%81model-%E7%A0%94%E7%A9%B6%E7%8E%B0%E7%8A%B6/2-NMT/transformer/" itemprop="url" rel="index"><span itemprop="name">transformer</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>在2017年5月Facebook发布了<code>ConvSeq2Seq</code>模型吊打了GNMT一个月之后，Google发出了最强有力的反击，发表了一篇论文Attention is all you need，文中提出了一种新的架构叫做<code>Transformer</code>，用以来实现机器翻译。它<strong>抛弃了传统的CNN、RNN，只采用attention</strong>，取得了很好的效果，激起了工业界和学术界的广泛讨论。</p>
+<h1 id="背景，motivation"><a href="#背景，motivation" class="headerlink" title="背景，motivation"></a>背景，motivation</h1><h2 id="如何获取context信息"><a href="#如何获取context信息" class="headerlink" title="如何获取context信息"></a>如何获取context信息</h2><p>常用的模型架构有RNN、CNN、CRF，详见 <a href="/pub/cf92193c">序列学习</a>。</p>
+<h3 id="transformer横空出世"><a href="#transformer横空出世" class="headerlink" title="transformer横空出世"></a>transformer横空出世</h3><p>Transformer避开了recurrence，只用attention，便可以刻画出输入和输出的依赖关系。</p>
+<p>对比RNN的决策步骤太长问题，transformer可<strong>单步决策</strong>。通过一层self-attention，bank能够直接attend到river上。</p>
+<p>ConvS2S是线性时间复杂度，ByteNet是log时间复杂度。而Transformer则是常数时间复杂度</p>
+<!-- 前提是the cost of reduced effective resolution due to averaging attention-weighted positions, an effect we counteract with Multi-Head Attention。-->
+
+
+
+<h1 id="创新点"><a href="#创新点" class="headerlink" title="创新点"></a>创新点</h1><!-- 亮点 trick -->
+
+<ul>
+<li>dot product attention</li>
+<li>multi-head</li>
+<li>彩蛋: restricted self-attention，<!-- 说多了都是泪。不给人留活路。 --></li>
+</ul>
+<table title="self-attention的几种形式"  border="1"><tbody><tr><td><img height="80px" src="/images/raw/NN - Attention - Encoder-Decoder Attention.png"></td><td><img height="80px" src="/images/raw/NN - Attention - Encoder Self-Attention.png"></td><td><img height="80px" src="/images/raw/NN - Attention - MaskedDecoder Self-Attention.png"></td></tr></tbody></table>
+
+
+
+<h2 id="dot-product-attention"><a href="#dot-product-attention" class="headerlink" title="dot product attention"></a>dot product attention</h2><table border="1"><tbody><tr><td><img height="40px" title="Scaled Dot Product Attention" src="/images/raw/NN - transformer - scaled dot product attention.png"></td><td><img height="40px" title="Multi-Head Attention" src="/images/raw/NN - transformer - multi head attention.png"></td></tr></tbody></table>
+
+
+<p>前面给出的是一般化的框架形式的描述，事实上Google给出的方案是很具体的。首先它定义了Attention一种泛化形式：<br>$$ Attention(\boldsymbol{Q},\boldsymbol{K},\boldsymbol{V}) = softmax\left(\frac{\boldsymbol{Q}\boldsymbol{K}^{\top}}{\sqrt{d_k}}\right)\boldsymbol{V} $$</p>
+<p>其中$ \boldsymbol{Q}\in\mathbb{R}^{n\times d_k}, \boldsymbol{K}\in\mathbb{R}^{m\times d_k}, \boldsymbol{V}\in\mathbb{R}^{m\times d_v} $。如果忽略激活函数softmax的话，那么事实上它就是三个$ n\times d_k,d_k\times m, m\times d_v $的矩阵相乘，最后的结果就是一个$ n\times d_v $的矩阵。</p>
+<p>这里将attention抽象成 <code>q: query</code>, <code>k: key</code>, <code>v: value</code>。</p>
+<p><strong>为什么要采用scale？</strong></p>
+<p>因为量级太大，softmax后就非0即1了，不够“soft”了。也会导致softmax的梯度非常小。也就是让softmax结果<strong>不稀疏</strong>(问号脸，通常人们希望得到更稀疏的attention吧)。</p>
+<!-- 通常的softmax计算还有个小trick，会减去最大的一个value，避免overflow -->
+
+<ol>
+<li>attention 可以不只是用于 decoder 里每步输入一个符号，而是可以用在网络中的任意一层，把一个序列转换成另一个序列。这个作用与 convolutional layer、recurrent layer 等是类似的，但有一个好处就是不再局限于局域性。attention是直接去capture dependency structure，摆脱了局限性魔咒</li>
+<li>attention 可以一般地描述为在一个 key-value mapping 中进行检索，只不过 query 跟 key 可以进行模糊匹配，检索结果是各个 key 对应的 value 的加权平均。</li>
+</ol>
+<p>Query, key, value 其实并不是专门针对翻译的概念。不过可以举一些翻译中的例子。例如，当刚刚翻译完主语之后，attention 的内部状态就会想要去找谓语，这时它就把「想找谓语」这件事编码成 query。然后句子里本身是谓语的地方，会有一个 key，表明「我这里可以提供谓语」，它跟 query 一拍即合。这个 key 对应的 value 就是谓语本身的 embedding。</p>
+<blockquote>
+<p>点乘注意力在何凯明的Non-local Neural Networks中被解释成Embedded Gaussian的一种特例。非要跟高斯扯上关系，好牵强。</p>
+</blockquote>
+<h3 id="VS-additive-attention"><a href="#VS-additive-attention" class="headerlink" title="VS additive attention"></a>VS additive attention</h3><p>additive attention等价于一个前馈网络:</p>
+<p>$$<br>softmax([Q,K]W)=softmax(QW^Q+KW^K)<br>$$</p>
+<p>这个的计算速度没有dot-product attention在GPU上快。</p>
+<p>详见 Neural machine translation by jointly learning to align and translate</p>
+<h3 id="VS-其他attention"><a href="#VS-其他attention" class="headerlink" title="VS 其他attention"></a>VS 其他attention</h3><h3 id="Multi-Head-Attention"><a href="#Multi-Head-Attention" class="headerlink" title="Multi-Head Attention"></a>Multi-Head Attention</h3><p>以Q为例，单个head的计算</p>
+<ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3RlbnNvcmZsb3cvdGVuc29yMnRlbnNvci9ibG9iL21hc3Rlci90ZW5zb3IydGVuc29yL2xheWVycy9jb21tb25fYXR0ZW50aW9uLnB5I0wyNjQ2">code-t2t<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL0t5dWJ5b25nL3RyYW5zZm9ybWVyL2Jsb2IvbWFzdGVyL21vZHVsZXMucHkjTDE2OQ==">code-Kyubyong<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2Jvam9uZS9hdHRlbnRpb24vYmxvYi9tYXN0ZXIvYXR0ZW50aW9uX2tlcmFzLnB5">code-keras<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+<p>将输入向量切成8份，这每一<br>份可以看成一个local partial，然后再分别attnetion最终再concat成一个context向量。如果将本文multi-head attention的V输入切成八份后的<br>向量类比关注不同local paritial的卷积核的话，我们可以看到CNN和这里multi-head attention异曲同工</p>
+<p><strong>优势</strong>：</p>
+<ol>
+<li>It expands the model’s ability to focus on different positions。 这个最强势。通过attention到不同的维度。细粒度的attention，超赞。</li>
+</ol>
+<ul>
+<li>既是细粒度的attention，又不增加计算量</li>
+</ul>
+<ol>
+<li>能在encode的时候并行化，(这里的并行是相对RNN吗？one-head是大矩阵也可以并行。convS2S同样可以）</li>
+<li>降维到d/head，即bottleneck的思想，减少计算量 <!-- this follows the bottleneck
+design of ResNet and reduces the computation 来自non-local NN--></li>
+</ol>
+<p><strong>举例</strong><br>忽略batch_size</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">num_units = <span class="number">512</span> <span class="comment"># 也叫 num_channel, emb_size</span></span><br><span class="line">max_length = <span class="number">10</span></span><br><span class="line"></span><br><span class="line">K,Q,V = [<span class="number">10</span>, <span class="number">512</span>]</span><br><span class="line">W = [<span class="number">512</span>,<span class="number">512</span>]</span><br><span class="line">A = attention(KW, KQ, KW)</span><br><span class="line"></span><br><span class="line">加上head后</span><br><span class="line">num_head = <span class="number">8</span></span><br><span class="line">K_i,Q_i,V_i = [<span class="number">10</span>,<span class="number">64</span>] <span class="comment">#</span></span><br><span class="line">W_i = [<span class="number">64</span>,<span class="number">512</span>]  <span class="comment"># 值得注意的是，这里不是 [64,64]，即并未减少计算量和参数量</span></span><br><span class="line">A_i = attention(K_i W_i, W_i,)</span><br></pre></td></tr></table></figure>
+
+
+<ul>
+<li>Multiple attention layers (heads) in parallel</li>
+<li>Each head uses different linear transformations.</li>
+<li>Different heads can learn different relationships.</li>
+</ul>
+<div class="note info">
+            <p><strong>思考</strong></p><ol><li>self attention遗漏了什么？位置信息</li><li>self attention中的k, q, v分别指代什么？</li><li>self attention是否可逆向？</li></ol>
+          </div>
+
+<h2 id="FFN层"><a href="#FFN层" class="headerlink" title="FFN层"></a>FFN层</h2><p>FFN(Position-wise Feed-Forward Network)。</p>
+<ul>
+<li><strong>Position-wise</strong>: 顾名思义，就是对每个position采用相同的操作。</li>
+<li><strong>Feed-Forward Network</strong>: 就是最普通的全连接神经网络，这里采用的两层，relu作为激活函数</li>
+</ul>
+<img width="150px" title="position wise FFN" src="/images/raw/NN - transformer - FFN.png">
+FFN层对接multi-head attention层，那么该层的输入 $x \in \mathbb{R}^{batchsize \times length \times d_{model}}$。
+
+
+
+
+
+<p><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3RlbnNvcmZsb3cvdGVuc29yMnRlbnNvci9ibG9iL3YxLjkuMC90ZW5zb3IydGVuc29yL21vZGVscy90cmFuc2Zvcm1lci5weSNMMTM3Mw==">https://github.com/tensorflow/tensor2tensor/blob/v1.9.0/tensor2tensor/models/transformer.py#L1373<i class="fa fa-external-link-alt"></i></span></p>
+<p>$$<br>FFN(x)=max(0,x W_1+b_1)W_2+b_2<br>$$</p>
+<p>其中输入和输出的维度都是$d_{model}=512$，中间维度是$d_{ff}=2048$。对于单个position<br>$$<br>x \in \mathbb{R}^{512}, W_1 \in \mathbb{R}^{512 \times 2048}, W_2 \in \mathbb{R}^{2048 \times 512}<br>$$</p>
+<h3 id="与卷积的等价性"><a href="#与卷积的等价性" class="headerlink" title="与卷积的等价性"></a>与卷积的等价性</h3><p>这里的全连接层，一种替代方案就是采用kernel size为1的卷积，即</p>
+<p>tensor2tensor中有两种实现<a href="">dense_relu_dense</a> 和 <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3RlbnNvcmZsb3cvdGVuc29yMnRlbnNvci9ibG9iL3YxLjkuMC90ZW5zb3IydGVuc29yL2xheWVycy9jb21tb25fbGF5ZXJzLnB5I0wxNjEx">conv_relu_conv<i class="fa fa-external-link-alt"></i></span>，默认采用的前者。</p>
+<p>其中卷积的维度是</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">input.shape = [batch_size, length, 512]</span><br><span class="line">kernel_1 = [2048,1]   </span><br><span class="line">kernel_2 = [512, 1]  </span><br></pre></td></tr></table></figure>
+<p>tensor2tensor实现中，conv1d中的kernel_size如果为1，默认返回dense。<span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3RlbnNvcmZsb3cvdGVuc29yMnRlbnNvci9ibG9iL3YxLjkuMC90ZW5zb3IydGVuc29yL2xheWVycy9jb21tb25fbGF5ZXJzLnB5I0w2MDc=">源码<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">tpu_conv1d</span>(<span class="params">inputs, filters, kernel_size, padding=<span class="string">&quot;SAME&quot;</span>, name=<span class="string">&quot;tpu_conv1d&quot;</span></span>):</span></span><br><span class="line">  <span class="keyword">if</span> kernel_size == <span class="number">1</span>:</span><br><span class="line">    <span class="keyword">return</span> dense(inputs, filters, name=name, use_bias=<span class="literal">True</span>)</span><br><span class="line">  ...</span><br></pre></td></tr></table></figure>
+<p>逗比，conv到底比dense会不会加速？</p>
+<p>为什么我觉得kernel_size=512才等价于全连接？</p>
+<blockquote>
+<p>实际上，kernel_size没必要一定是1的。</p>
+</blockquote>
+<h3 id="层数与维度设计"><a href="#层数与维度设计" class="headerlink" title="层数与维度设计"></a>层数与维度设计</h3><p>很自然，我们有两个疑问。</p>
+<ol>
+<li>为什么要两层？MLP?</li>
+<li>为什么要先升维再降维？ high-rank</li>
+</ol>
+<p>通常的bottleNeck架构，先降维再升维(减小计算量)。</p>
+<p>两大作用:</p>
+<ol>
+<li>multi-head attention之后的merge</li>
+</ol>
+<ul>
+<li>类似group conv之后的merge，DWConv后的1*1卷积与channel shuffle</li>
+</ul>
+<!-- 全连接层参数较多，比如常用的CNN架构里很少在中间层放全连接。-->
+<div class="note info">
+            <p><strong>小结</strong></p><ol><li>为什么叫强调<code>position-wise</code>？</li></ol><ul><li>解释一: 这里FFN层是每个position进行相同且独立的操作，所以叫position-wise。对每个position独立做FFN。</li><li>解释二：从卷积的角度解释，这里的FFN等价于kernel_size=1的卷积，这样每个position都是独立运算的。如果kernel_size=2，或者其他，position之间就具有依赖性了，貌似就不能叫做position-wise了</li></ul><ol><li>为什么要采用全连接层？</li></ol><ul><li>目的: 增加非线性变换</li><li>如果不采用FFN呢？有什么替代的设计？</li></ul><ol><li>为什么采用2层全连接，而且中间升维？</li></ol><ul><li>这也是所谓的bottle neck，只不过低维在IO上，中间采用high rank</li></ul>
+          </div>
+
+
+<h2 id="Positional-Encoding"><a href="#Positional-Encoding" class="headerlink" title="Positional Encoding"></a>Positional Encoding</h2><p>回顾一下Transformer的整个架构，不难发现Transformer模型本身并不能捕捉序列的顺序。换句话说，如果将K,V按行打乱顺序（相当于句子中的词序打乱），那么Attention的结果还是一样的。这就表明了，<strong>到目前为止，Attention模型顶多是一个非常精妙的“词袋模型”而已</strong>。</p>
+<!--
+attention-based BOW，这个模型也不错哎。
+目前的模型entirely invariant to sequence ordering.
+-->
+
+<p>Sinusoid Positional Encoding</p>
+<p><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL0t5dWJ5b25nL3RyYW5zZm9ybWVyL2Jsb2IvbWFzdGVyL21vZHVsZXMucHkjTDEyMA==">code<i class="fa fa-external-link-alt"></i></span></p>
+<p>1、以前在RNN、CNN模型中其实都出现过Position Embedding，但在那些模型中，Position Embedding是锦上添花的辅助手段，也就是“有它会更好、没它也就差一点点”的情况，因为RNN、CNN本身就能捕捉到位置信息。但是在这个纯Attention模型中，Position Embedding是位置信息的唯一来源，因此它是模型的核心成分之一，并非仅仅是简单的辅助手段。</p>
+<p>2、在以往的Position Embedding中，基本都是根据任务训练出来的向量。而Google直接给出了一个构造Position Embedding的公式：<br>$$<br>\left{<br>\begin{aligned}&amp;PE_{2i}(p)=\sin\Big(p/10000^{2i/{d_{pos}}}\Big)\<br>&amp;PE_{2i+1}(p)=\cos\Big(p/10000^{2i/{d_{pos}}}\Big)<br>\end{aligned}<br>\right.<br>$$</p>
+<!-- github的公式渲染，需要双反斜线 -->
+
+<p>这里的意思是将id为$p$的位置映射为一个$d_pos$维的位置向量，这个向量的第$i$个元素的数值就是$PE_{i}(p)$。Google在论文中说到他们比较过直接训练出来的位置向量和上述公式计算出来的位置向量，效果是接近的。因此显然我们更乐意使用公式构造的Position Embedding了。</p>
+<p>3、Position Embedding本身是一个<code>绝对位置</code>的信息，但在语言中，<code>相对位置</code>也很重要，Google选择前述的位置向量公式的一个重要原因是：由于我们有 $\sin(\alpha+\beta)=\sin\alpha\cos\beta+\cos\alpha\sin\beta$以及$\cos(\alpha+\beta)=\cos\alpha\cos\beta-\sin\alpha\sin\beta$，这表明位置$p+k$的向量可以表示成位置$p$的向量的线性变换，这提供了表达相对位置信息的可能性。</p>
+<!-- relative position VS absolute position -->
+
+<div class="note info">
+            <p><strong>小结</strong></p><ol><li>Transformer并没有在结构上突破传统的LSTM和CNN，只是采用了position encoding的方式取巧。<br>如何在结构上突破CNN和LSTM的缺陷，达到获取position(时序)信息、任意长度依赖、易并行的效果？</li><li>其他方案</li></ol><ul><li><strong>拼接</strong>: 起来作为一个新向量，也可以把位置向量定义为跟词向量一样大小，然后两者加起来。FaceBook的论文和Google论文中用的都是后者。直觉上相加会导致信息损失，似乎不可取</li><li><strong>multi-channel</strong>:</li></ul>
+          </div>
+
+
+
+
+<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><h2 id="layer-norm"><a href="#layer-norm" class="headerlink" title="layer norm"></a>layer norm</h2><img height="300px" weight="300px" alt="transformer" title="transformer - data flow" src="/images/raw/NN - transformer - dataflow.gif">
+
+<h1 id="Result"><a href="#Result" class="headerlink" title="Result"></a>Result</h1><h2 id="可视化"><a href="#可视化" class="headerlink" title="可视化"></a>可视化</h2><p>经过测试，列了以下可视化结果。</p>
+<img width="300px" src="/images/raw/NN - transformer - attention visualization 1.png">
+
+<img width="300px" src="/images/raw/NN - transformer - attention visualization 2.png">
+
+<img width="300px" src="/images/raw/NN - transformer - attention visualization 3.png">
+
+<p>TODO，+动态可视化</p>
+<h1 id="维度设计"><a href="#维度设计" class="headerlink" title="维度设计"></a>维度设计</h1><p>在NLP的很多网络里，一般</p>
+<ul>
+<li>hidden_dim和embedding_dim 相等</li>
+<li></li>
+</ul>
+<p>每层的维度都是相同的维度，(只在FFN层进行了局部升维)。</p>
+<p>这与传统的</p>
+<h1 id="参数量-amp-计算量"><a href="#参数量-amp-计算量" class="headerlink" title="参数量 &amp; 计算量"></a>参数量 &amp; 计算量</h1><h1 id="code"><a href="#code" class="headerlink" title="code"></a>code</h1><ul>
+<li>TensorFlow<ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL0t5dWJ5b25nL3RyYW5zZm9ybWVy">https://github.com/Kyubyong/transformer<i class="fa fa-external-link-alt"></i></span>  简易版，bucket、lr、decay等都没有实现</li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3RlbnNvcmZsb3cvbW9kZWxzL3RyZWUvbWFzdGVyL29mZmljaWFsL3RyYW5zZm9ybWVy">https://github.com/tensorflow/models/tree/master/official/transformer<i class="fa fa-external-link-alt"></i></span> TF官方code，基本不更新</li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3RlbnNvcmZsb3cvdGVuc29yMnRlbnNvciN0cmFuc2xhdGlvbg==">https://github.com/tensorflow/tensor2tensor#translation<i class="fa fa-external-link-alt"></i></span>  官方code，产品级，更新频繁</li>
+<li>代码解析： <span class="exturl" data-url="aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L21pamlhb3hpYW9zYW4vYXJ0aWNsZS9kZXRhaWxzLzc0OTA5MDc2">https://blog.csdn.net/mijiaoxiaosan/article/details/74909076<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+</li>
+<li>Pytorch</li>
+</ul>
+<h1 id="缺陷"><a href="#缺陷" class="headerlink" title="缺陷"></a>缺陷</h1><h2 id="ss"><a href="#ss" class="headerlink" title="ss"></a>ss</h2><p>Attention层的好处是能够一步到位捕捉到全局的联系，因为它直接把序列两两比较（代价是计算量变为$\mathscr{O}(n^2)$)，当然由于是纯矩阵运算，这个计算量相当也不是很严重）；相比之下，RNN需要一步步递推才能捕捉到，而CNN则需要通过层叠来扩大感受野，这是Attention层的明显优势。</p>
+<h1 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h1><ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly9haS5nb29nbGVibG9nLmNvbS8yMDE3LzA4L3RyYW5zZm9ybWVyLW5vdmVsLW5ldXJhbC1uZXR3b3JrLmh0bWw=">Transformer | Google-blog<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS9hcmNoaXZlcy80NzY1">《Attention is All You Need》浅读（简介+代码）| kexue.fm<i class="fa fa-external-link-alt"></i></span> 很多还没看懂，后面继续看</li>
+<li><span class="exturl" data-url="aHR0cHM6Ly96aHVhbmxhbi56aGlodS5jb20vcC8yNzQ2NDA4MA==">从convS2S到transformer | 知乎<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/b4bccd18/" rel="bookmark">【机器翻译】CNN系列 - convseq2seq</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/6eefa992/" rel="bookmark">【机器翻译】RNN系列 - GNMT</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/4716970e/" rel="bookmark">非局部连接网络 Non-local Neural Network</a></div>
+    </li>
+  </ul>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/self-attention/" rel="tag"># self-attention</a>
+              <a href="/tags/%E6%9C%BA%E5%99%A8%E7%BF%BB%E8%AF%91/" rel="tag"># 机器翻译</a>
+              <a href="/tags/seq2seq/" rel="tag"># seq2seq</a>
+              <a href="/tags/attention/" rel="tag"># attention</a>
+          </div>
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/75bd2e9b/" rel="prev" title="【读图识政治】中国最高领导人">
+      <i class="fa fa-chevron-left"></i> 【读图识政治】中国最高领导人
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/pub/c47c5082/" rel="next" title="深度学习中的注意力机制 原理 及 代码">
+      深度学习中的注意力机制 原理 及 代码 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%EF%BC%8Cmotivation"><span class="nav-number">2.</span> <span class="nav-text">背景，motivation</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E8%8E%B7%E5%8F%96context%E4%BF%A1%E6%81%AF"><span class="nav-number">2.1.</span> <span class="nav-text">如何获取context信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#transformer%E6%A8%AA%E7%A9%BA%E5%87%BA%E4%B8%96"><span class="nav-number">2.1.1.</span> <span class="nav-text">transformer横空出世</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%88%9B%E6%96%B0%E7%82%B9"><span class="nav-number">3.</span> <span class="nav-text">创新点</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#dot-product-attention"><span class="nav-number">3.1.</span> <span class="nav-text">dot product attention</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#VS-additive-attention"><span class="nav-number">3.1.1.</span> <span class="nav-text">VS additive attention</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VS-%E5%85%B6%E4%BB%96attention"><span class="nav-number">3.1.2.</span> <span class="nav-text">VS 其他attention</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Multi-Head-Attention"><span class="nav-number">3.1.3.</span> <span class="nav-text">Multi-Head Attention</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FFN%E5%B1%82"><span class="nav-number">3.2.</span> <span class="nav-text">FFN层</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8E%E5%8D%B7%E7%A7%AF%E7%9A%84%E7%AD%89%E4%BB%B7%E6%80%A7"><span class="nav-number">3.2.1.</span> <span class="nav-text">与卷积的等价性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B1%82%E6%95%B0%E4%B8%8E%E7%BB%B4%E5%BA%A6%E8%AE%BE%E8%AE%A1"><span class="nav-number">3.2.2.</span> <span class="nav-text">层数与维度设计</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Positional-Encoding"><span class="nav-number">3.3.</span> <span class="nav-text">Positional Encoding</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B6%E4%BB%96"><span class="nav-number">3.4.</span> <span class="nav-text">其他</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#layer-norm"><span class="nav-number">3.5.</span> <span class="nav-text">layer norm</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Result"><span class="nav-number">4.</span> <span class="nav-text">Result</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E8%A7%86%E5%8C%96"><span class="nav-number">4.1.</span> <span class="nav-text">可视化</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BB%B4%E5%BA%A6%E8%AE%BE%E8%AE%A1"><span class="nav-number">5.</span> <span class="nav-text">维度设计</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E6%95%B0%E9%87%8F-amp-%E8%AE%A1%E7%AE%97%E9%87%8F"><span class="nav-number">6.</span> <span class="nav-text">参数量 &amp; 计算量</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#code"><span class="nav-number">7.</span> <span class="nav-text">code</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BC%BA%E9%99%B7"><span class="nav-number">8.</span> <span class="nav-text">缺陷</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ss"><span class="nav-number">8.1.</span> <span class="nav-text">ss</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%89%A9%E5%B1%95%E9%98%85%E8%AF%BB"><span class="nav-number">9.</span> <span class="nav-text">扩展阅读</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : '664e9bad',
+      //id          : 'd1813d433d162e594c187553cff36242',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

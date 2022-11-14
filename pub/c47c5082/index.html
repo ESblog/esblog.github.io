@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="seq2seq缺陷：无论之前的context有多长，包含多少信息量，最终都要被压缩成一个几百维的vector。这意味着context越大，最终的state vector会丢失越多的信息。 Attention based model的核心思想: 一个模型完全可以在decode的过程中利用context的全部信息，而不仅仅是最后一个state。  ss global attention local a">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深度学习中的注意力机制 原理 及 代码">
+<meta property="og:url" content="https://blog.eson.org/pub/c47c5082/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="seq2seq缺陷：无论之前的context有多长，包含多少信息量，最终都要被压缩成一个几百维的vector。这意味着context越大，最终的state vector会丢失越多的信息。 Attention based model的核心思想: 一个模型完全可以在decode的过程中利用context的全部信息，而不仅仅是最后一个state。  ss global attention local a">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20transformer%20-%20self%20attention%20-%20visualization.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20attentioin%20-%20hierarchical%20attention.jpg">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20attentioin%20-%20hierarchical%20attention%20-%20result.jpg">
+<meta property="article:published_time" content="2018-04-30T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-21T08:48:04.256Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="机器学习, 计算机视觉, 深度学习, 自然语言处理, ESON">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.eson.org/images/raw/NN%20-%20transformer%20-%20self%20attention%20-%20visualization.png">
+
+<link rel="canonical" href="https://blog.eson.org/pub/c47c5082/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>深度学习中的注意力机制 原理 及 代码 | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/c47c5082/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          深度学习中的注意力机制 原理 及 代码
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-05-01 00:00:00" itemprop="dateCreated datePublished" datetime="2018-05-01T00:00:00+08:00">2018-05-01</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/model-basic/" itemprop="url" rel="index"><span itemprop="name">model-basic</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>seq2seq缺陷：无论之前的context有多长，包含多少信息量，最终都要被压缩成一个几百维的vector。这意味着context越大，最终的state vector会丢失越多的信息。</p>
+<p>Attention based model的核心思想: 一个模型完全可以在decode的过程中利用<strong>context的全部信息</strong>，而不仅仅是最后一个state。</p>
+<ol>
+<li>ss<ul>
+<li>global attention</li>
+<li>local attention</li>
+</ul>
+</li>
+<li>ewrw<ul>
+<li>soft</li>
+<li>hard</li>
+</ul>
+</li>
+</ol>
+<h1 id="各种各样的attention"><a href="#各种各样的attention" class="headerlink" title="各种各样的attention"></a>各种各样的attention</h1><ul>
+<li>2014年google mind团队的这篇论文《Recurrent Models of Visual Attention》，他们在RNN模型上使用了attention机制来进行图像分类。</li>
+<li>Bahdanau等人在论文《Neural Machine Translation by Jointly Learning to Align and Translate》中，使用类似attention的机制在机器翻译任务上将翻译和对齐同时进行，他们的工作算是第一个将attention机制应用到NLP领域中。</li>
+<li>接着attention机制被广泛应用在基于RNN/CNN等神经网络模型的各种NLP任务中。</li>
+<li>2017年，google机器翻译团队发表的《Attention is all you need》中大量使用了自注意力（self-attention）机制来学习文本表示。</li>
+</ul>
+<h2 id="什么是attention，attention的起源"><a href="#什么是attention，attention的起源" class="headerlink" title="什么是attention，attention的起源"></a>什么是attention，attention的起源</h2><h2 id="广义的attention"><a href="#广义的attention" class="headerlink" title="广义的attention"></a>广义的attention</h2><p>见google得transformer。</p>
+<p>Attention函数的本质可以被描述为一个查询（query）到一系列（键key-值value）对的映射，</p>
+<h2 id="self-attention"><a href="#self-attention" class="headerlink" title="self attention"></a>self attention</h2><p>什么是self-attention，下面这个图就是self-attention。</p>
+<p><img src="/images/raw/NN - transformer - self attention - visualization.png"></img></p>
+<p>可以理解为没有target的attention，也可以理解为自己把自己当做target进行attention。</p>
+<h2 id="Multi-Head-Attention"><a href="#Multi-Head-Attention" class="headerlink" title="Multi-Head Attention"></a>Multi-Head Attention</h2><h2 id="Structured-Self-attention"><a href="#Structured-Self-attention" class="headerlink" title="Structured Self-attention"></a>Structured Self-attention</h2><p>参考 A Structured Self-attentive Sentence Embedding</p>
+<h2 id="Self-Attention-with-Relative-Position-Representations-google-brain-2018"><a href="#Self-Attention-with-Relative-Position-Representations-google-brain-2018" class="headerlink" title="Self-Attention with Relative Position Representations - google brain 2018"></a>Self-Attention with Relative Position Representations - google brain 2018</h2><p>Self-Attention with Relative Position Representations（基于相对位置表示的子注意力模型）</p>
+<h2 id="Reinforced-Self-Attention"><a href="#Reinforced-Self-Attention" class="headerlink" title="Reinforced Self-Attention"></a>Reinforced Self-Attention</h2><p>Reinforced Self-Attention Network: a Hybrid of Hard and Soft Attention for Sequence Modeling（增强的自注意力网络:一种对序列建模的硬和软注意力的混合）</p>
+<h2 id="Distance-based-Self-Attention-Network"><a href="#Distance-based-Self-Attention-Network" class="headerlink" title="Distance-based Self-Attention Network"></a>Distance-based Self-Attention Network</h2><p>Distance-based Self-Attention Network for Natural Language Inference（基于距离的自注意力网络的自然语言推理）</p>
+<h2 id="sparse-attention"><a href="#sparse-attention" class="headerlink" title="sparse attention"></a>sparse attention</h2><h2 id="hierarchical-attentioin"><a href="#hierarchical-attentioin" class="headerlink" title="hierarchical attentioin"></a>hierarchical attentioin</h2><p><span class="exturl" data-url="aHR0cDovL3d3dy5jcy5jbXUuZWR1L34uL2hvdnkvcGFwZXJzLzE2SExULWhpZXJhcmNoaWNhbC1hdHRlbnRpb24tbmV0d29ya3MucGRm">Hierarchical Attention Networks for Document Classification<i class="fa fa-external-link-alt"></i></span></p>
+<img alt="Hierarchical Attention Network" src="/images/raw/NN - attentioin - hierarchical attention.jpg" title="Hierarchical Attention Network">
+
+<p>采用了word-level和sentent-level的attention。</p>
+<ol>
+<li>a word sequence encoder<ul>
+<li>采用的GRU。<span class="exturl" data-url="aHR0cDovL3d3dy5hY2x3ZWIub3JnL2FudGhvbG9neS9EMTUtMTE2Nw==">Document Modeling with Gated Recurrent Neural Network…<i class="fa fa-external-link-alt"></i></span> 这篇文章提到，在文本分类领域 GRU比LSTM效果好。</li>
+<li>也可以采用CNN</li>
+</ul>
+</li>
+<li>a word-level attention layer</li>
+<li>a sentence encoder</li>
+<li>a sentence-level attention layer</li>
+</ol>
+<p>可视化分析</p>
+<img alt="Hierarchical Attention Network" src="/images/raw/NN - attentioin - hierarchical attention - result.jpg" title="Hierarchical Attention Network">
+
+
+
+
+
+
+<h2 id=""><a href="#" class="headerlink" title=""></a></h2><h2 id="-1"><a href="#-1" class="headerlink" title=""></a></h2><h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly9kaXN0aWxsLnB1Yi8yMDE2L2F1Z21lbnRlZC1ybm5zLw==">Attention and Augmented Recurrent Neural Networks | Distill<i class="fa fa-external-link-alt"></i></span></li>
+<li></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9tcC53ZWl4aW4ucXEuY29tL3Mvc3dMd2xhNzVSSVFmeUREQ1BZeW5hdw==">深度学习中的注意力机制 | 张俊林 2017<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cDovL3d3dy5jbmJsb2dzLmNvbS9yb2JlcnQtZGx1dC9wLzg2MzgyODMuaHRtbA==">自然语言处理中的自注意力机制（Self-attention）| cnblogs<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly93d3cuemhpaHUuY29tL3F1ZXN0aW9uLzM2NTkxMzk0">知乎<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9wbG1zbWlsZS5naXRodWIuaW8vMjAxNy8xMC8xMi9BdHRlbnRpb24tYmFzZWQtTk1ULw==">注意力机制和PyTorch实现机器翻译<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9jbG91ZC50ZW5jZW50LmNvbS9kZXZlbG9wZXIvYXJ0aWNsZS8xMDg2NTc1">【论文推荐】最新七篇自注意力机制(Self-attention)相关论文<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS9hcmNoaXZlcy80NzY1">《Attention is All You Need》浅读（简介+代码）| kexue.fm<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+
+
+      <footer class="post-footer">
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/664e9bad/" rel="prev" title="【机器翻译】transformer">
+      <i class="fa fa-chevron-left"></i> 【机器翻译】transformer
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/pub/7e199c30/" rel="next" title="推荐系统架构">
+      推荐系统架构 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%90%84%E7%A7%8D%E5%90%84%E6%A0%B7%E7%9A%84attention"><span class="nav-number">1.</span> <span class="nav-text">各种各样的attention</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFattention%EF%BC%8Cattention%E7%9A%84%E8%B5%B7%E6%BA%90"><span class="nav-number">1.1.</span> <span class="nav-text">什么是attention，attention的起源</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%BF%E4%B9%89%E7%9A%84attention"><span class="nav-number">1.2.</span> <span class="nav-text">广义的attention</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#self-attention"><span class="nav-number">1.3.</span> <span class="nav-text">self attention</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Multi-Head-Attention"><span class="nav-number">1.4.</span> <span class="nav-text">Multi-Head Attention</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Structured-Self-attention"><span class="nav-number">1.5.</span> <span class="nav-text">Structured Self-attention</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Self-Attention-with-Relative-Position-Representations-google-brain-2018"><span class="nav-number">1.6.</span> <span class="nav-text">Self-Attention with Relative Position Representations - google brain 2018</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reinforced-Self-Attention"><span class="nav-number">1.7.</span> <span class="nav-text">Reinforced Self-Attention</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Distance-based-Self-Attention-Network"><span class="nav-number">1.8.</span> <span class="nav-text">Distance-based Self-Attention Network</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sparse-attention"><span class="nav-number">1.9.</span> <span class="nav-text">sparse attention</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hierarchical-attentioin"><span class="nav-number">1.10.</span> <span class="nav-text">hierarchical attentioin</span></a></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-number">1.11.</span> <span class="nav-text"></span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#-1"><span class="nav-number">1.12.</span> <span class="nav-text"></span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">2.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : 'c47c5082',
+      //id          : 'a8acc599fdae22b8b5e86fa80cb33761',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

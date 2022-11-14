@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="为什么要看源码能够更便捷高效的管理博客，比如  更新Hexo: 需要了解hexo init的源码，因为该命令隐藏了hexo-starter项目 () 更新theme: 某些bug-fix以及new feature。可借助git的submodule来高效管理 定制博客(个性化): (比如添加edit button，添加URL哈希，个性化主题。需要了解模板原理  源码不用细看，看个大概能满足自己的需求">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【hexo源码系列】 入门">
+<meta property="og:url" content="https://blog.eson.org/pub/70d0eddc/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="为什么要看源码能够更便捷高效的管理博客，比如  更新Hexo: 需要了解hexo init的源码，因为该命令隐藏了hexo-starter项目 () 更新theme: 某些bug-fix以及new feature。可借助git的submodule来高效管理 定制博客(个性化): (比如添加edit button，添加URL哈希，个性化主题。需要了解模板原理  源码不用细看，看个大概能满足自己的需求">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-01-24T19:08:53.000Z">
+<meta property="article:modified_time" content="2021-06-21T08:48:04.079Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="hexo">
+<meta property="article:tag" content="源码">
+<meta property="article:tag" content="原理">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.eson.org/pub/70d0eddc/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>【hexo源码系列】 入门 | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/70d0eddc/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【hexo源码系列】 入门
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-01-25 03:08:53" itemprop="dateCreated datePublished" datetime="2018-01-25T03:08:53+08:00">2018-01-25</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/" itemprop="url" rel="index"><span itemprop="name">web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/blog-framework/" itemprop="url" rel="index"><span itemprop="name">blog-framework</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/blog-framework/nodejs-hexo/" itemprop="url" rel="index"><span itemprop="name">nodejs-hexo</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/blog-framework/nodejs-hexo/src/" itemprop="url" rel="index"><span itemprop="name">src</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="为什么要看源码"><a href="#为什么要看源码" class="headerlink" title="为什么要看源码"></a>为什么要看源码</h1><p>能够更便捷高效的管理博客，比如</p>
+<ul>
+<li><strong>更新Hexo</strong>: 需要了解<code>hexo init</code>的源码，因为该命令隐藏了<code>hexo-starter</code>项目 ()</li>
+<li><strong>更新theme</strong>: 某些<code>bug-fix</code>以及<code>new feature</code>。可借助git的<code>submodule</code>来高效管理</li>
+<li><strong>定制博客(个性化)</strong>: (比如添加edit button，添加URL哈希，个性化主题。需要了解模板原理</li>
+</ul>
+<p>源码不用细看，看个大概能满足自己的需求就够了。</p>
+<p>本文仅介绍<span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2hleG9qcy9oZXhvLXN0YXJ0ZXI=">Hexo基础包<i class="fa fa-external-link-alt"></i></span>，<span class="exturl" data-url="aHR0cHM6Ly9oZXhvLmlvL3BsdWdpbnMv">扩展包<i class="fa fa-external-link-alt"></i></span>可参考【Hexo插件系列】博客。</p>
+<h1 id="查看Hexo和Plugin版本"><a href="#查看Hexo和Plugin版本" class="headerlink" title="查看Hexo和Plugin版本"></a>查看Hexo和Plugin版本</h1><p>首先看一下自己的Hexo和Plugin版本，因为不同的版本是不同的实现。版本号是次要的，主要看是不是同一种包。比如<code>hexo-deployer-git</code>和<code>hexo-deployer-rsync</code>在执行<code>hexo d</code>命令时方式就不同。详见<span class="exturl" data-url="aHR0cHM6Ly9oZXhvLmlvL2RvY3MvZGVwbG95bWVudC5odG1s">官方文档<i class="fa fa-external-link-alt"></i></span></p>
+<p>查看<code>package.json</code>文件的依赖项。</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;dependencies&quot;:</span> &#123;</span><br><span class="line">  <span class="attr">&quot;hexo&quot;:</span> <span class="string">&quot;^3.7.0&quot;</span>, <span class="comment"># https://github.com/hexojs/hexo/  hexo仅仅是一个module而已，用于...</span></span><br><span class="line">  <span class="attr">&quot;hexo-generator-archive&quot;:</span> <span class="string">&quot;^0.1.5&quot;</span>,  <span class="comment"># generator最复杂</span></span><br><span class="line">  <span class="attr">&quot;hexo-generator-category&quot;:</span> <span class="string">&quot;^0.1.3&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;hexo-generator-index&quot;:</span> <span class="string">&quot;^0.2.1&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;hexo-generator-tag&quot;:</span> <span class="string">&quot;^0.2.0&quot;</span>, <span class="comment"># nodejs的模板引擎，有EJS、Jade、Swig、Haml。theme-next采用的swig</span></span><br><span class="line">  <span class="attr">&quot;hexo-renderer-ejs&quot;:</span> <span class="string">&quot;^0.3.1&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;hexo-renderer-stylus&quot;:</span> <span class="string">&quot;^0.3.3&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;hexo-renderer-marked&quot;:</span> <span class="string">&quot;^0.3.2&quot;</span>,  <span class="comment"># markdown的render engine，即`.md`转`html`</span></span><br><span class="line">  <span class="attr">&quot;hexo-server&quot;:</span> <span class="string">&quot;^0.3.1&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>也可用以下命令查看版本：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm ls --depth 0</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>更新各个模块，命令 npm update</p>
+</blockquote>
+<h1 id="回顾Hexo搭建流程"><a href="#回顾Hexo搭建流程" class="headerlink" title="回顾Hexo搭建流程"></a>回顾Hexo搭建流程</h1><p>以下来自<span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2hleG9qcy9oZXhvL2Jsb2IvbWFzdGVyL1JFQURNRS5tZA==">官方文档<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. Installation</span></span><br><span class="line">$ npm install hexo-cli -g</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. Setup your blog</span></span><br><span class="line">$ hexo init blog</span><br><span class="line">$ <span class="built_in">cd</span> blog</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. Start the server</span></span><br><span class="line">$ hexo server</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. Create a new post</span></span><br><span class="line">$ hexo new <span class="string">&quot;Hello Hexo&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. Generate static files</span></span><br><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="流程详解"><a href="#流程详解" class="headerlink" title="流程详解"></a>流程详解</h1><h2 id="1-npm-install"><a href="#1-npm-install" class="headerlink" title="1. npm install"></a>1. npm install</h2><p>npm是nodejs的包管理器，管理javascript lib<br>hexo-cli是nodejs的一个包，用于运行hexo命令。(有cli难道还有server？)</p>
+<p>npm list -g 能够看到安装路径。一般在/usr/lib/node_modules/ 或者/usr/local/lib/node_modules/</p>
+<h2 id="2-hexo-init"><a href="#2-hexo-init" class="headerlink" title="2. hexo init"></a>2. hexo init</h2><p><code>hexo init</code>命令做了什么？</p>
+<h3 id="答案"><a href="#答案" class="headerlink" title="答案"></a>答案</h3><p><code>hexo init</code>等价于以下两行shell命令。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. Cloning hexo-starter to blog</span></span><br><span class="line">$ git <span class="built_in">clone</span> --recursive https://github.com/hexojs/hexo-starter.git blog</span><br><span class="line"><span class="comment"># 2. Install dependencies</span></span><br><span class="line">$ npm install --production</span><br></pre></td></tr></table></figure>
+
+<p>看到这里，就够用。如果自己的hexo项目是老版本的，可以在这个仓库pull更新(虽然更新很少)。<br>如果对追寻答案的过程感兴趣，可以继续往下看。</p>
+<h3 id="追寻答案的旅程-optional"><a href="#追寻答案的旅程-optional" class="headerlink" title="追寻答案的旅程 - optional"></a>追寻答案的旅程 - optional</h3><p><strong>首先看一下hexo</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">which</span> hexo</span><br><span class="line">/usr/bin/hexo</span><br><span class="line"></span><br><span class="line">$ cat /usr/bin/hexo</span><br><span class="line"><span class="comment">#!/usr/bin/env node</span></span><br><span class="line"><span class="string">&#x27;use strict&#x27;</span>;</span><br><span class="line">require(<span class="string">&#x27;../lib/hexo&#x27;</span>)();</span><br></pre></td></tr></table></figure>
+
+
+<p>这里你会发现，hexo命令是nodejs脚本。 <code>../lib/hexo</code>对应的是<code>usr/lib/hexo</code>，然而没有path。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ ls -l /usr/bin/hexo</span><br><span class="line"> /usr/bin/hexo -&gt; ../lib/node_modules/hexo-cli/bin/hexo</span><br></pre></td></tr></table></figure>
+
+<p>原来<code>/usr/bin/hexo</code>是个符号链接，链接到nodejs的modules目录里。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ cat /usr/lib/node_modules/hexo-cli/bin/hexo</span><br><span class="line"><span class="comment">#!/usr/bin/env node</span></span><br><span class="line"><span class="string">&#x27;use strict&#x27;</span>;</span><br><span class="line">require(<span class="string">&#x27;../lib/hexo&#x27;</span>)();</span><br></pre></td></tr></table></figure>
+
+<p>即<code>hexo</code>命令对应的是<a href="https://github.com/hexojs/hexo-cli/blob/master/lib/hexo.js"><code>/usr/lib/node_modules/hexo-cli/lib/hexo.js</code></a>文件。</p>
+<p>hexo找到了，init命令呢？讲道理应该是个package.json下的script。</p>
+<p>原生<code>hexo-cli</code>提供了4个命令，都在<code>hexo-cli/lib/console</code>路径下。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ hexo help</span><br><span class="line">$ hexo init</span><br><span class="line">$ hexo version</span><br></pre></td></tr></table></figure>
+
+<p>扩展命令通过<code>hexo-cli/lib/extends.console.js</code>实现。</p>
+<p><strong>hexo init 命令</strong></p>
+<p><strong><code>init.js</code>核心代码</strong></p>
+<p>路径<code>hexo-cli/lib/console/init.js</code></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> GIT_REPO_URL = <span class="string">&#x27;https://github.com/hexojs/hexo-starter.git&#x27;</span>;</span><br><span class="line"><span class="comment">// 1. git clone --recursive https://github.com/hexojs/hexo-starter.git blog</span></span><br><span class="line">log.info(<span class="string">&#x27;Cloning hexo-starter to&#x27;</span></span><br><span class="line">spawn(<span class="string">&#x27;git&#x27;</span>, [<span class="string">&#x27;clone&#x27;</span>, <span class="string">&#x27;--recursive&#x27;</span>, GIT_REPO_URL, target]);</span><br><span class="line">removeGitDir(target);</span><br><span class="line">removeGitModules(target);</span><br><span class="line"><span class="comment">// 2. npm install --production</span></span><br><span class="line">log.info(<span class="string">&#x27;Install dependencies&#x27;</span>);</span><br><span class="line">spawn(npmCommand, [<span class="string">&#x27;install&#x27;</span>, <span class="string">&#x27;--production&#x27;</span>]);</span><br></pre></td></tr></table></figure>
+
+<p>实际上吧，如果hexo的log打印出来<code>GIT_REPO_URL</code>就更清晰，非要藏起来等人挖掘。</p>
+<p><strong>参考</strong></p>
+<ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2hleG9qcy9oZXhvLXN0YXJ0ZXI=">hexo-starter项目<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2hleG9qcy9oZXhvLWNsaS9ibG9iL21hc3Rlci9saWIvaGV4by5qcw==">hexo.js源码 | hexo-cli 项目<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2hleG9qcy9oZXhvLWNsaS9ibG9iL21hc3Rlci9saWIvY29uc29sZS9pbml0Lmpz">hexo init 命令源码 | hexo-cli 项目<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+<h2 id="3-hexo-server"><a href="#3-hexo-server" class="headerlink" title="3. hexo server"></a>3. hexo server</h2><p>这个不属于hexo-cli了。<br><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2hleG9qcy9oZXhvLXNlcnZlci9ibG9iL21hc3Rlci9saWIvc2VydmVyLmpz">hexo server命令源码<i class="fa fa-external-link-alt"></i></span></p>
+<p>暂没兴趣，应该就是启了个nodejs HttpServer。待看</p>
+<ul>
+<li>额外的逻辑是，如果没generate，先调一下 hexo g</li>
+</ul>
+<p>但是偶尔出现的bug来源于<code>hexo s</code>，这里的逻辑还需要看一下。</p>
+<h2 id="4-hexo-new"><a href="#4-hexo-new" class="headerlink" title="4. hexo new"></a>4. hexo new</h2><h2 id="5-hexo-generate"><a href="#5-hexo-generate" class="headerlink" title="5. hexo generate"></a>5. hexo generate</h2><p>生成器（Generator）<span class="exturl" data-url="aHR0cHM6Ly9oZXhvLmlvL3poLWNuL2FwaS9nZW5lcmF0b3IuaHRtbA==">官方文档<i class="fa fa-external-link-alt"></i></span></p>
+<p>这个好麻烦，看不动了。这么多<code>generator</code>和<code>render</code>。</p>
+<p>放个链接 <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2hleG9qcy9oZXhvLWdlbmVyYXRvci1pbmRleA==">https://github.com/hexojs/hexo-generator-index<i class="fa fa-external-link-alt"></i></span> ，貌似主要先看这个。</p>
+<h3 id="generator"><a href="#generator" class="headerlink" title="generator"></a>generator</h3><p>generates static files</p>
+<p>这一步最慢。<br>常用的有hexo-renderer-marked<br>hexo-renderer-pandoc</p>
+<h3 id="render-模板引擎"><a href="#render-模板引擎" class="headerlink" title="render 模板引擎"></a>render 模板引擎</h3><p><span class="exturl" data-url="aHR0cHM6Ly9oZXhvLmlvL3poLWNuL2FwaS9yZW5kZXJlci5odG1s">官方文档<i class="fa fa-external-link-alt"></i></span></p>
+<p><span class="exturl" data-url="aHR0cHM6Ly9oZXhvLmlvL3poLWNuL2FwaS9yZW5kZXJpbmcuaHRtbA==">https://hexo.io/zh-cn/api/rendering.html<i class="fa fa-external-link-alt"></i></span></p>
+<p>模板引擎的作用，就是将界面与数据分离。最简单的原理是将模板内容中指定的地方替换成数据，实现业务代码与逻辑代码分离。</p>
+<p>生成静态文件。将我们的数据和界面相结合生成静态文件的过程。会遍历主题文件中的 source 文件夹（js、css、img 等静态资源），然后建立索引，然后根据索引生成 pubild 文件夹中，此时的 publid 文件是由 html、 js、css、img 建立的纯静态文件可以通过 index.html 作为入口访问你的博客。</p>
+<p>其中 _layout.swig 是通用模板，里面引入了 head、footer 等公共组件，然后在其他的模板中会引入这个 _layout.swig 通用模板，比如 post.swig 模板</p>
+<ul>
+<li>.md解析成html</li>
+<li>.swig渲染为html</li>
+</ul>
+<h3 id="数据的填充"><a href="#数据的填充" class="headerlink" title="数据的填充"></a>数据的填充</h3><p>数据的填充主要是 hexo -g 的时候将数据传递给 swig 模板，然后再由 swig 模板填充到 HTML 中。</p>
+<h2 id="6-hexo-deploy"><a href="#6-hexo-deploy" class="headerlink" title="6. hexo deploy"></a>6. hexo deploy</h2><p>deploy到底干了什么？执行了git push？</p>
+<p>deploy配置</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Deployment</span></span><br><span class="line"><span class="comment">## Docs: https://hexo.io/docs/deployment.html</span></span><br><span class="line"><span class="attr">deploy:</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">type:</span> <span class="string">git</span></span><br><span class="line">  <span class="attr">repo:</span> <span class="string">git@github.com:xu-song/xu-song.github.io.git</span></span><br><span class="line">  <span class="attr">branch:</span> <span class="string">master</span></span><br></pre></td></tr></table></figure>
+
+<p>部署主要是根据在 _config.yml 中配置的 git 仓库或者 coding 的地址，将 public 文件上传至 github 或者 coding 中。然后再根据上面的 github 提供的 pages 服务呈现出页面。当然你也可以直接将你生成的 public 文件上传至你自己的服务器上。</p>
+<p><strong>deploy.js核心源码</strong>：<span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2hleG9qcy9oZXhvLWRlcGxveWVyLWdpdC9ibG9iL21hc3Rlci9saWIvZGVwbG95ZXIuanMjTDgz">https://github.com/hexojs/hexo-deployer-git/blob/master/lib/deployer.js#L83<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git(<span class="string">&#x27;add&#x27;</span>, <span class="string">&#x27;-A&#x27;</span>);  <span class="comment">// 对publc目录中执行add操作。</span></span><br><span class="line">git(<span class="string">&#x27;commit&#x27;</span>, <span class="string">&#x27;-m&#x27;</span>, message);</span><br><span class="line">git(<span class="string">&#x27;push&#x27;</span>, <span class="string">&#x27;-u&#x27;</span>, repo.url, <span class="string">&#x27;HEAD:&#x27;</span> + repo.branch, <span class="string">&#x27;--force&#x27;</span>);</span><br></pre></td></tr></table></figure>
+<p>即等价于以下几个命令(通常情况下)</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ rm -rf .deploy_git  <span class="comment"># log.info(&#x27;Clearing .deploy_git folder...&#x27;);</span></span><br><span class="line">$ cp -rf public .deploy_git <span class="comment"># log.info(&#x27;Copying files from public folder...&#x27;);</span></span><br><span class="line">$ <span class="built_in">cd</span> .deploy_git</span><br><span class="line"></span><br><span class="line">$ git add -A</span><br><span class="line">$ git commit -m <span class="string">&quot;Site updated: 2018-01-30 *:*:*&quot;</span> <span class="comment">#某时间</span></span><br><span class="line">$ git push -u origin HEAD:master --force</span><br></pre></td></tr></table></figure>
+
+<p>上面命令使用–force选项，强制push到远程主机，会使远程主机更新的版本被覆盖。所以不要在deploy之后的仓库做提交，要在dev仓库提交。</p>
+<p>实例：</p>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3hzdW5nL2Jsb2ctZGV2LyNzdWJtb2R1bGU=">Dev Repository<i class="fa fa-external-link-alt"></i></span> Main project for all submodules</li>
+<li><input checked="" disabled="" type="checkbox"> <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmcveHUtc29uZy5naXRodWIuaW8v">Deployed Repository<i class="fa fa-external-link-alt"></i></span> is deployed by Hexo from <code>Dev Repository</code></li>
+<li><input checked="" disabled="" type="checkbox"> <span class="exturl" data-url="aHR0cDovL3h1c29uZy52aXAv">Demo Site<i class="fa fa-external-link-alt"></i></span> hosts the <code>Deployed Repository</code></li>
+</ul>
+<p><strong>参考</strong></p>
+<ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly9oZXhvLmlvL2RvY3MvZGVwbG95bWVudC5odG1s">hexo deploy官方文档<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2hleG9qcy9oZXhvLWRlcGxveWVyLWdpdC9ibG9iL21hc3Rlci9saWIvZGVwbG95ZXIuanM=">hexo deploy.js源码<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cDovL2NoZXJyeWJsb2cuc2l0ZS9oZXhvLTQuaHRtbA==">http://cherryblog.site/hexo-4.html<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cDovL2NoZXJyeWJsb2cuc2l0ZS9oZXhvLTQuaHRtbA==">深入理解 Hexo<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cDovL2NvZGVydW50aGluZ3MuY29tLzIwMTcvMDgvMjAvaG93aGV4b3dvcmtzLw==">hexo是怎么工作的<i class="fa fa-external-link-alt"></i></span><h2 id="7-Hexo-的模板引擎"><a href="#7-Hexo-的模板引擎" class="headerlink" title="7. Hexo 的模板引擎"></a>7. Hexo 的模板引擎</h2>这个<code>render</code>讲道理应该是在<code>hexo g</code>的时候调用的。 待看</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/0/" rel="bookmark"></a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/e2f6e239/" rel="bookmark">【Hexo插件系列】日志的自动分类插件 hexo-auto-category</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/488fc27f/" rel="bookmark">【Hexo插件系列】流程图、时序图、</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/6aa77778/" rel="bookmark">hexo中如何支持公式 mathjax</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/d3c1b8ca/" rel="bookmark">【hexo系列】hexo的正确打开方式</a></div>
+    </li>
+  </ul>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/hexo/" rel="tag"># hexo</a>
+              <a href="/tags/%E6%BA%90%E7%A0%81/" rel="tag"># 源码</a>
+              <a href="/tags/%E5%8E%9F%E7%90%86/" rel="tag"># 原理</a>
+          </div>
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/9ff21bc3/" rel="prev" title="渣渣中的渣渣 之 DaoVoice">
+      <i class="fa fa-chevron-left"></i> 渣渣中的渣渣 之 DaoVoice
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/pub/80e7b4b1/" rel="next" title="Hexo简介">
+      Hexo简介 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%9C%8B%E6%BA%90%E7%A0%81"><span class="nav-number">1.</span> <span class="nav-text">为什么要看源码</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8BHexo%E5%92%8CPlugin%E7%89%88%E6%9C%AC"><span class="nav-number">2.</span> <span class="nav-text">查看Hexo和Plugin版本</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9B%9E%E9%A1%BEHexo%E6%90%AD%E5%BB%BA%E6%B5%81%E7%A8%8B"><span class="nav-number">3.</span> <span class="nav-text">回顾Hexo搭建流程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B5%81%E7%A8%8B%E8%AF%A6%E8%A7%A3"><span class="nav-number">4.</span> <span class="nav-text">流程详解</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-npm-install"><span class="nav-number">4.1.</span> <span class="nav-text">1. npm install</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-hexo-init"><span class="nav-number">4.2.</span> <span class="nav-text">2. hexo init</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AD%94%E6%A1%88"><span class="nav-number">4.2.1.</span> <span class="nav-text">答案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%BD%E5%AF%BB%E7%AD%94%E6%A1%88%E7%9A%84%E6%97%85%E7%A8%8B-optional"><span class="nav-number">4.2.2.</span> <span class="nav-text">追寻答案的旅程 - optional</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-hexo-server"><span class="nav-number">4.3.</span> <span class="nav-text">3. hexo server</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-hexo-new"><span class="nav-number">4.4.</span> <span class="nav-text">4. hexo new</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-hexo-generate"><span class="nav-number">4.5.</span> <span class="nav-text">5. hexo generate</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#generator"><span class="nav-number">4.5.1.</span> <span class="nav-text">generator</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#render-%E6%A8%A1%E6%9D%BF%E5%BC%95%E6%93%8E"><span class="nav-number">4.5.2.</span> <span class="nav-text">render 模板引擎</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%9A%84%E5%A1%AB%E5%85%85"><span class="nav-number">4.5.3.</span> <span class="nav-text">数据的填充</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-hexo-deploy"><span class="nav-number">4.6.</span> <span class="nav-text">6. hexo deploy</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-Hexo-%E7%9A%84%E6%A8%A1%E6%9D%BF%E5%BC%95%E6%93%8E"><span class="nav-number">4.7.</span> <span class="nav-text">7. Hexo 的模板引擎</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : '70d0eddc',
+      //id          : '702b622b789df03fecae6465db07368b',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

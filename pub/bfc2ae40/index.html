@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="关于github提供的http serverping 几个不同账号的gitpage(比如colah.github.io,xu-song.github.io)，发现对应的是同一个ip。为什么返回的页面不同呢？github pages 的 CNAME 是绑定 pages.github.io，不是${username}.github.io coding.net 的 CNAME 是绑定 pages.cod">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Github Pages托管静态博客-原理浅析">
+<meta property="og:url" content="https://blog.eson.org/pub/bfc2ae40/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="关于github提供的http serverping 几个不同账号的gitpage(比如colah.github.io,xu-song.github.io)，发现对应的是同一个ip。为什么返回的页面不同呢？github pages 的 CNAME 是绑定 pages.github.io，不是${username}.github.io coding.net 的 CNAME 是绑定 pages.cod">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-01-25T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-21T08:48:04.089Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="blog">
+<meta property="article:tag" content="pages">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.eson.org/pub/bfc2ae40/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Github Pages托管静态博客-原理浅析 | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/bfc2ae40/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Github Pages托管静态博客-原理浅析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-01-26 00:00:00" itemprop="dateCreated datePublished" datetime="2018-01-26T00:00:00+08:00">2018-01-26</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/" itemprop="url" rel="index"><span itemprop="name">web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/%E5%BB%BA%E7%AB%99/" itemprop="url" rel="index"><span itemprop="name">建站</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/%E5%BB%BA%E7%AB%99/host/" itemprop="url" rel="index"><span itemprop="name">host</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/%E5%BB%BA%E7%AB%99/host/github-pages/" itemprop="url" rel="index"><span itemprop="name">github-pages</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="关于github提供的http-server"><a href="#关于github提供的http-server" class="headerlink" title="关于github提供的http server"></a>关于github提供的http server</h2><h4 id="ping-几个不同账号的gitpage-比如colah-github-io-xu-song-github-io-，发现对应的是同一个ip。为什么返回的页面不同呢？"><a href="#ping-几个不同账号的gitpage-比如colah-github-io-xu-song-github-io-，发现对应的是同一个ip。为什么返回的页面不同呢？" class="headerlink" title="ping 几个不同账号的gitpage(比如colah.github.io,xu-song.github.io)，发现对应的是同一个ip。为什么返回的页面不同呢？"></a>ping 几个不同账号的gitpage(比如<code>colah.github.io</code>,<code>xu-song.github.io</code>)，发现对应的是同一个ip。为什么返回的页面不同呢？</h4><p>github pages 的 CNAME 是绑定 pages.github.io，不是${username}.github.io</p>
+<p>coding.net 的 CNAME 是绑定 pages.coding.me</p>
+<p>显然，Github肯定在后台做了处理。即github自身会维护一个映射，<code>host_name --&gt; www_path</code>，这样就可以根据不同的host信息返回不同的html了。</p>
+<p>这样，在访问<code>xu-song.github.io</code>时github就找到了该返回的html。</p>
+<h2 id="关于custom-domain"><a href="#关于custom-domain" class="headerlink" title="关于custom domain"></a>关于custom domain</h2><p>现在我们改用<code>custom domain</code>的方式访问gitpage主页。假设已经配置好了dns的A记录映射。<br>访问<code>xusong.vip</code>，dns解析得到ip地址。然而这次github服务器得到的host是<code>xusong.vip</code>。懵逼了，github不认识<code>xusong.vip</code>(host数据里没有该记录)，返回404页面</p>
+<image src="https://user-images.githubusercontent.com/13825126/35623051-fc61df6c-06c4-11e8-89a7-6207bc430d85.PNG" style="width: 60%;">
+
+
+<p><strong>怎么办呢？</strong></p>
+<p>那就让github认识一下<code>xusong.vip</code>，也就是在github page里设置一下custom domain，或者添加CNAME文件，详见[用Github Pages搭建独立域名的个人博客](../利用Github Pages搭建独立域名的个人博客/)</p>
+<ul>
+<li><input disabled="" type="checkbox"> 如果DNS设置CNAME记录，是不是github page不用设置就能work？</li>
+</ul>
+<h2 id="那么上一篇中的重重疑点也就解开了"><a href="#那么上一篇中的重重疑点也就解开了" class="headerlink" title="那么上一篇中的重重疑点也就解开了"></a>那么上一篇中的重重疑点也就解开了</h2><ul>
+<li><input checked="" disabled="" type="checkbox"> 每个账号的gitpage都是独立的IP吗？github怎么这么多独立外网IP？还是不同账号共用IP？<ul>
+<li>很多账号是同一个ip。</li>
+</ul>
+</li>
+<li><input checked="" disabled="" type="checkbox"> 不同github page共享ip 正因为如此，才需要<code>步骤3</code>的设置。</li>
+<li><input checked="" disabled="" type="checkbox"> 配置github pages的custom domain，其作用仅仅是<code>xu-song.github.io --&gt; xusong.vip (重定向)</code>吗？<ul>
+<li>不是。1. 查dns解析是否通过 2. 部署到github服务器的相应目录（因为） 3. github page到domain的重定向</li>
+</ul>
+</li>
+</ul>
+<h2 id="关于https"><a href="#关于https" class="headerlink" title="关于https"></a>关于https</h2><h3 id="为什么Github-Pages不支持为自定义域名添加SSL证书？"><a href="#为什么Github-Pages不支持为自定义域名添加SSL证书？" class="headerlink" title="为什么Github Pages不支持为自定义域名添加SSL证书？"></a>为什么Github Pages不支持为自定义域名添加SSL证书？</h3><p><span class="exturl" data-url="aHR0cHM6Ly9zdGVmZmFuLmNuLzIwMTcvMDMvMjIvdXNlLWNsb3VkZmxhcmUtdG8taW1wbGVtZW50LUhUVFBTLWZvci1HaXRodWJQYWdlcy13aXRoLWN1c3RvbS1kb21haW4tbmFtZXMv">https://steffan.cn/2017/03/22/use-cloudflare-to-implement-HTTPS-for-GithubPages-with-custom-domain-names/<i class="fa fa-external-link-alt"></i></span></p>
+<h2 id="多个域名能否指向同一个-GitHub-Pages？"><a href="#多个域名能否指向同一个-GitHub-Pages？" class="headerlink" title="多个域名能否指向同一个 GitHub Pages？"></a>多个域名能否指向同一个 GitHub Pages？</h2><p>GitHub Pages 的官方文档，一个 username.github.io 只能支持一个域名。</p>
+<p>coding page支持多个域名。</p>
+<h2 id="一个账号能否见多个github-page？"><a href="#一个账号能否见多个github-page？" class="headerlink" title="一个账号能否见多个github page？"></a>一个账号能否见多个github page？</h2><p>可以建立多个， 个人账户page只能有一个， 项目page可以有多个</p>
+<p>比如你的账号名为  username, 项目叫 project1    那你可以通过  username.github.io/project1 访问， 如果配置了个人域名就可以用自己的域名访问了</p>
+<p>但是CNAME不能指向username.github.io/project1，怎么办？</p>
+<h2 id="todo"><a href="#todo" class="headerlink" title="todo"></a>todo</h2><ul>
+<li><input disabled="" type="checkbox"> 如何解决md同步问题？<ul>
+<li>git-repo源，gist源，git issue源，gitpage源。最优的方式就是同源 + 自动deploy。</li>
+<li>方式一：以issue作源，要自己利用github api，读取issue，然后写到source目录(貌似也挺简单)。</li>
+<li>方式二：以git-repo作源，貌似不错哎。单独把source目录单独作为repo</li>
+<li>方式三：以gist作源：易集成(一行js即可)，但不易管理(不支持directory，文档多了很麻烦)</li>
+</ul>
+</li>
+<li><input disabled="" type="checkbox"> 如何实现在线写blog，像wordpress那样<ul>
+<li>用js调用github api，或者其他后台api即可</li>
+</ul>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/41fcf36a/" rel="bookmark">将Hexo博客到同时部署到Github和Coding实现全球快速访问。</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/87420f16/" rel="bookmark">DNS解析之“记录类型”</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/6c2187f/" rel="bookmark">利用Github Pages搭建独立域名的个人博客</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/65131a14/" rel="bookmark">如何托管你的网站 - 托管服务器</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/d2f02b9b/" rel="bookmark">Coding Pages托管静态博客-原理浅析</a></div>
+    </li>
+  </ul>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/blog/" rel="tag"># blog</a>
+              <a href="/tags/pages/" rel="tag"># pages</a>
+          </div>
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/3329d7fc/" rel="prev" title="google云主机---GCE">
+      <i class="fa fa-chevron-left"></i> google云主机---GCE
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/pub/ef977b92/" rel="next" title="github中的git gist wiki区别">
+      github中的git gist wiki区别 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8Egithub%E6%8F%90%E4%BE%9B%E7%9A%84http-server"><span class="nav-number">1.</span> <span class="nav-text">关于github提供的http server</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#ping-%E5%87%A0%E4%B8%AA%E4%B8%8D%E5%90%8C%E8%B4%A6%E5%8F%B7%E7%9A%84gitpage-%E6%AF%94%E5%A6%82colah-github-io-xu-song-github-io-%EF%BC%8C%E5%8F%91%E7%8E%B0%E5%AF%B9%E5%BA%94%E7%9A%84%E6%98%AF%E5%90%8C%E4%B8%80%E4%B8%AAip%E3%80%82%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%94%E5%9B%9E%E7%9A%84%E9%A1%B5%E9%9D%A2%E4%B8%8D%E5%90%8C%E5%91%A2%EF%BC%9F"><span class="nav-number">1.0.1.</span> <span class="nav-text">ping 几个不同账号的gitpage(比如colah.github.io,xu-song.github.io)，发现对应的是同一个ip。为什么返回的页面不同呢？</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8Ecustom-domain"><span class="nav-number">2.</span> <span class="nav-text">关于custom domain</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%82%A3%E4%B9%88%E4%B8%8A%E4%B8%80%E7%AF%87%E4%B8%AD%E7%9A%84%E9%87%8D%E9%87%8D%E7%96%91%E7%82%B9%E4%B9%9F%E5%B0%B1%E8%A7%A3%E5%BC%80%E4%BA%86"><span class="nav-number">3.</span> <span class="nav-text">那么上一篇中的重重疑点也就解开了</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8Ehttps"><span class="nav-number">4.</span> <span class="nav-text">关于https</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88Github-Pages%E4%B8%8D%E6%94%AF%E6%8C%81%E4%B8%BA%E8%87%AA%E5%AE%9A%E4%B9%89%E5%9F%9F%E5%90%8D%E6%B7%BB%E5%8A%A0SSL%E8%AF%81%E4%B9%A6%EF%BC%9F"><span class="nav-number">4.1.</span> <span class="nav-text">为什么Github Pages不支持为自定义域名添加SSL证书？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E4%B8%AA%E5%9F%9F%E5%90%8D%E8%83%BD%E5%90%A6%E6%8C%87%E5%90%91%E5%90%8C%E4%B8%80%E4%B8%AA-GitHub-Pages%EF%BC%9F"><span class="nav-number">5.</span> <span class="nav-text">多个域名能否指向同一个 GitHub Pages？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E8%B4%A6%E5%8F%B7%E8%83%BD%E5%90%A6%E8%A7%81%E5%A4%9A%E4%B8%AAgithub-page%EF%BC%9F"><span class="nav-number">6.</span> <span class="nav-text">一个账号能否见多个github page？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#todo"><span class="nav-number">7.</span> <span class="nav-text">todo</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : 'bfc2ae40',
+      //id          : '39b594ff297e61f8b074f5340b494f47',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

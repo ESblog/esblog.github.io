@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="背景BERT取得了较大成功，但是原始的模型并不能直接用于对句子打分 #35，也就是常规的语言模型任务。如何利用bert的预训练模型对句子打分？ 序列掩码的方式应该比较合理。 并非autoregressive结构，速度较快 方案">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BERT用于语言模型的方案">
+<meta property="og:url" content="https://blog.eson.org/pub/ba80d46a/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="背景BERT取得了较大成功，但是原始的模型并不能直接用于对句子打分 #35，也就是常规的语言模型任务。如何利用bert的预训练模型对句子打分？ 序列掩码的方式应该比较合理。 并非autoregressive结构，速度较快 方案">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-11-30T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-21T08:48:04.201Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="bert">
+<meta property="article:tag" content="语言模型">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.eson.org/pub/ba80d46a/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>BERT用于语言模型的方案 | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/ba80d46a/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          BERT用于语言模型的方案
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-12-01 00:00:00" itemprop="dateCreated datePublished" datetime="2018-12-01T00:00:00+08:00">2018-12-01</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/app/" itemprop="url" rel="index"><span itemprop="name">app</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/app/nlp/" itemprop="url" rel="index"><span itemprop="name">nlp</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/app/nlp/lm-and-pretrain/" itemprop="url" rel="index"><span itemprop="name">lm_and_pretrain</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/app/nlp/lm-and-pretrain/model/" itemprop="url" rel="index"><span itemprop="name">model</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/app/nlp/lm-and-pretrain/model/nnlm/" itemprop="url" rel="index"><span itemprop="name">nnlm</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/app/nlp/lm-and-pretrain/model/nnlm/tansformers/" itemprop="url" rel="index"><span itemprop="name">tansformers</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>BERT取得了较大成功，但是原始的模型并不能直接用于对句子打分 <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2dvb2dsZS1yZXNlYXJjaC9iZXJ0L2lzc3Vlcy8zNQ==">#35<i class="fa fa-external-link-alt"></i></span>，也就是常规的语言模型任务。<br>如何利用bert的预训练模型对句子打分？</p>
+<p>序列掩码的方式应该比较合理。</p>
+<p>并非autoregressive结构，速度较快</p>
+<h1 id="方案"><a href="#方案" class="headerlink" title="方案"></a>方案</h1><ol>
+<li>双向<ul>
+<li>采用sequential mask. 计算量较大，精度也最高</li>
+</ul>
+</li>
+<li>单向，类似GPT。计算量稍微小点，但是作为12层的transformer，计算量仍然不小</li>
+<li>只用embedding(768维)，自己构造小结构的语言模型<ul>
+<li>动态embedding: 用bert作为embedding layer</li>
+<li>静态embedding</li>
+</ul>
+</li>
+</ol>
+<p>1比较靠谱，因此后面重点介绍方案一。</p>
+<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>对于一个句子 $S = w_1, w_2,…, w_k$，通常可以这样来表示整个句子的概率</p>
+<p>$$<br>p(S) = \prod_{i=1}^{k} p(w_i | context)<br>$$</p>
+<p>传统的语言模型，比如RNN中,  $context = w_1, …, w_{i-1}$,<br>$$<br>p(S) = \prod_{i=1}^{k} p(w_i | w_1, …, w_{i-1})<br>$$</p>
+<p>如何利用bert对句子打分？一个简单的思路就是每次mask掉一个词 $w _ i$ ，然后利用bert得到该词的概率 $p(w _ i)$。即作为双向语言模型，BERT具有更大的上下文信息，$context = w_1, …, w_{i-1}, w_{i+1}, …, w_k$，</p>
+<p>$$<br>p(S) = \prod_{i=1}^{k} p(w_i | w_1, …, w_{i-1},w_{i+1}, …,w_k)<br>$$</p>
+<p>进一步可以转化为句子的ppl。</p>
+<h1 id="总体评价"><a href="#总体评价" class="headerlink" title="总体评价"></a>总体评价</h1><p>char-level的语言模型，由于词组内的高概率，会使整个句子ppl普遍偏高。句子间的相对ppl还靠谱。</p>
+<p>单个word/char的概率预测效果较好。</p>
+<blockquote>
+<p><strong>建议</strong>:<br>用分词后的中文重新pretrain，然后进行word-level language model predict。</p>
+</blockquote>
+<h1 id="中文测试"><a href="#中文测试" class="headerlink" title="中文测试"></a>中文测试</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> BERT_BASE_DIR=model/chinese_L-12_H-768_A-12</span><br><span class="line"><span class="built_in">export</span> INPUT_FILE=data/lm/test.zh.tsv</span><br><span class="line">python run_lm_predict.py \</span><br><span class="line">  --input_file=<span class="variable">$INPUT_FILE</span> \</span><br><span class="line">  --vocab_file=<span class="variable">$BERT_BASE_DIR</span>/vocab.txt \</span><br><span class="line">  --bert_config_file=<span class="variable">$BERT_BASE_DIR</span>/bert_config.json \</span><br><span class="line">  --init_checkpoint=<span class="variable">$BERT_BASE_DIR</span>/bert_model.ckpt \</span><br><span class="line">  --max_seq_length=128 \</span><br><span class="line">  --output_dir=/tmp/lm_output/</span><br></pre></td></tr></table></figure>
+
+<p>以下是部分结果，更多见<span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmcvYmVydF9hc19sYW5ndWFnZV9tb2RlbC9ibG9iL21hc3Rlci9kYXRhL2xtL3Jlc3VsdC56aC5qc29u">result.zh.json<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">&quot;tokens&quot;:</span> [</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;2016&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.06563900411128998</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;全&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.4981258511543274</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;国&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.9088247418403625</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;低&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">1.6259804397122934e-05</span>  <span class="comment"># 低概率</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;考&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.4023572504520416</span></span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="string">...</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;ppl&quot;:</span> <span class="number">13.400421357093588</span></span><br><span class="line">  &#125;,</span><br><span class="line"> &#123;</span><br><span class="line">    <span class="attr">&quot;tokens&quot;:</span> [</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;落&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.1483132392168045</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;霞&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.42232587933540344</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;与&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.8615185022354126</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;孤&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.9975666999816895</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;鹜&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.5613960027694702</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;齐&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.18012434244155884</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;跑&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">1.3388593288254924e-05</span>   <span class="comment"># 低概率</span></span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="string">...</span></span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;ppl&quot;:</span> <span class="number">11.983086642867598</span></span><br><span class="line">  &#125;,</span><br></pre></td></tr></table></figure>
+
+
+<p>中文测试样例来源于<span class="exturl" data-url="aHR0cHM6Ly9jbG91ZC5iYWlkdS5jb20vcHJvZHVjdC9ubHAvZG5ubG1fY24=">百度云dnnlm<i class="fa fa-external-link-alt"></i></span></p>
+<!--
+英文model跑中文 - UNK的影响
+
+
+export BERT_BASE_DIR=model/uncased_L-12_H-768_A-12
+export INPUT_FILE=data/lm/test.zh.tsv
+python run_lm_predict.py \
+  --input_file=$INPUT_FILE \
+  --vocab_file=$BERT_BASE_DIR/vocab.txt \
+  --bert_config_file=$BERT_BASE_DIR/bert_config.json \
+  --init_checkpoint=$BERT_BASE_DIR/bert_model.ckpt \
+  --max_seq_length=128 \
+  --output_dir=/tmp/lm_output/
+
+UNK太多，没有多大意义。
+-->
+
+<h1 id="更多测试"><a href="#更多测试" class="headerlink" title="更多测试"></a>更多测试</h1><h2 id="中文model给英文句子打分"><a href="#中文model给英文句子打分" class="headerlink" title="中文model给英文句子打分"></a>中文model给英文句子打分</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">hello world</span><br><span class="line">gone with bad</span><br><span class="line">gone with the wind</span><br><span class="line">slavery african</span><br></pre></td></tr></table></figure>
+
+<p>采用的<code>chinese_L-12_H-768_A-12</code>。即中文词典跑英文，会出现很多OOV，造成较多subtoken。<br>ppl较大。</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">&quot;tokens&quot;:</span> [</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;hello&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.01559396181255579</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;world&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">7.31540481524462e-08</span></span><br><span class="line">      &#125;</span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;ppl&quot;:</span> <span class="number">29607.558139141183</span>    <span class="comment"># 为什么ppl这么高？</span></span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">&quot;tokens&quot;:</span> [</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;go&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.16923364996910095</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;##ne&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.0627128928899765</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;with&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.019953709095716476</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;bad&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">9.239820428774692e-07</span>   <span class="comment"># 这里低概率，比较合理</span></span><br><span class="line">      &#125;</span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;ppl&quot;:</span> <span class="number">267.37285553187235</span>    <span class="comment"># ppl也算合理</span></span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">&quot;tokens&quot;:</span> [</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;go&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.026223953813314438</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;##ne&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.06661253422498703</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;with&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.04489848017692566</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;the&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.7770023941993713</span>   <span class="comment"># 局部高概率，ngram能都有多大的概率？</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;wind&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">7.36875972506823e-06</span></span><br><span class="line">      &#125;</span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;ppl&quot;:</span> <span class="number">74.05246212422989</span></span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">&quot;tokens&quot;:</span> [</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;s&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.15798506140708923</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;##la&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.06484799832105637</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;##ver&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.04713333398103714</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;##y&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.022265272215008736</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;af&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.9910877346992493</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;##ric&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.9998739957809448</span>   <span class="comment"># african是一个词汇，african局部高概率</span></span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;token&quot;:</span> <span class="string">&quot;##an&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;prob&quot;:</span> <span class="number">0.17350609600543976</span></span><br><span class="line">      &#125;</span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;ppl&quot;:</span> <span class="number">6.592083876588999</span></span><br><span class="line">  &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>我觉得，不能按照token来mask</p>
+<p>char-level lm的一大缺陷，就是会造成局部概率过高，使得整体ppl失真。<br>ppl的本意是要考虑word间的</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmcvYmVydF9hc19sYW5ndWFnZV9tb2RlbA==">github源码<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/8283aaba/" rel="bookmark">BERT</a></div>
+    </li>
+  </ul>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/bert/" rel="tag"># bert</a>
+              <a href="/tags/%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" rel="tag"># 语言模型</a>
+          </div>
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/8283aaba/" rel="prev" title="BERT">
+      <i class="fa fa-chevron-left"></i> BERT
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/pub/4716970e/" rel="next" title="非局部连接网络 Non-local Neural Network">
+      非局部连接网络 Non-local Neural Network <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%96%B9%E6%A1%88"><span class="nav-number">2.</span> <span class="nav-text">方案</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">3.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E4%BD%93%E8%AF%84%E4%BB%B7"><span class="nav-number">4.</span> <span class="nav-text">总体评价</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%AD%E6%96%87%E6%B5%8B%E8%AF%95"><span class="nav-number">5.</span> <span class="nav-text">中文测试</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9B%B4%E5%A4%9A%E6%B5%8B%E8%AF%95"><span class="nav-number">6.</span> <span class="nav-text">更多测试</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%AD%E6%96%87model%E7%BB%99%E8%8B%B1%E6%96%87%E5%8F%A5%E5%AD%90%E6%89%93%E5%88%86"><span class="nav-number">6.1.</span> <span class="nav-text">中文model给英文句子打分</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : 'ba80d46a',
+      //id          : '3d1912b9c09316f7a5a36338703a3daf',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="rcloneRclone是一款的命令行工具，支持在不同对象存储、网盘间同步、上传、下载数据。 支持的主流对象存储：  Google Drive Amazon S3 Openstack Swift &#x2F; Rackspace cloud files &#x2F; Memset Memstore Dropbox Google Cloud Storage Amazon Drive Microsoft One Driv">
+<meta property="og:type" content="article">
+<meta property="og:title" content="rclone简介">
+<meta property="og:url" content="https://blog.eson.org/pub/7294e32c/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="rcloneRclone是一款的命令行工具，支持在不同对象存储、网盘间同步、上传、下载数据。 支持的主流对象存储：  Google Drive Amazon S3 Openstack Swift &#x2F; Rackspace cloud files &#x2F; Memset Memstore Dropbox Google Cloud Storage Amazon Drive Microsoft One Driv">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-05-03T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-11-14T06:05:52.576Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="机器学习, 计算机视觉, 深度学习, 自然语言处理, ESON">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.eson.org/pub/7294e32c/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>rclone简介 | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/7294e32c/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          rclone简介
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-05-04 00:00:00" itemprop="dateCreated datePublished" datetime="2021-05-04T00:00:00+08:00">2021-05-04</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/%E4%B8%AD%E9%97%B4%E4%BB%B6/" itemprop="url" rel="index"><span itemprop="name">中间件</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/%E4%B8%AD%E9%97%B4%E4%BB%B6/%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8/" itemprop="url" rel="index"><span itemprop="name">对象存储</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="rclone"><a href="#rclone" class="headerlink" title="rclone"></a>rclone</h2><p>Rclone是一款的命令行工具，支持在不同对象存储、网盘间同步、上传、下载数据。</p>
+<p>支持的主流对象存储：</p>
+<ul>
+<li>Google Drive</li>
+<li>Amazon S3</li>
+<li>Openstack Swift / Rackspace cloud files / Memset Memstore</li>
+<li>Dropbox</li>
+<li>Google Cloud Storage</li>
+<li>Amazon Drive</li>
+<li>Microsoft One Drive</li>
+<li>Hubic</li>
+<li>Backblaze B2</li>
+<li>Yandex Disk</li>
+<li>The local filesystem</li>
+</ul>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p><span class="exturl" data-url="aHR0cHM6Ly9yY2xvbmUub3JnL2Rvd25sb2Fkcy8=">https://rclone.org/downloads/<i class="fa fa-external-link-alt"></i></span></p>
+<h2 id="京东云OSS"><a href="#京东云OSS" class="headerlink" title="京东云OSS"></a>京东云OSS</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br></pre></td><td class="code"><pre><span class="line">C:&gt; rclone config</span><br><span class="line">Current remotes:</span><br><span class="line"></span><br><span class="line">Name                 Type</span><br><span class="line">====                 ====</span><br><span class="line">cloud-oss          s3</span><br><span class="line"></span><br><span class="line">e) Edit existing remote</span><br><span class="line">n) New remote</span><br><span class="line">d) Delete remote</span><br><span class="line">r) Rename remote</span><br><span class="line">c) Copy remote</span><br><span class="line">s) Set configuration password</span><br><span class="line">q) Quit config</span><br><span class="line">e/n/d/r/c/s/q&gt; n</span><br><span class="line"></span><br><span class="line">Enter name for new remote.</span><br><span class="line">name&gt; abc</span><br><span class="line"></span><br><span class="line">Option Storage.</span><br><span class="line">Type of storage to configure.</span><br><span class="line">Choose a number from below, or type in your own value.</span><br><span class="line"> 1 / 1Fichier</span><br><span class="line">   \ (fichier)</span><br><span class="line"> 2 / Akamai NetStorage</span><br><span class="line">   \ (netstorage)</span><br><span class="line"> 3 / Alias for an existing remote</span><br><span class="line">   \ (alias)</span><br><span class="line"> 4 / Amazon Drive</span><br><span class="line">   \ (amazon cloud drive)</span><br><span class="line"> 5 / Amazon S3 Compliant Storage Providers including AWS, Alibaba, Ceph, China Mobile, Cloudflare, ArvanCloud, Digital Ocean, Dreamhost, Huawei OBS, IBM COS, IDrive e2, Lyve Cloud, Minio, Netease, RackCorp, Scaleway, SeaweedFS, StackPath, Storj, Tencent COS and Wasabi</span><br><span class="line">   \ (s3)</span><br><span class="line"> 6 / Backblaze B2</span><br><span class="line">   \ (b2)</span><br><span class="line"> 7 / Better checksums for other remotes</span><br><span class="line">   \ (hasher)</span><br><span class="line"> 8 / Box</span><br><span class="line">   \ (box)</span><br><span class="line"> 9 / Cache a remote</span><br><span class="line">   \ (cache)</span><br><span class="line">10 / Citrix Sharefile</span><br><span class="line">   \ (sharefile)</span><br><span class="line">11 / Combine several remotes into one</span><br><span class="line">   \ (combine)</span><br><span class="line">12 / Compress a remote</span><br><span class="line">   \ (compress)</span><br><span class="line">13 / Dropbox</span><br><span class="line">   \ (dropbox)</span><br><span class="line">14 / Encrypt/Decrypt a remote</span><br><span class="line">   \ (crypt)</span><br><span class="line">15 / Enterprise File Fabric</span><br><span class="line">   \ (filefabric)</span><br><span class="line">16 / FTP</span><br><span class="line">   \ (ftp)</span><br><span class="line">17 / Google Cloud Storage (this is not Google Drive)</span><br><span class="line">   \ (google cloud storage)</span><br><span class="line">18 / Google Drive</span><br><span class="line">   \ (drive)</span><br><span class="line">19 / Google Photos</span><br><span class="line">   \ (google photos)</span><br><span class="line">20 / HTTP</span><br><span class="line">   \ (http)</span><br><span class="line">21 / Hadoop distributed file system</span><br><span class="line">   \ (hdfs)</span><br><span class="line">22 / HiDrive</span><br><span class="line">   \ (hidrive)</span><br><span class="line">23 / Hubic</span><br><span class="line">   \ (hubic)</span><br><span class="line">24 / In memory object storage system.</span><br><span class="line">   \ (memory)</span><br><span class="line">25 / Internet Archive</span><br><span class="line">   \ (internetarchive)</span><br><span class="line">26 / Jottacloud</span><br><span class="line">   \ (jottacloud)</span><br><span class="line">27 / Koofr, Digi Storage and other Koofr-compatible storage providers</span><br><span class="line">   \ (koofr)</span><br><span class="line">28 / Local Disk</span><br><span class="line">   \ (local)</span><br><span class="line">29 / Mail.ru Cloud</span><br><span class="line">   \ (mailru)</span><br><span class="line">30 / Mega</span><br><span class="line">   \ (mega)</span><br><span class="line">31 / Microsoft Azure Blob Storage</span><br><span class="line">   \ (azureblob)</span><br><span class="line">32 / Microsoft OneDrive</span><br><span class="line">   \ (onedrive)</span><br><span class="line">33 / OpenDrive</span><br><span class="line">   \ (opendrive)</span><br><span class="line">34 / OpenStack Swift (Rackspace Cloud Files, Memset Memstore, OVH)</span><br><span class="line">   \ (swift)</span><br><span class="line">35 / Pcloud</span><br><span class="line">   \ (pcloud)</span><br><span class="line">36 / Put.io</span><br><span class="line">   \ (putio)</span><br><span class="line">37 / QingCloud Object Storage</span><br><span class="line">   \ (qingstor)</span><br><span class="line">38 / SSH/SFTP</span><br><span class="line">   \ (sftp)</span><br><span class="line">39 / Sia Decentralized Cloud</span><br><span class="line">   \ (sia)</span><br><span class="line">40 / Storj Decentralized Cloud Storage</span><br><span class="line">   \ (storj)</span><br><span class="line">41 / Sugarsync</span><br><span class="line">   \ (sugarsync)</span><br><span class="line">42 / Transparently chunk/split large files</span><br><span class="line">   \ (chunker)</span><br><span class="line">43 / Union merges the contents of several upstream fs</span><br><span class="line">   \ (union)</span><br><span class="line">44 / Uptobox</span><br><span class="line">   \ (uptobox)</span><br><span class="line">45 / WebDAV</span><br><span class="line">   \ (webdav)</span><br><span class="line">46 / Yandex Disk</span><br><span class="line">   \ (yandex)</span><br><span class="line">47 / Zoho</span><br><span class="line">   \ (zoho)</span><br><span class="line">48 / premiumize.me</span><br><span class="line">   \ (premiumizeme)</span><br><span class="line">49 / seafile</span><br><span class="line">   \ (seafile)</span><br><span class="line">Storage&gt; 5</span><br><span class="line"></span><br><span class="line">Option provider.</span><br><span class="line">Choose your S3 provider.</span><br><span class="line">Choose a number from below, or type in your own value.</span><br><span class="line">Press Enter to leave empty.</span><br><span class="line"> 1 / Amazon Web Services (AWS) S3</span><br><span class="line">   \ (AWS)</span><br><span class="line"> 2 / Alibaba Cloud Object Storage System (OSS) formerly Aliyun</span><br><span class="line">   \ (Alibaba)</span><br><span class="line"> 3 / Ceph Object Storage</span><br><span class="line">   \ (Ceph)</span><br><span class="line"> 4 / China Mobile Ecloud Elastic Object Storage (EOS)</span><br><span class="line">   \ (ChinaMobile)</span><br><span class="line"> 5 / Cloudflare R2 Storage</span><br><span class="line">   \ (Cloudflare)</span><br><span class="line"> 6 / Arvan Cloud Object Storage (AOS)</span><br><span class="line">   \ (ArvanCloud)</span><br><span class="line"> 7 / Digital Ocean Spaces</span><br><span class="line">   \ (DigitalOcean)</span><br><span class="line"> 8 / Dreamhost DreamObjects</span><br><span class="line">   \ (Dreamhost)</span><br><span class="line"> 9 / Huawei Object Storage Service</span><br><span class="line">   \ (HuaweiOBS)</span><br><span class="line">10 / IBM COS S3</span><br><span class="line">   \ (IBMCOS)</span><br><span class="line">11 / IDrive e2</span><br><span class="line">   \ (IDrive)</span><br><span class="line">12 / Seagate Lyve Cloud</span><br><span class="line">   \ (LyveCloud)</span><br><span class="line">13 / Minio Object Storage</span><br><span class="line">   \ (Minio)</span><br><span class="line">14 / Netease Object Storage (NOS)</span><br><span class="line">   \ (Netease)</span><br><span class="line">15 / RackCorp Object Storage</span><br><span class="line">   \ (RackCorp)</span><br><span class="line">16 / Scaleway Object Storage</span><br><span class="line">   \ (Scaleway)</span><br><span class="line">17 / SeaweedFS S3</span><br><span class="line">   \ (SeaweedFS)</span><br><span class="line">18 / StackPath Object Storage</span><br><span class="line">   \ (StackPath)</span><br><span class="line">19 / Storj (S3 Compatible Gateway)</span><br><span class="line">   \ (Storj)</span><br><span class="line">20 / Tencent Cloud Object Storage (COS)</span><br><span class="line">   \ (TencentCOS)</span><br><span class="line">21 / Wasabi Object Storage</span><br><span class="line">   \ (Wasabi)</span><br><span class="line">22 / Any other S3 compatible provider</span><br><span class="line">   \ (Other)</span><br><span class="line">provider&gt; 22    # 阿里云，就选2</span><br><span class="line"></span><br><span class="line">Option env_auth.</span><br><span class="line">Get AWS credentials from runtime (environment variables or EC2/ECS meta data if no env vars).</span><br><span class="line">Only applies if access_key_id and secret_access_key is blank.</span><br><span class="line">Choose a number from below, or type in your own boolean value (true or false).</span><br><span class="line">Press Enter for the default (false).</span><br><span class="line"> 1 / Enter AWS credentials in the next step.</span><br><span class="line">   \ (false)</span><br><span class="line"> 2 / Get AWS credentials from the environment (env vars or IAM).</span><br><span class="line">   \ (true)</span><br><span class="line">env_auth&gt;</span><br><span class="line"></span><br><span class="line">Option access_key_id.</span><br><span class="line">AWS Access Key ID.</span><br><span class="line">Leave blank for anonymous access or runtime credentials.</span><br><span class="line">Enter a value. Press Enter to leave empty.</span><br><span class="line">access_key_id&gt; ***  </span><br></pre></td></tr></table></figure>
+
+
+<p>生成的配置文件 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[cloud-oss]</span><br><span class="line">type = s3</span><br><span class="line">provider = Other</span><br><span class="line">env_auth = true</span><br><span class="line">access_key_id = ***</span><br><span class="line">secret_access_key = *** </span><br><span class="line">endpoint = https://**.com</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="rclone-命令"><a href="#rclone-命令" class="headerlink" title="rclone 命令"></a>rclone 命令</h2><p><strong>rclone config</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">rclone config - 进入交互式配置选项，进行添加、删除、管理网盘等操作。</span><br><span class="line"></span><br><span class="line">rclone config file - 显示配置文件的路径，一般配置文件在 ~/.config/rclone/rclone.conf</span><br><span class="line"></span><br><span class="line">rclone config show - 显示配置文件信息</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>rclone ls</strong><br>列出bucket下所有文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ rclone ls cloud-oss:nlp-object-store</span><br></pre></td></tr></table></figure>
+
+<p>列出bucket特定path下所有文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ rclone ls cloud-oss:nlp-object-store/jr</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>rclone lsl</strong> - 比上面多一个显示上传时间。</li>
+<li><strong>rclone lsd</strong> 列出指定路径下的目录</li>
+<li><strong>rclone lsf</strong> - 列出指定路径下的目录和文件</li>
+</ul>
+<p><strong>rclone copy</strong></p>
+<p><strong>rclone sync</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ rclone sync --help</span><br><span class="line">$ rclone sync source:path dest:path   # 单向的，只改变dest， 双向同步使用 bisync</span><br><span class="line"></span><br><span class="line"># 本地 同步到 服务器</span><br><span class="line">$ rclone sync E:/test cloud-oss:nlp-object-store/test</span><br><span class="line"></span><br><span class="line"># 服务器 同步到 本地</span><br><span class="line">$ rclone sync cloud-oss:nlp-object-store/test E:/test</span><br></pre></td></tr></table></figure>
+
+<p>Sync the source to the destination, changing the destination only.</p>
+<p>注意：</p>
+<ul>
+<li>同步数据时，可能会删除目的地址的数据；建议先使用–dry-run 标志来检查要复制、删除的数据。</li>
+<li>同步数据出错时，不会删除任何目的地址的数据。</li>
+<li>同步的始终是 path 目录下的数据，而不是 path 目录。（空目录将不会被同步）</li>
+<li>同步频率？ 是一次性同步，不是随时同步</li>
+</ul>
+<p><strong>rclone bisync</strong></p>
+<p>这是个新增的feature：<span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3JjbG9uZS9yY2xvbmUvcHVsbC81MTY0">https://github.com/rclone/rclone/pull/5164<i class="fa fa-external-link-alt"></i></span></p>
+<p>注意：bisync is EXPERIMENTAL. Don’t use in production!</p>
+<p><strong>rclone mount</strong>：太棒了</p>
+<p>rclone mount cloud-oss:nlp-object-store/test X: –cache-dir D:\logs_rcloneCache –vfs-cache-mode writes</p>
+<p>这个依赖winfsp</p>
+<ul>
+<li>这个挂载，会把数据全部下载，不只是meta信息</li>
+<li>是双向同步</li>
+<li>同步频率，是不是有点慢？怎么修改</li>
+</ul>
+<p>如何开机自动挂载？</p>
+<p><strong>rclone md5sum</strong> - 为指定路径下的所有文件产生一个md5sum文件。</p>
+<p><strong>rclone sha1sum</strong> - 为指定路径下的所有文件产生一个sha1sum文件。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>官方文档：<span class="exturl" data-url="aHR0cHM6Ly9yY2xvbmUub3JnL2RvY3Mv">https://rclone.org/docs/<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly93d3cuY25ibG9ncy5jb20vS2FrdUNpY2FkYS9wLzEzNTczMTMyLmh0bWw=">https://www.cnblogs.com/KakuCicada/p/13573132.html<i class="fa fa-external-link-alt"></i></span> 这个文档格式挺不错</li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9zb2Z0bG5zLmdpdGh1Yi5pby8yMDE2LzExLzI4L3JjbG9uZS1ndWlkZS8=">https://softlns.github.io/2016/11/28/rclone-guide/<i class="fa fa-external-link-alt"></i></span> </li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3NvY3JhdGVzL2FydGljbGUvZGV0YWlscy8xMDQ4MDA3MDk=">https://blog.csdn.net/socrates/article/details/104800709<i class="fa fa-external-link-alt"></i></span> 阿里云 亚马逊云配置 rclone</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+
+
+      <footer class="post-footer">
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/c18b237c/" rel="prev" title="python deque双向队列">
+      <i class="fa fa-chevron-left"></i> python deque双向队列
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#rclone"><span class="nav-number">1.</span> <span class="nav-text">rclone</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%AC%E4%B8%9C%E4%BA%91OSS"><span class="nav-number">3.</span> <span class="nav-text">京东云OSS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rclone-%E5%91%BD%E4%BB%A4"><span class="nav-number">4.</span> <span class="nav-text">rclone 命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : '7294e32c',
+      //id          : '762ae29cce1c268556f3d67851e30e18',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

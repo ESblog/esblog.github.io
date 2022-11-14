@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="UPDATE: 2018-08-08: github markdown已经支持公式， 简介MathJax 和 Katex mathjax">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hexo中如何支持公式 mathjax">
+<meta property="og:url" content="https://blog.eson.org/pub/6aa77778/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="UPDATE: 2018-08-08: github markdown已经支持公式， 简介MathJax 和 Katex mathjax">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://c1.mifile.cn/f/i/hd/2016051101/a-lj.png">
+<meta property="og:image" content="http://c1.mifile.cn/f/i/hd/2016051101/a-lj.png">
+<meta property="article:published_time" content="2018-05-02T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-21T08:48:04.134Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="hexo">
+<meta property="article:tag" content="前端渲染">
+<meta property="article:tag" content="mathjax">
+<meta property="article:tag" content="公式">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://c1.mifile.cn/f/i/hd/2016051101/a-lj.png">
+
+<link rel="canonical" href="https://blog.eson.org/pub/6aa77778/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>hexo中如何支持公式 mathjax | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/6aa77778/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          hexo中如何支持公式 mathjax
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-05-03 00:00:00" itemprop="dateCreated datePublished" datetime="2018-05-03T00:00:00+08:00">2018-05-03</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/demo/" itemprop="url" rel="index"><span itemprop="name">demo</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/demo/hexo/" itemprop="url" rel="index"><span itemprop="name">hexo</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <link rel="stylesheet" href="/css/tag-chat.css" />
+<p><strong>UPDATE: 2018-08-08</strong>: github markdown已经支持公式，</p>
+<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p><span class="exturl" data-url="aHR0cHM6Ly93d3cubWF0aGpheC5vcmcv">MathJax<i class="fa fa-external-link-alt"></i></span> 和 <span class="exturl" data-url="aHR0cHM6Ly9raGFuLmdpdGh1Yi5pby9LYVRlWC8=">Katex<i class="fa fa-external-link-alt"></i></span></p>
+<h1 id="mathjax"><a href="#mathjax" class="headerlink" title="mathjax"></a>mathjax</h1><blockquote>
+<p>Beautiful math in all browsers<br><br>A <strong>JavaScript display engine</strong> for mathematics that works in all browsers.<br><br> —— 来自<span class="exturl" data-url="aHR0cDovL3d3dy5tYXRoamF4Lm9yZy8=">www.mathjax.org<i class="fa fa-external-link-alt"></i></span></p>
+</blockquote>
+<p>MathJax是一款运行在浏览器中的开源的数学符号渲染引擎，使用MathJax可以方便的在浏览器中显示数学公式，不需要使用图片。目前，MathJax可以解析Latex、MathML和ASCIIMathML的标记语言。 MathJax项目于2009年开始，发起人有American Mathematical Society, Design Science等，还有众多的支持者。</p>
+<ul>
+<li>无损缩放，支持多种方式的公式渲染(math-render)。(不采用图片、Flash)<ul>
+<li><strong>CSS引擎</strong>：采用CSS生成数学公式</li>
+<li><strong>SVG引擎</strong>：采用SVG生成数学公式</li>
+<li><strong>MathML引擎</strong>：</li>
+</ul>
+</li>
+<li>源码拷贝。可以拷贝LaTeX、wiki等；</li>
+<li>输入形式可以是MathML、TeX或者ASCIImath</li>
+</ul>
+<h1 id="html中使用mathjax"><a href="#html中使用mathjax" class="headerlink" title="html中使用mathjax"></a>html中使用mathjax</h1><p>mathjax就是个<strong>前端渲染引擎</strong>。</p>
+<!--
+angular，等
+-->
+
+<script async src="//jsfiddle.net/xusong/npc3gu8v/embed/html,result/"></script>
+
+<p>也可以借鉴 <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS9sYXRleC5odG1s">https://kexue.fm/latex.html<i class="fa fa-external-link-alt"></i></span></p>
+<p>或者拷贝以上代码，保存为<code>math.html</code>，双击打开就能看到渲染好的公式。</p>
+<h1 id="hexo中使用mathjax"><a href="#hexo中使用mathjax" class="headerlink" title="hexo中使用mathjax"></a>hexo中使用mathjax</h1><p>同样很简单，仅需两步。</p>
+<ol>
+<li>加载mathjax的cdn</li>
+<li>博客中按照<code>tex</code>语法写公式即可</li>
+</ol>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><p>markdown中书写：</p>
+<figure class="highlight tex"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">$</span><span class="built_in">$</span>x = &#123;-b <span class="keyword">\pm</span> <span class="keyword">\sqrt</span>&#123;b<span class="built_in">^</span>2-4ac&#125; <span class="keyword">\over</span> 2a&#125;.<span class="built_in">$</span><span class="built_in">$</span></span><br></pre></td></tr></table></figure>
+
+<p>首先会被markdown-render渲染到html，成为以下的脚本 (这一步不是必须的，mathjax能直接解析<code>$$</code>符号，而无需该步的转换)</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;script type=<span class="string">&quot;math/tex; mode=display&quot;</span>&gt;x = &#123;-b \pm \sqrt&#123;b^<span class="number">2</span>-4ac&#125; \over 2a&#125;.&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<p>浏览器加载html页面后，根据script引用加载<code>mathjax.js</code>，然后在浏览器端渲染成以下公式：</p>
+<p>$$x = {-b \pm \sqrt{b^2-4ac} \over 2a}.$$</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 其他方式：</span></span><br><span class="line">\[x = &#123;-b \pm \sqrt&#123;b^2-4ac&#125; \over 2a&#125;.\]</span><br><span class="line"><span class="comment"># 如果存在转义问题，可以采用以下方式</span></span><br><span class="line">\\[x = &#123;-b \pm \sqrt&#123;b^2-4ac&#125; \over 2a&#125;.\\]</span><br></pre></td></tr></table></figure>
+
+<h1 id="hexo中支持公式的markdown插件"><a href="#hexo中支持公式的markdown插件" class="headerlink" title="hexo中支持公式的markdown插件"></a>hexo中支持公式的markdown插件</h1><ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2hleG9qcy9oZXhvLXJlbmRlcmVyLW1hcmtlZA==">hexo-renderer-marked<i class="fa fa-external-link-alt"></i></span><br>这是hexo默认的markdown渲染插件，其调用的<span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2NoamovbWFya2Vk">marked.js渲染引擎<i class="fa fa-external-link-alt"></i></span>。<em>这个插件支持公式渲染吗？</em></li>
+<li>hexo-math插件<ul>
+<li>支持<code>math</code>标签</li>
+<li>早期版本支持<code>$$</code>和<code>$</code>符号，新版不再支持</li>
+<li>如果喜欢，推荐使用 (hexo-filter-mathjax)[<span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2hleG9qcy9oZXhvLW1hdGgvaXNzdWVzLzUxI2lzc3VlY29tbWVudC02Nzc5ODI5OTNd">https://github.com/hexojs/hexo-math/issues/51#issuecomment-677982993]<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+</li>
+<li>hexo-filter-mathjax</li>
+<li>主题自带的公式<ul>
+<li>theme-next 自带mathjax支持 （我用的这个）</li>
+</ul>
+</li>
+</ul>
+<h1 id="markdown渲染引擎"><a href="#markdown渲染引擎" class="headerlink" title="markdown渲染引擎"></a>markdown渲染引擎</h1><ul>
+<li><code>marked</code> <span class="exturl" data-url="aHR0cHM6Ly9tYXJrZWQuanMub3JnL2RlbW8v">demo<i class="fa fa-external-link-alt"></i></span><ul>
+<li>轻量级，更新活跃</li>
+<li>jupyter、google-colab、hexo默认采用的<code>marked.js</code>作为渲染引擎</li>
+<li>hexo模块: hexo-renderer-marked</li>
+<li>该模块并不会渲染公式，但是mathjax也能识别，因为mathjax可直接解析<code>$$</code></li>
+</ul>
+</li>
+<li><code>pandoc</code> 重量级 <span class="exturl" data-url="aHR0cDovL3BhbmRvYy5vcmcvdHJ5Lw==">demo<i class="fa fa-external-link-alt"></i></span><ul>
+<li>pandoc -f markdown+tex_math_single_backslash –mathjax test.md -o test.html</li>
+<li>以上参数的命令可以解决问题</li>
+<li>hexo模块: hexo-renderer-pandoc</li>
+</ul>
+</li>
+<li><code>kramdown</code><span class="exturl" data-url="aHR0cDovL2tyYW1kb3duLXNhbmRib3guaGVyb2t1YXBwLmNvbS8=">demo<i class="fa fa-external-link-alt"></i></span><ul>
+<li>派生自<code>marked</code>，但是很久没有更新过了</li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2NzMjMxbi9jczIzMW4uZ2l0aHViLmlvL2Jsb2IvbWFzdGVyL19jb25maWcueW1sI0wxMQ==">cs231n<i class="fa fa-external-link-alt"></i></span> 采用的kramdown</li>
+<li>hexo模块: hexo-renderer-kramed</li>
+</ul>
+</li>
+</ul>
+<h1 id="存在的问题"><a href="#存在的问题" class="headerlink" title="存在的问题"></a>存在的问题</h1><h2 id="公式的转义问题"><a href="#公式的转义问题" class="headerlink" title="公式的转义问题"></a>公式的转义问题</h2><p>有时会遇到公式渲染失败，有时也会遇到很多不同的公式写法，比如：</p>
+<ul>
+<li><code>$</code>、<code>$$</code>  </li>
+<li><code>\(</code>和<code>\)</code>、<code>\[</code>和<code>\]</code></li>
+<li><code>\\(</code>和<code>\\)</code>、<code>\\[</code>和<code>\\]</code>，示例<span class="exturl" data-url="aHR0cHM6Ly93d3cudGVuc29yZmxvdy5vcmcvY29tbXVuaXR5L2RvY3VtZW50YXRpb24jbWF0aF9pbl9tYXJrZG93bg==">tensorflow<i class="fa fa-external-link-alt"></i></span> 、<span class="exturl" data-url="aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2NzMjMxbi9jczIzMW4uZ2l0aHViLmlvL21hc3Rlci9uZXVyYWwtbmV0d29ya3MtMS5tZA==">cs231n<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+<p>公式渲染失败，一般是由于不同的markdown引擎的渲染方式不同引起的，以上的<code>\\(</code>这种写法也是为了和markdown渲染引擎作斗争，以致于写个公式变得这么复杂。</p>
+<p><strong>举个例子</strong></p>
+<figure class="highlight md"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">\[ x=1 \]</span><br></pre></td></tr></table></figure>
+
+<p>经过<code>marked</code>引擎解析成以下html:</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">p</span>&gt;</span>[ x=1 ]<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>注意:</strong> 这里的反斜线<code>\[</code>经过<code>marked</code>引擎后转义丢失，只剩下<code>[</code>。因此mathjax无法识别，以致于公式无法正常显示。</p>
+<p>怎么办？既然反斜线丢失，那就多加个反斜线，写成<code>\\[ x=1 \\]</code>。这样就渲染成功了</p>
+<h2 id="常见的markdown渲染引擎"><a href="#常见的markdown渲染引擎" class="headerlink" title="常见的markdown渲染引擎"></a>常见的markdown渲染引擎</h2><ul>
+<li><code>marked</code> 轻量级 <span class="exturl" data-url="aHR0cHM6Ly9tYXJrZWQuanMub3JnL2RlbW8vP3RleHQ9JTIzJTIwZ29vZCUwQSQkeCsxJTVDb3ZlciU1Q3NxcnQlN0IxLXglNUUyJTdEJCQlMEElMEElMjMlMjBiYWQlMEElNUMlNUJ4KzElNUNvdmVyJTVDc3FydCU3QjEteCU1RTIlN0QlNUMlNUQlMEElNUMoeCsxJTVDb3ZlciU1Q3NxcnQlN0IxLXglNUUyJTdEJTVDKQ==">demo<i class="fa fa-external-link-alt"></i></span></li>
+<li><code>pandoc</code> 重量级 也存在同样的问题，<span class="exturl" data-url="aHR0cDovL3BhbmRvYy5vcmcvdHJ5Lz90ZXh0PSUyMytnb29kJTBBJCR4KzElNUNvdmVyJTVDc3FydCU3QjEteCU1RTIlN0QkJCUwQSUwQSUyMytiYWQlMEElNUMlNUJ4KzElNUNvdmVyJTVDc3FydCU3QjEteCU1RTIlN0QlNUMlNUQlMEElNUMoeCsxJTVDb3ZlciU1Q3NxcnQlN0IxLXglNUUyJTdEJTVDKSZmcm9tPW1hcmtkb3duJnRvPQ==">demo<i class="fa fa-external-link-alt"></i></span><ul>
+<li>pandoc -f markdown+tex_math_single_backslash –mathjax test.md -o test.html</li>
+<li>以上参数的命令可以解决问题</li>
+</ul>
+</li>
+<li><code>kramdown</code>也存在同样的问题，<span class="exturl" data-url="aHR0cDovL2tyYW1kb3duLXNhbmRib3guaGVyb2t1YXBwLmNvbS8=">demo<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+<ol>
+<li>多加个反斜线，比如<code>\[</code>要写成<code>\\[</code>   <strong>麻烦</strong></li>
+<li>修改marked源码，取消了对<code>\\</code>,<code>\&#123;</code>,<code>\&#125;</code>的转义(escape)   <strong>麻烦</strong></li>
+<li>采用其他markdown引擎，比如kramdown (比如<span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2NzMjMxbi9jczIzMW4uZ2l0aHViLmlvL2Jsb2IvbWFzdGVyL19jb25maWcueW1sI0wxMQ==">cs231n<i class="fa fa-external-link-alt"></i></span>就采用的kramdown)   <strong>发现也不work</strong></li>
+<li>把所有<code>\[</code>替换成<code>$$</code>  <strong>我目前是这样做的</strong></li>
+</ol>
+<p><strong>建议</strong>:</p>
+<p>不要采用 <code>\[</code> 或 <code>\(</code>的格式书写公式，尽量用<code>$$</code> 或 <code>$</code></p>
+<ol>
+<li>很多引擎不支持<code>\[</code>或 <code>\(</code> (比如github)</li>
+<li><code>\[</code>中的反斜线经常会被解释成转义符号，造成符号丢失</li>
+</ol>
+<h1 id="疑问"><a href="#疑问" class="headerlink" title="疑问"></a>疑问</h1><div class="chatContent" id="chatContent"><div class="clearfix">  <div class="message others"> <div class="avatar" data-author-id="lj"> <img src="http://c1.mifile.cn/f/i/hd/2016051101/a-lj.png" alt="雷军"> </div> <div class="content"> <div class="bubble  bubble_default left"> <div class="bubble_cont"> <div class="plain"> <pre>`theme-next`为什么要限定markdown引擎？不应该和markdown引擎无关吗？</pre> </div> </div> </div>  </div> </div>  </div><div class="clearfix">  <div class="message others"> <div class="avatar" data-author-id="lj"> <img src="http://c1.mifile.cn/f/i/hd/2016051101/a-lj.png" alt="雷军"> </div> <div class="content"> <div class="bubble  bubble_default left"> <div class="bubble_cont"> <div class="plain"> <pre>...</pre> </div> </div> </div>  </div> </div>  </div></div>
+
+
+
+
+<h1 id="公式里的-被渲染成斜体"><a href="#公式里的-被渲染成斜体" class="headerlink" title="公式里的 _ 被渲染成斜体"></a>公式里的 <code>_ </code>被渲染成斜体</h1><p>由于 Markdown 在 MathJax 之前起作用，有时下标记号会被 Markdown 吃掉，变成 HTML 标记 <code>&lt;i&gt;</code> 或 <code>&lt;em&gt;</code> 而失去 LaTeX 的下标效果，造成数学公式显示不正常。</p>
+<p>有时会被渲染成斜体。$c _  {t-1} $ 和 $ h _  {t-1}$</p>
+<p><strong>解决策略</strong>：带空格的 <code>_</code> 不会被渲染成斜体。</p>
+<p>$c_{t-1} $ 和 $ h_{t-1}$</p>
+<p>$ c_{t-1} $ 和 $ h_{t-1} $</p>
+<p>$ c_{t-1} $ 和 $ h_{t-1} $</p>
+<p>$ c_{t-1} $ 和 $ h_{t-1} $</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3RoZW1lLW5leHQvaGV4by10aGVtZS1uZXh0L2Jsb2IvbWFzdGVyL2RvY3MvTUFUSC5tZA==">theme-next中使用mathjax | next官方文档<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cDovL3Nob215LnRvcC8yMDE2LzEwLzIyL2hleG8tbWFya2Rvd24tbWF0aGpheC8=">Hexo下mathjax的转义问题<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2VtcHR5c2V0MTEwL2FydGljbGUvZGV0YWlscy81MDEyMzIzMQ==">使Marked.js与MathJax共存<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9saWFtLnBhZ2UvMjAxNS8wOS8wOS9maXgtY29uZmxpY3QtYmV0d2Vlbi1tYXRoamF4LWFuZC1tYXJrZG93bi8="> MathJax 与 Markdown 的冲突<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/70d0eddc/" rel="bookmark">【hexo源码系列】 入门</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/0/" rel="bookmark"></a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/e2f6e239/" rel="bookmark">【Hexo插件系列】日志的自动分类插件 hexo-auto-category</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/488fc27f/" rel="bookmark">【Hexo插件系列】流程图、时序图、</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/d3c1b8ca/" rel="bookmark">【hexo系列】hexo的正确打开方式</a></div>
+    </li>
+  </ul>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/hexo/" rel="tag"># hexo</a>
+              <a href="/tags/%E5%89%8D%E7%AB%AF%E6%B8%B2%E6%9F%93/" rel="tag"># 前端渲染</a>
+              <a href="/tags/mathjax/" rel="tag"># mathjax</a>
+              <a href="/tags/%E5%85%AC%E5%BC%8F/" rel="tag"># 公式</a>
+          </div>
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/7f7eb3f4/" rel="prev" title="RNN研究现状以及发展趋势，LSTM的变种 (variants of LSTM)">
+      <i class="fa fa-chevron-left"></i> RNN研究现状以及发展趋势，LSTM的变种 (variants of LSTM)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/pub/a1c27ad7/" rel="next" title="【数据分析篇】SNLI数据集">
+      【数据分析篇】SNLI数据集 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#mathjax"><span class="nav-number">2.</span> <span class="nav-text">mathjax</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#html%E4%B8%AD%E4%BD%BF%E7%94%A8mathjax"><span class="nav-number">3.</span> <span class="nav-text">html中使用mathjax</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#hexo%E4%B8%AD%E4%BD%BF%E7%94%A8mathjax"><span class="nav-number">4.</span> <span class="nav-text">hexo中使用mathjax</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B"><span class="nav-number">4.1.</span> <span class="nav-text">示例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#hexo%E4%B8%AD%E6%94%AF%E6%8C%81%E5%85%AC%E5%BC%8F%E7%9A%84markdown%E6%8F%92%E4%BB%B6"><span class="nav-number">5.</span> <span class="nav-text">hexo中支持公式的markdown插件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#markdown%E6%B8%B2%E6%9F%93%E5%BC%95%E6%93%8E"><span class="nav-number">6.</span> <span class="nav-text">markdown渲染引擎</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AD%98%E5%9C%A8%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">7.</span> <span class="nav-text">存在的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AC%E5%BC%8F%E7%9A%84%E8%BD%AC%E4%B9%89%E9%97%AE%E9%A2%98"><span class="nav-number">7.1.</span> <span class="nav-text">公式的转义问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E7%9A%84markdown%E6%B8%B2%E6%9F%93%E5%BC%95%E6%93%8E"><span class="nav-number">7.2.</span> <span class="nav-text">常见的markdown渲染引擎</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%96%91%E9%97%AE"><span class="nav-number">8.</span> <span class="nav-text">疑问</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%AC%E5%BC%8F%E9%87%8C%E7%9A%84-%E8%A2%AB%E6%B8%B2%E6%9F%93%E6%88%90%E6%96%9C%E4%BD%93"><span class="nav-number">9.</span> <span class="nav-text">公式里的 _ 被渲染成斜体</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">10.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : '6aa77778',
+      //id          : '69741b5676bb0e740fa51b66bc51babf',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

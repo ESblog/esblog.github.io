@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="传统方法 Historyerror signals “flowing backwards in time” tend to either blow up or vanish。 bp算法中为什么会产生梯度消失？ | 知乎 LSTMLSTM网络是RNN的一种，专门设计用于解决long-term dependency&#x2F;memory问题，1997年由 Hochreiter &amp; Schmidhu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【RNN系列】长短期记忆 LSTM （从RNN到LSTM）">
+<meta property="og:url" content="https://blog.eson.org/pub/a6941437/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="传统方法 Historyerror signals “flowing backwards in time” tend to either blow up or vanish。 bp算法中为什么会产生梯度消失？ | 知乎 LSTMLSTM网络是RNN的一种，专门设计用于解决long-term dependency&#x2F;memory问题，1997年由 Hochreiter &amp; Schmidhu">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20RNN%20-%20LSTM%20gate%20-%20colah.png">
+<meta property="og:image" content="https://i.makeagif.com/media/7-27-2015/OLkiOf.gif">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20RNN%20-%20colah.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20RNN%20-%20LSTM%20-%20cell%20forget%20-%20colah.png">
+<meta property="og:image" content="https://jhui.github.io/assets/rnn/lstm.png">
+<meta property="article:published_time" content="2018-02-06T11:08:53.000Z">
+<meta property="article:modified_time" content="2021-06-21T08:48:04.255Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="rnn">
+<meta property="article:tag" content="lstm">
+<meta property="article:tag" content="gradient vanish">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.eson.org/images/raw/NN%20-%20RNN%20-%20LSTM%20gate%20-%20colah.png">
+
+<link rel="canonical" href="https://blog.eson.org/pub/a6941437/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>【RNN系列】长短期记忆 LSTM （从RNN到LSTM） | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/a6941437/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【RNN系列】长短期记忆 LSTM （从RNN到LSTM）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-02-06 19:08:53" itemprop="dateCreated datePublished" datetime="2018-02-06T19:08:53+08:00">2018-02-06</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/model-basic/" itemprop="url" rel="index"><span itemprop="name">model-basic</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/model-basic/RNN/" itemprop="url" rel="index"><span itemprop="name">RNN</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <!-- the implementation of LSTM -->
+
+<h1 id="传统方法-History"><a href="#传统方法-History" class="headerlink" title="传统方法 History"></a>传统方法 History</h1><p>error signals “flowing backwards in time” tend to either <code>blow up</code> or <code>vanish</code>。</p>
+<p><span class="exturl" data-url="aHR0cHM6Ly93d3cuemhpaHUuY29tL3F1ZXN0aW9uLzQ5ODEyMDEz">bp算法中为什么会产生梯度消失？ | 知乎<i class="fa fa-external-link-alt"></i></span></p>
+<h1 id="LSTM"><a href="#LSTM" class="headerlink" title="LSTM"></a>LSTM</h1><p>LSTM网络是RNN的一种，专门设计用于解决long-term dependency/memory问题，1997年由 Hochreiter &amp; Schmidhuber提出。<br>由于独特的设计结构，LSTM适合于处理和预测时间序列中间隔和延迟非常长的重要事件。</p>
+<!-- Long Short Term Memory networks – usually just called “LSTMs” – are a special kind of RNN, capable of learning long-term dependencies.  -->
+
+<p>名字：long short-term memory<br>意思是vanilla RNN是short-term memory，sequence太长，</p>
+<ul>
+<li><strong>LSTM只能避免RNN的梯度消失</strong>（<code>gradient vanishing</code>）；</li>
+<li>梯度膨胀(<code>gradient explosion</code>)不是个严重的问题，一般靠裁剪后的优化算法即可解决，比如<code>gradient clipping</code>（如果梯度的范数大于某个给定值，将梯度同比收缩）。下面简单说说LSTM如何避免梯度消失.</li>
+<li>梯度弥散是什么鬼？</li>
+</ul>
+<p>cell: memory_cell</p>
+<h2 id="关于梯度消失问题"><a href="#关于梯度消失问题" class="headerlink" title="关于梯度消失问题"></a>关于梯度消失问题</h2><h3 id="梯度消失问题–直观解释"><a href="#梯度消失问题–直观解释" class="headerlink" title="梯度消失问题–直观解释"></a>梯度消失问题–直观解释</h3><!-- In theory, RNNs are absolutely capable of handling “long-term dependencies.” -->
+
+<image title="传统RNN的梯度消失问题" src="/images/raw/NN - RNN - vanish gradient problem - alex.png" width="70%">
+
+<p>传统RNN中存在的梯度消失。</p>
+<!-- conventional RNN: 1. The sensitivity of the input valus decays overtime 2. The network forgets the previous input-->
+
+
+<h3 id="梯度消失-–-产生的原因"><a href="#梯度消失-–-产生的原因" class="headerlink" title="梯度消失 – 产生的原因"></a>梯度消失 – 产生的原因</h3><p>本质原因就是因为<strong>矩阵高次幂</strong>导致的</p>
+<p>在多层网络中，影响梯度大小的因素主要有两个：权重和激活函数的偏导。</p>
+<p>深层的梯度是<strong>多个激活函数偏导乘积</strong>的形式来计算，如果这些激活函数的偏导比较小（小于1）或者为0，那么梯度随时间很容易vanishing；相反，如果这些激活函数的偏导比较大（大于1），那么梯度很有可能就会exploding。因而，梯度的计算和更新非常困难。</p>
+<p><span class="exturl" data-url="aHR0cHM6Ly93d3cuemhpaHUuY29tL3F1ZXN0aW9uLzM0ODc4NzA2">https://www.zhihu.com/question/34878706<i class="fa fa-external-link-alt"></i></span></p>
+<p>参考:</p>
+<ul>
+<li><span class="exturl" data-url="aHR0cDovL3d3dy53aWxkbWwuY29tLzIwMTUvMTAvcmVjdXJyZW50LW5ldXJhbC1uZXR3b3Jrcy10dXRvcmlhbC1wYXJ0LTMtYmFja3Byb3BhZ2F0aW9uLXRocm91Z2gtdGltZS1hbmQtdmFuaXNoaW5nLWdyYWRpZW50cy8=">BP Through Time and Vanishing Gradients<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly93d3cuY3MudG9yb250by5lZHUvfmdyYXZlcy9waGQucGRmI3BhZ2U9NDU=">Chapter 4: LSTM | Supervised Sequence Labelling with Recurrent Neural Networks<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9tZWRpdW0uY29tL21scmV2aWV3L3VuZGVyc3RhbmRpbmctbHN0bS1hbmQtaXRzLWRpYWdyYW1zLTM3ZTJmNDZmMTcxNA==">关于valve的比喻<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+<!-- we fist introduce the interface, then the implementation  -->
+
+<h2 id="梯度消失问题-–-解决方案"><a href="#梯度消失问题-–-解决方案" class="headerlink" title="梯度消失问题 – 解决方案"></a>梯度消失问题 – 解决方案</h2><p>见后续的gate</p>
+<h2 id="梯度消失问题-–-LSTM是如何避免的"><a href="#梯度消失问题-–-LSTM是如何避免的" class="headerlink" title="梯度消失问题 – LSTM是如何避免的"></a>梯度消失问题 – LSTM是如何避免的</h2><p>1、当gate是关闭的，那么就会阻止对当前信息的改变，这样以前的依赖信息就会被学到。2、当gate是打开的时候，并不是完全替换之前的信息，而是在之前信息和现在信息之间做加权平均。所以，无论网络的深度有多深，输入序列有多长，只要gate是打开的，网络都会记住这些信息。</p>
+<!-- https://www.cc.gatech.edu/~san37/img/dl/grad_lstm.png -->
+<image title="the preservation over time of gradient information by LSTM" width="70%" src="/images/raw/NN - RNN - LSTM - preservation of gradient - alex.png">
+<!-- LSTM: 1. The cell remember the input as long as it wants 2. The output can be used anytime it wants-->
+
+<p>上面这个例子中，数据从实心1向后传递。通过gate的配合，成功在节点4和6输出该数据。<strong>数据流(梯度)不会因long-term传输而消失</strong>，有效解决RNN的梯度消失问题。即<strong>梯度保持</strong></p>
+<p>用数学来表达，就是f=1,i=0，那么就状态保持(完整)。f=0，i=1就状态遗忘(后面也LSTM的变种，采用i=1-f)。</p>
+<ul>
+<li>当gate是关闭的，那么就会阻止对当前信息的改变，这样以前的依赖信息就会被学到。</li>
+<li>当gate是打开的时候，并不是完全替换之前的信息，而是在之前信息和现在信息之间做加权平均。所以，无论网络的深度有多深，输入序列有多长，只要gate是打开的，网络都会记住这些信息。</li>
+</ul>
+<p><strong>参考</strong></p>
+<ul>
+<li><span class="exturl" data-url="aHR0cDovL3d3dy5iaW9pbmYuamt1LmF0L3B1YmxpY2F0aW9ucy9vbGRlci8yNjA0LnBkZiNwYWdlPTU=">LSTM | Sepp Hochreiter 1997<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+<h1 id="LSTM的设计思想"><a href="#LSTM的设计思想" class="headerlink" title="LSTM的设计思想"></a>LSTM的设计思想</h1><p>LSTM的核心：cell + gate。<br>用于解决传统RNN中的梯度消失问题 (Gradient Vanish)</p>
+<h2 id="关于gate"><a href="#关于gate" class="headerlink" title="关于gate"></a>关于gate</h2><!-- 备用图片 http://www.solidswiki.com/images/3/34/Gate_valves.gif -->
+
+<table border="1"><colgroup><col width="30%"><col width="70%"></colgroup><tbody><tr><td><img src="/images/raw/NN - RNN - LSTM gate - colah.png"></td><td><img src="https://i.makeagif.com/media/7-27-2015/OLkiOf.gif"></td></tr></tbody></table>
+
+
+
+<p>gate，即阀门、开关。取值范围[0,1]，0表示关闭，1表示通行</p>
+<p>使用一个合适激活函数，它的梯度在一个合理的范围。LSTM使用gate function，有选择的让一部分信息通过。gate是由一个sigmoid单元和一个逐点乘积操作组成，sigmoid单元输出1或0，用来判断通过还是阻止，然后训练这些gate的组合。所以，<strong>当gate是打开的（梯度接近于1），梯度就不会vanish。并且sigmoid不超过1，那么梯度也不会explode</strong>。</p>
+<table border="1"><tbody><tr><td><img title="RNN的信息流: $tanh(c_{t-1})$" src="/images/raw/NN - RNN - colah.png"></td><td><img title="LSTM的信息流：普通的乘加操作" src="/images/raw/NN - RNN - LSTM - cell forget - colah.png"></td></tr></tbody></table>
+
+<ul>
+<li>RNN中时序传递采用tanh，是非线性变换，多次叠加梯度计算需要利用链式法则，难收敛。</li>
+<li>LSTM中 <strong>时序传递采用乘加操作，是线性变换</strong>，多次叠加可合并，梯度仍然容易求。链式法则求梯度，也会有f的乘积啊</li>
+</ul>
+<!-- vanishing gradient over time,或者 The Problem of Long-Term Dependencies-->
+
+
+
+
+
+<blockquote>
+<p>Gates are a way to optionally let information through.</p>
+</blockquote>
+<p>待看</p>
+<ul>
+<li>An Empirical Exploration of Recurrent Network Architectures.</li>
+<li>Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling.</li>
+</ul>
+<h2 id="关于cell的设计"><a href="#关于cell的设计" class="headerlink" title="关于cell的设计"></a>关于cell的设计</h2><p>$h_t$在RNN中承担两个角色:</p>
+<ul>
+<li>作为当前时刻的<code>output</code>，用于prediction</li>
+<li>作为当前时刻的<code>hidden state</code>，用于时序信息的传递</li>
+</ul>
+<p>LSTM将这两个角色拆分为 $h_t$和$C$，这样LSTM中的隐状态实际上就是$C$了，$h_t$作为<code>output</code>。通过这样的设计，输出层只利用$h_t$的信息，而不直接利用内部cell的值 $C$。</p>
+<img width="50%" src="https://jhui.github.io/assets/rnn/lstm.png">
+
+<p>x和h_t-1做一个拼接，过sigmoide得到forget-gate。<br>forget-gate作用在c_t-1上。</p>
+<p><strong>为什么要设计cell？这样抽象的意义？</strong></p>
+<p>LSTM中c和h的区别: 仅仅是一个输出门的区别(c没过输出门，$h_{t-1}$作为上一时刻的输出，要过输出门)。</p>
+<ul>
+<li>c与x拼接送入forget gate呢？</li>
+<li>forget作用在h上呢？</li>
+</ul>
+<p><span class="exturl" data-url="aHR0cHM6Ly96aHVhbmxhbi56aGlodS5jb20vcC8yODkxOTc2NQ==">https://zhuanlan.zhihu.com/p/28919765<i class="fa fa-external-link-alt"></i></span></p>
+<p><strong>为什么i不是是只作用于x，为什么还要作用于</strong> $h_{t-1}$</p>
+<p><strong>GRU中合并了cell state和和hidden state</strong></p>
+<h2 id="关于激活函数"><a href="#关于激活函数" class="headerlink" title="关于激活函数"></a>关于激活函数</h2><h3 id="sigmoid"><a href="#sigmoid" class="headerlink" title="sigmoid"></a>sigmoid</h3><p>sigmoid之类的大量用在rnn的门也并非是概率解释的问题。而是理想门函数是阶跃函数，但其本身不可导，所以soft成sigmoid是一种折中。而且rnn中sigmoid陷入饱和区本身也是一件无所谓的事儿，因为门的作用本身就是通过与不通过，他希望的就是激活值大量集中在0/1附近而不是其他的连续值。</p>
+<p>为什么rnn中sigmoid陷入饱和区本身也是一件无所谓的事儿？不影响梯度消失？</p>
+<h3 id="tanh"><a href="#tanh" class="headerlink" title="tanh"></a>tanh</h3><p>为什么用tanh不用ReLU？</p>
+<p>在CNN等结构中将原先的sigmoid、tanh换成ReLU可以取得比较好的效果。<br>为什么在RNN中，将tanh换成ReLU不能取得类似的效果？</p>
+<p>从信号处理的方式说，要保证系统稳定。类似线性系统极点要在单位圆里，非线性直接加个激活卡住。所以简而言之：Relu不行，越界了；sigmoid差一半平面；只有tanh刚好。tanh还有个好处是零点梯度为1，这个性质比sigmoid好，relu在右半平面也是1，但越界不稳定，然并卵了。</p>
+<p>参考：<span class="exturl" data-url="aHR0cHM6Ly93d3cuemhpaHUuY29tL3F1ZXN0aW9uLzYxMjY1MDc2L2Fuc3dlci8yMzk5ODc3MDQ=">https://www.zhihu.com/question/61265076/answer/239987704<i class="fa fa-external-link-alt"></i></span></p>
+<h2 id="接口设计"><a href="#接口设计" class="headerlink" title="接口设计"></a>接口设计</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">output, (h_n, c_n) = lstm(<span class="built_in">input</span>, (h_0, c_0))  <span class="comment"># pytorch的接口</span></span><br><span class="line">new_h, (new_c, new_h) = lstm(inputs, (c, h))  <span class="comment"># tensorflow的接口，其中state=(c, h)</span></span><br></pre></td></tr></table></figure>
+
+<p>LSTM可以看做有两个隐状态h和c，对应的隐层就是一个Tuple。<br>这里可以对比RNN的接口。</p>
+<p>在RNN中 $output = c_t = h_t$，即$h$既是<code>hidden state</code>又是<code>output</code></p>
+<p><strong>为什么lstm代码里和有些图里，习惯吧output称作h(hidden)？</strong> 前面已经解释了</p>
+<p><strong>这里为什么要用 tuple 呢？直接把它们拼成一个 Tensor 不行吗，tuple 还得一个一个遍历，这多麻烦？</strong></p>
+<p>不行。因为多层 RNN 并不需要每一层都一样大，例如有可能最底层维度比较高，隐层单元数较大，越往上则隐层维度越小。这样一来，每一层的状态维度都不一样，没法 concat 成一个 Tensor 啊！）；而这个大的 RNN 单元的输出则只有原先的最上层 RNN 的输出，即整体的</p>
+<p>接口(对LSTM的封装)要具有良好的扩展性(水平扩展-sequence，垂直扩展-stack)。<br>在stack lstm中，下一层的out对接上一层的input，在深度模型的概念里这就是隐含层hidden的作用，所以命名为hidden。</p>
+<p>但是呢，作为一个cell，我还是觉得叫output比较好。追根溯源，谁第一个采用hidden命名的？</p>
+<p><strong>为什么lstm代码里要把(c, h)封装成一个tuple？</strong></p>
+<ol>
+<li>为什么不拼成一个tensor？</li>
+<li>为什么不用2个独立元素？</li>
+</ol>
+<p>这样设计的目的是为了兼容RNN的接口(毕竟LSTM属于RNN的一种)。另外</p>
+<ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3B5dG9yY2gvcHl0b3JjaC9ibG9iL21hc3Rlci90b3JjaC9ubi9tb2R1bGVzL3Jubi5weSNMMzQ2">pytorch 源码 - LSTM<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3RlbnNvcmZsb3cvdGVuc29yZmxvdy9ibG9iL21hc3Rlci90ZW5zb3JmbG93L3B5dGhvbi9vcHMvcm5uX2NlbGxfaW1wbC5weSNMNTUz">tensorflow源码 - BasicLSTMCell<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+<h2 id="example-应用示例"><a href="#example-应用示例" class="headerlink" title="example 应用示例"></a>example 应用示例</h2><p><span class="exturl" data-url="aHR0cHM6Ly93d3cudGVuc29yZmxvdy5vcmcvdHV0b3JpYWxzL3JlY3VycmVudA==">应用示例–基于lstm的语言模型<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">lstm = tf.contrib.rnn.BasicLSTMCell(lstm_size)</span><br><span class="line"><span class="comment"># current_batch_of_words不是sequence，只是</span></span><br><span class="line"><span class="keyword">for</span> current_batch_of_words <span class="keyword">in</span> words:  </span><br><span class="line">  <span class="comment"># 这里的输入和输出都是符号，类型是tf.placeholder，lstm参数是tf.variable</span></span><br><span class="line">  output, state = lstm(current_batch_of_words, state)</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="LSTM-实现"><a href="#LSTM-实现" class="headerlink" title="LSTM: 实现"></a>LSTM: 实现</h1><p>In order to make the learning process tractable, it is common practice to create an “unrolled” version of the network, which contains a <strong>fixed number (num_steps) of LSTM inputs and outputs</strong>. The model is then trained on this finite approximation of the RNN. This can be implemented by feeding inputs of length num_steps at a time and performing a backward pass after each such input block.</p>
+<p>为什么要有限长度?<br>对于任意长度的序列，BP算法计算复杂，因此采用固定长度的序列。</p>
+<p>为什么要固定一个静态长度？<br>是tensorflow的静态图从中作梗吧，动态图则没有这个限制。</p>
+<h2 id="LSTM-tensorflow实现"><a href="#LSTM-tensorflow实现" class="headerlink" title="LSTM: tensorflow实现"></a>LSTM: tensorflow实现</h2><image src="/images/raw/NN - LSTM - tensorflow with Equation - colah.png">
+
+
+<p>tensorflow源码 - <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3RlbnNvcmZsb3cvdGVuc29yZmxvdy9ibG9iL21hc3Rlci90ZW5zb3JmbG93L3B5dGhvbi9vcHMvcm5uX2NlbGxfaW1wbC5weSNMNTUz">BasicLSTMCell<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 源码精简版</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">call</span>(<span class="params">self, inputs, state</span>):</span></span><br><span class="line">  <span class="string">&quot;&quot;&quot;Run one step of LSTM.</span></span><br><span class="line"><span class="string">  Args:</span></span><br><span class="line"><span class="string">    inputs: `2-D` tensor with shape `[batch_size, input_size]`. 是单个时间节点的batch样本</span></span><br><span class="line"><span class="string">    state:</span></span><br><span class="line"><span class="string">  Returns:</span></span><br><span class="line"><span class="string">    hidden state, new state ().</span></span><br><span class="line"><span class="string">  &quot;&quot;&quot;</span></span><br><span class="line">  c, h = state</span><br><span class="line">  gate_inputs = math_ops.matmul(</span><br><span class="line">      array_ops.concat([inputs, h], <span class="number">1</span>), self._kernel)</span><br><span class="line">  gate_inputs = nn_ops.bias_add(gate_inputs, self._bias)</span><br><span class="line">  <span class="comment"># i = input_gate, j = new_input, f = forget_gate, o = output_gate</span></span><br><span class="line">  i, j, f, o = array_ops.split(</span><br><span class="line">      value=gate_inputs, num_or_size_splits=<span class="number">4</span>, axis=one)</span><br><span class="line"></span><br><span class="line">  forget_bias_tensor = constant_op.constant(self._forget_bias, dtype=f.dtype)</span><br><span class="line"></span><br><span class="line">  <span class="comment"># update</span></span><br><span class="line">  new_c = add(multiply(c, sigmoid(add(f, forget_bias_tensor))),</span><br><span class="line">              multiply(sigmoid(i), self._activation(j)))</span><br><span class="line">  new_h = multiply(self._activation(new_c), sigmoid(o))</span><br><span class="line">  new_state = LSTMStateTuple(new_c, new_h)</span><br><span class="line">  <span class="keyword">return</span> new_h, new_state</span><br></pre></td></tr></table></figure>
+
+<h2 id="pytorch"><a href="#pytorch" class="headerlink" title="pytorch"></a>pytorch</h2><p>包装的好复杂，参考 <span class="exturl" data-url="aHR0cHM6Ly9ibG9nLmRkbGVlLmNuLzIwMTcvMDUvMjkvTFNUTS1QeXRvcmNoJUU1JUFFJTlFJUU3JThFJUIwLw==">https://blog.ddlee.cn/2017/05/29/LSTM-Pytorch%E5%AE%9E%E7%8E%B0/<i class="fa fa-external-link-alt"></i></span></p>
+<h1 id="缺陷"><a href="#缺陷" class="headerlink" title="缺陷"></a>缺陷</h1><ul>
+<li>难并行</li>
+<li>计算量大<ul>
+<li>low rank approximation之类的参数控制，运算量会是对应RNN的四倍以上。所以Gating其实是一种代价很高的方法。</li>
+</ul>
+</li>
+<li>难优化</li>
+</ul>
+<h1 id="FAQ-汇总"><a href="#FAQ-汇总" class="headerlink" title="FAQ 汇总"></a>FAQ 汇总</h1><p>关于静态图和动态图？</p>
+<ul>
+<li>LSTM为什么要设置cell？ cell state 和 hidden state的关系、区别？为什么lstm代码里和有些图里，习惯吧output称作h(hidden)？</li>
+<li>为什么要引入gate？</li>
+<li>gate是点，还是向量？<ul>
+<li>向量， decides what parts of the cell state we’re going to output</li>
+</ul>
+</li>
+<li>LSTM为什么不用ReLU？</li>
+</ul>
+<h2 id="其他参考"><a href="#其他参考" class="headerlink" title="其他参考"></a>其他参考</h2><ol>
+<li><span class="exturl" data-url="aHR0cDovL2NvbGFoLmdpdGh1Yi5pby9wb3N0cy8yMDE1LTA4LVVuZGVyc3RhbmRpbmctTFNUTXMv">Understanding LSTM Networks | colah<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cDovL2FyeGl2Lm9yZy9hYnMvMTQwOS4yMzI5">Recurrent Neural Network Regularization | tensorflow中BasicLSTMCell对应的paper<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly93d3cuY3MudG9yb250by5lZHUvfmdyYXZlcy9waGQucGRm">Supervised Sequence Labelling with Recurrent Neural Networks<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9yMnJ0LmNvbS93cml0dGVuLW1lbW9yaWVzLXVuZGVyc3RhbmRpbmctZGVyaXZpbmctYW5kLWV4dGVuZGluZy10aGUtbHN0bS5odG1s">Understanding, Deriving and Extending the LSTM | R2RT<i class="fa fa-external-link-alt"></i></span></li>
+<li><a href=".">Revisit Long Short-Term Memory: An Optimization Perspective | 朱军大佬</a></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly93d3cuamlxaXpoaXhpbi5jb20vYXJ0aWNsZXMvMjAxNy0wMS0xNi02">地平线语音战略与研究<i class="fa fa-external-link-alt"></i></span></li>
+</ol>
+<h1 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h1><p>黄畅：我补充一点。关于 LSTM，不管你是单向的、双向的、摞一起的、不摞一起的，其实都有一个问题：<strong>信息传导的约束很强</strong>。换句话说，不管是做前向预测还是后向 BP（反向传播），一个信息从左边到右边，或者从开始到结束，都要经过很长的路径。而且在<strong>整个过程中，会有很多非线性的变化</strong>，尤其是 LSTM 这种典型的、很容易进入自我限制状态的模型。经过很多次这样的事情，就导致整个<strong>优化变得异常困难</strong>。这个结构天生就使得优化变得非常困难。</p>
+<p>xusong: 加上skip connection呢，这个可以加在LSTM内部，也可以外部</p>
+<p>这是 LSTM 的弊病，它的结构设计有很大限制性。你可以类比一些其他结构，比如 ResNet，它通过建立 free-way 的方式，人为地架了很多 <strong>short-pass</strong>（短路径），使得本来在网络上距离很远的两个单元之间建立一些高速的快速通道。直观的理解就是可以让它们之间的信息沟通更加顺畅，减轻我前面说的那个问题。</p>
+<p>更进一步，你会发现在语音识别中有人用<strong>完整的 CNN 替代 LSTM</strong>，包括讯飞、微软、百度。刚开始的时候 CNN 用得很浅，只是作为基本的局部表达，后来发现可以用 <strong>CNN 不断堆积</strong>，而且堆的很有技巧。在计算量不显著增加的情况下，这样就可以<strong>用 CNN 覆盖很大的语境</strong>。</p>
+<p>就是说优化算法本身也许没有很好的进步，但是通过网络结构的设计可以规避目前主要基于 SGD 的优化算法难以解决的 LSTM 问题，直接构造一个更适合目前优化算法去优化的网络结构。所以本质上很难说哪个结构更好，你只能说这个结构更适合现在主流的这种优化方法。</p>
+<p>其实论文出来时我稍微看了一点，它本质上好像和 attention model 很像。attention model 的概念是不管语境是怎么传过来的，总是有选择的看所有东西，做决策（比如生成一个词）的时候有选择的去做。这时候会产生一个 attention mask，这可以理解成一个 gate，封住一些不想看的东西，保留想看的。</p>
+<p>这个在图像和 NLP 里面已经得到很好的验证。NLP、语音、图像其实都是相通的，你会发现很多思想、结构、设计理念会越来越相似。这也给了我们信心，让我们可以实现语音图像识别一体化交互，用一套统一的专用架构去做解决各种各样的问题。</p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/d66c7262/" rel="bookmark">【深度学习-RNN系列】递归神经网络 RNN (从HMM到RNN)</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/c79f2f90/" rel="bookmark">【RNN系列】GRU简介 & 源码实现</a></div>
+    </li>
+  </ul>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/rnn/" rel="tag"># rnn</a>
+              <a href="/tags/lstm/" rel="tag"># lstm</a>
+              <a href="/tags/gradient-vanish/" rel="tag"># gradient vanish</a>
+          </div>
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/5f589e78/" rel="prev" title="关于websocket">
+      <i class="fa fa-chevron-left"></i> 关于websocket
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/pub/c79f2f90/" rel="next" title="【RNN系列】GRU简介 & 源码实现">
+      【RNN系列】GRU简介 & 源码实现 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BC%A0%E7%BB%9F%E6%96%B9%E6%B3%95-History"><span class="nav-number">1.</span> <span class="nav-text">传统方法 History</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#LSTM"><span class="nav-number">2.</span> <span class="nav-text">LSTM</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E%E6%A2%AF%E5%BA%A6%E6%B6%88%E5%A4%B1%E9%97%AE%E9%A2%98"><span class="nav-number">2.1.</span> <span class="nav-text">关于梯度消失问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A2%AF%E5%BA%A6%E6%B6%88%E5%A4%B1%E9%97%AE%E9%A2%98%E2%80%93%E7%9B%B4%E8%A7%82%E8%A7%A3%E9%87%8A"><span class="nav-number">2.1.1.</span> <span class="nav-text">梯度消失问题–直观解释</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A2%AF%E5%BA%A6%E6%B6%88%E5%A4%B1-%E2%80%93-%E4%BA%A7%E7%94%9F%E7%9A%84%E5%8E%9F%E5%9B%A0"><span class="nav-number">2.1.2.</span> <span class="nav-text">梯度消失 – 产生的原因</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A2%AF%E5%BA%A6%E6%B6%88%E5%A4%B1%E9%97%AE%E9%A2%98-%E2%80%93-%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">2.2.</span> <span class="nav-text">梯度消失问题 – 解决方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A2%AF%E5%BA%A6%E6%B6%88%E5%A4%B1%E9%97%AE%E9%A2%98-%E2%80%93-LSTM%E6%98%AF%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E7%9A%84"><span class="nav-number">2.3.</span> <span class="nav-text">梯度消失问题 – LSTM是如何避免的</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#LSTM%E7%9A%84%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3"><span class="nav-number">3.</span> <span class="nav-text">LSTM的设计思想</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8Egate"><span class="nav-number">3.1.</span> <span class="nav-text">关于gate</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8Ecell%E7%9A%84%E8%AE%BE%E8%AE%A1"><span class="nav-number">3.2.</span> <span class="nav-text">关于cell的设计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E%E6%BF%80%E6%B4%BB%E5%87%BD%E6%95%B0"><span class="nav-number">3.3.</span> <span class="nav-text">关于激活函数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#sigmoid"><span class="nav-number">3.3.1.</span> <span class="nav-text">sigmoid</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tanh"><span class="nav-number">3.3.2.</span> <span class="nav-text">tanh</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%A5%E5%8F%A3%E8%AE%BE%E8%AE%A1"><span class="nav-number">3.4.</span> <span class="nav-text">接口设计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#example-%E5%BA%94%E7%94%A8%E7%A4%BA%E4%BE%8B"><span class="nav-number">3.5.</span> <span class="nav-text">example 应用示例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#LSTM-%E5%AE%9E%E7%8E%B0"><span class="nav-number">4.</span> <span class="nav-text">LSTM: 实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#LSTM-tensorflow%E5%AE%9E%E7%8E%B0"><span class="nav-number">4.1.</span> <span class="nav-text">LSTM: tensorflow实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#pytorch"><span class="nav-number">4.2.</span> <span class="nav-text">pytorch</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BC%BA%E9%99%B7"><span class="nav-number">5.</span> <span class="nav-text">缺陷</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#FAQ-%E6%B1%87%E6%80%BB"><span class="nav-number">6.</span> <span class="nav-text">FAQ 汇总</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E5%8F%82%E8%80%83"><span class="nav-number">6.1.</span> <span class="nav-text">其他参考</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%B6%E4%BB%96"><span class="nav-number">7.</span> <span class="nav-text">其他</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : 'a6941437',
+      //id          : '230dc87ef02a62723aecf18cc8c3d0ad',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

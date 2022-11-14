@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="简介GCP 免费方案送您 $300 赠金和 12 个月免费试用期，帮助您顺利上手。更有“始终免费”*产品助您一路前行。*随时可能更改 只要绑定信用卡就送300刀，能免费用一年 GCP控制台 开通">
+<meta property="og:type" content="article">
+<meta property="og:title" content="google云主机---GCE">
+<meta property="og:url" content="https://blog.eson.org/pub/3329d7fc/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="简介GCP 免费方案送您 $300 赠金和 12 个月免费试用期，帮助您顺利上手。更有“始终免费”*产品助您一路前行。*随时可能更改 只要绑定信用卡就送300刀，能免费用一年 GCP控制台 开通">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://user-images.githubusercontent.com/13825126/35475026-57ca6be4-03d2-11e8-9551-9af4410e254b.PNG">
+<meta property="og:image" content="https://user-images.githubusercontent.com/13825126/35474073-05e92d82-03c4-11e8-8db5-3fe45a631a50.PNG">
+<meta property="article:published_time" content="2018-01-24T19:08:53.000Z">
+<meta property="article:modified_time" content="2021-06-21T08:48:03.981Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="cloud">
+<meta property="article:tag" content="google">
+<meta property="article:tag" content="GPU">
+<meta property="article:tag" content="computer engine">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://user-images.githubusercontent.com/13825126/35475026-57ca6be4-03d2-11e8-9551-9af4410e254b.PNG">
+
+<link rel="canonical" href="https://blog.eson.org/pub/3329d7fc/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>google云主机---GCE | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/3329d7fc/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          google云主机---GCE
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-01-25 03:08:53" itemprop="dateCreated datePublished" datetime="2018-01-25T03:08:53+08:00">2018-01-25</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/cloud/" itemprop="url" rel="index"><span itemprop="name">cloud</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/cloud/google/" itemprop="url" rel="index"><span itemprop="name">google</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p><span class="exturl" data-url="aHR0cHM6Ly9jbG91ZC5nb29nbGUuY29tL2ZyZWUvP2hsPXpoLWNu">GCP 免费方案<i class="fa fa-external-link-alt"></i></span><br>送您 $300 赠金和 12 个月免费试用期，帮助您顺利上手。更有“始终免费”*产品助您一路前行。<br>*随时可能更改<br><img src="https://user-images.githubusercontent.com/13825126/35475026-57ca6be4-03d2-11e8-9551-9af4410e254b.PNG" alt="default"></p>
+<p>只要绑定信用卡就送300刀，能免费用一年<br><image src="https://user-images.githubusercontent.com/13825126/35471148-9fda0c4c-0390-11e8-8167-6484aac58ab5.PNG" /></p>
+<p><span class="exturl" data-url="aHR0cHM6Ly9jb25zb2xlLmNsb3VkLmdvb2dsZS5jb20vP2hsPXpoLWNu">GCP控制台<i class="fa fa-external-link-alt"></i></span></p>
+<h3 id="开通"><a href="#开通" class="headerlink" title="开通"></a>开通</h3><p>google云只支持以下几种信用卡。不支持中国银联<br>2: masterCard<br>3: 美国运通或JCB<br>4:: visa<br>5:mastercard</p>
+<p>开通后，消费1美元，是什么意思？ (先消费1美元，再撤销1美元)</p>
+<h3 id="价格-amp-配置"><a href="#价格-amp-配置" class="headerlink" title="价格&amp; 配置"></a>价格&amp; 配置</h3><p><strong>综述</strong>：GCE是主机部分按时间计费的，网络部分是按流量计费的，跟AWZ一样<br>（与cpu和内存使用率无关，那就可劲用吧）<br>(时间是使用时间，还是申请时间？关机算时间吗？关机不收费，那可以多开几个vm)<br>(流量是怎么算？下载conda，软件包也算流量？)</p>
+<p>GCE 的价格比较亲民，最低配 1 共享核-0.6 GB 内存-10GB HDD 每月只需要不到 5 美元，而且由于 CPU、内存大小和磁盘大小都是可调的，所以可以根据自己的需要去购买最适合的，能省去不必要的开销。</p>
+<table>
+<thead>
+<tr>
+<th>GCE服务内容</th>
+<th>估算费用</th>
+<th>折扣</th>
+<th>总计</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1 个共享 vCPU + 0.6 GB 内存</td>
+<td>$5.55/月</td>
+<td>- $1.66/月</td>
+<td>$4.28/月</td>
+<td>内存小了点</td>
+</tr>
+<tr>
+<td>1 个共享 vCPU + 1.7 GB 内存</td>
+<td>$19.71/月</td>
+<td>- $5.91/月</td>
+<td>$14.20/月</td>
+<td></td>
+</tr>
+<tr>
+<td>1 个 vCPU + 3.75 GB 内存</td>
+<td>$34.67/月</td>
+<td>- $10.40/月</td>
+<td>$24.67/月</td>
+<td></td>
+</tr>
+<tr>
+<td>2 个 vCPU + 7.5 GB 内存</td>
+<td>$69.35/月</td>
+<td>- $20.81/月</td>
+<td>$48.95/月</td>
+<td></td>
+</tr>
+<tr>
+<td>..</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>10 GB 标准永久性磁盘</td>
+<td>$0.40/月</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>1 个 GPU NVIDIA Tesla K80</td>
+<td>$328.50/月</td>
+<td>- $108.95/月</td>
+<td>$254.62/月</td>
+<td>1. 共享 vCPU 不支持 GPU</td>
+</tr>
+<tr>
+<td>1 个 GPU NVIDIA Tesla P100</td>
+<td>$1,065.80/月</td>
+<td>- $330.14/月</td>
+<td>$770.73/月</td>
+<td>2. 简直敲诈，不如自己买。另外仅特定区域才有GPU支持</td>
+</tr>
+</tbody></table>
+<p>不同地区价格有差异，<strong>美国服务器价格最便宜</strong>，亚洲欧洲比美国本土贵点。</p>
+<p><strong>可用性策略</strong></p>
+<ul>
+<li>抢占：该模式能够获得更低廉的价格，但是不能用做需要长期保持在线的服务（比如 Web 服务），它最长的使用期限是 24 小时，然而在我的使用中，它有时候不到 1 小时就会被终止使用。它只适合短时间去计算一些东西，计算完后中止它，平常的一般使用不要开启此功能。</li>
+<li>自动重启：推荐开启，以获得在云端的好处，以及更好的 Uptime</li>
+<li>主机维护期间：推荐选择 “迁移”，原因同上</li>
+<li>IP 转发：建议关闭，几乎不会用得着此功能，关闭有助于提高安全性</li>
+<li>SSH：这可能不同于其他一些 VPS，它默认不自动生成用户密码，所以为了远程登录必须配置好公钥私钥。而且所填写的公钥末尾的用户名是有作用的，所填写的用户名就是所需要登录的用户名，默认不支持 root 登陆，除非你将用户名设置成了 root。</li>
+</ul>
+<p><strong>流量</strong><br>流量的话对于所有的可用区，连中国大陆 $0.23/Gbyte、美欧地区 $0.12/Gbyte，流量的价格有些小贵，但是如果是连接 Google 自己的服务的话（包括但不限于 Gmail、YouTube），流量不计费（但是流量是双向的，所以是本地通过 GCE 上传完全免费，下载还是原价）。<br>流量另算钱，起步50g，因此最低配只要不超流量就可以用上一年。</p>
+<p>GCE 还有一点比较特殊的是它是按分钟计费的，当服务处于终止状态（相当于关机，磁盘数据保留）时，不收取费用（除了少量的磁盘使用费用）。每次计算 Uptime 时，如果不到 10 分钟则一律按十分钟算，超过 10 分钟后才是真正的按分钟计费，不过还是很划算了</p>
+<h2 id="ssh-登录"><a href="#ssh-登录" class="headerlink" title="ssh 登录"></a>ssh 登录</h2><p><strong>首先在浏览器窗口中打开ssh</strong></p>
+<p><img src="https://user-images.githubusercontent.com/13825126/35474073-05e92d82-03c4-11e8-8db5-3fe45a631a50.PNG" alt="default"></p>
+<ol>
+<li>创建实例后设置当前用户的新密码</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo passwd $&#123;whoami&#125; // 下面以 user 代替 $&#123;whoami&#125;</span><br><span class="line"># 输入新密码</span><br></pre></td></tr></table></figure>
+
+<p>设置下 root 的新密码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo passwd root</span><br><span class="line"># 输入新密码</span><br></pre></td></tr></table></figure>
+<p><strong>在本地生成私钥和公钥</strong></p>
+<p><strong>复制公钥</strong></p>
+<p><strong>导入公钥到google VM</strong><br>方法一：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">进入谷歌云平台页面 -&gt; 计算引擎 -&gt; 元数据 -&gt; SSH 密钥，粘贴保存</span><br><span class="line"> 谷歌就会把上面这段 public key 写入到 ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ cat ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+<p>cat ~/.ssh/authorized_keys文件，检查是否已经存在了刚刚的公钥</p>
+<p>如果不work。就手动生成这个文件，然后拷贝public key</p>
+<p><strong>本地通过 SSH 密码验证登录</strong></p>
+<h3 id="用途"><a href="#用途" class="headerlink" title="用途"></a>用途</h3><p><strong>VPS</strong></p>
+<p><strong>代理</strong></p>
+<p><strong>web应用主机</strong></p>
+<h3 id="GCE-云主机"><a href="#GCE-云主机" class="headerlink" title="GCE 云主机"></a>GCE 云主机</h3><p>google computer engine</p>
+<p>Compute Engine 可让您使用在 Google 基础架构上运行的虚拟机。从微型 VM 到运行 Debian、Windows 或其他标准映像的大型虚拟机一应俱全。创建您的第一个 VM 实例并通过 CloudEndure 迁移服务导入该实例，或通过快速入门指南构建示例应用。</p>
+<p>据说GCE 在国内经常不稳定</p>
+<p>GCE 的后台配置页面虽不能在中国访问，但是其 GCE 实例是可以在中国访问的。(什么意思？)</p>
+<h2 id="评价"><a href="#评价" class="headerlink" title="评价"></a>评价</h2><p>速度超快，下载tensorflow 116MB/s</p>
+<h3 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h3><p><span class="exturl" data-url="aHR0cHM6Ly9ndW96ZXl1LmNvbS8yMDE2LzEwL2FzaWEtZ29vZ2xlLWNvbXB1dGUtZW5naW5lLw==">https://guozeyu.com/2016/10/asia-google-compute-engine/<i class="fa fa-external-link-alt"></i></span><br><span class="exturl" data-url="aHR0cHM6Ly93d3cuamlhbnNodS5jb20vcC81N2U4NWNmM2U1MGI=">SSH 连接配置<i class="fa fa-external-link-alt"></i></span></p>
+<h3 id="app-engine-云应用"><a href="#app-engine-云应用" class="headerlink" title="app engine 云应用"></a>app engine 云应用</h3><p><span class="exturl" data-url="aHR0cHM6Ly9jb25zb2xlLmNsb3VkLmdvb2dsZS5jb20vaG9tZS9kYXNoYm9hcmQ=">谷歌云平台<i class="fa fa-external-link-alt"></i></span></p>
+
+    </div>
+
+    
+    
+    
+      
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/cloud/" rel="tag"># cloud</a>
+              <a href="/tags/google/" rel="tag"># google</a>
+              <a href="/tags/GPU/" rel="tag"># GPU</a>
+              <a href="/tags/computer-engine/" rel="tag"># computer engine</a>
+          </div>
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/d3c1b8ca/" rel="prev" title="【hexo系列】hexo的正确打开方式">
+      <i class="fa fa-chevron-left"></i> 【hexo系列】hexo的正确打开方式
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/pub/bfc2ae40/" rel="next" title="Github Pages托管静态博客-原理浅析">
+      Github Pages托管静态博客-原理浅析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%80%E9%80%9A"><span class="nav-number">2.</span> <span class="nav-text">开通</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%B7%E6%A0%BC-amp-%E9%85%8D%E7%BD%AE"><span class="nav-number">3.</span> <span class="nav-text">价格&amp; 配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ssh-%E7%99%BB%E5%BD%95"><span class="nav-number"></span> <span class="nav-text">ssh 登录</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%A8%E9%80%94"><span class="nav-number">1.</span> <span class="nav-text">用途</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GCE-%E4%BA%91%E4%B8%BB%E6%9C%BA"><span class="nav-number">2.</span> <span class="nav-text">GCE 云主机</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%84%E4%BB%B7"><span class="nav-number"></span> <span class="nav-text">评价</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#reference"><span class="nav-number">1.</span> <span class="nav-text">reference</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#app-engine-%E4%BA%91%E5%BA%94%E7%94%A8"><span class="nav-number">2.</span> <span class="nav-text">app engine 云应用</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : '3329d7fc',
+      //id          : '3965602e66a61b89b38c4d43a7848c7d',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

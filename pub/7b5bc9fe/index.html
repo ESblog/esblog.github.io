@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="简介定义以下是维基百科对猴子补丁的定义  The term monkey patch refers to dynamic modifications of a class or module at runtime, motivated by the intent to patch existing third-party code as a workaround to a bug or featu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="关于Monkey Patch猴子补丁">
+<meta property="og:url" content="https://blog.eson.org/pub/7b5bc9fe/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="简介定义以下是维基百科对猴子补丁的定义  The term monkey patch refers to dynamic modifications of a class or module at runtime, motivated by the intent to patch existing third-party code as a workaround to a bug or featu">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-03-31T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-21T08:48:04.027Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="机器学习, 计算机视觉, 深度学习, 自然语言处理, ESON">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.eson.org/pub/7b5bc9fe/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>关于Monkey Patch猴子补丁 | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/7b5bc9fe/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          关于Monkey Patch猴子补丁
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-04-01 00:00:00" itemprop="dateCreated datePublished" datetime="2018-04-01T00:00:00+08:00">2018-04-01</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/" itemprop="url" rel="index"><span itemprop="name">programing</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/lan/" itemprop="url" rel="index"><span itemprop="name">lan</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><p>以下是维基百科对猴子补丁的定义</p>
+<blockquote>
+<p>The term monkey patch refers to dynamic modifications of a class or module at runtime, motivated by the intent to patch existing third-party code as a workaround to a bug or feature which does not act as desired.</p>
+</blockquote>
+<!-- 在动态语言中， -->
+<p>所谓的猴子补丁，是指在运行时修改类或模块，而不去改变源码，达到hot patch的目的。</p>
+<p>猴补丁（英语：Monkey patch）是一种很脏的编程技巧，用拼凑代码的方法修改程序逻辑。</p>
+<p>Monkey patching 只能在动态语言中实现。比如Python类的方法其实也只是一个属性，方便运行时修改，所以用Python做猴子补丁非常方便。</p>
+<p>Changing a method at runtime instead of updating the object definition is one example。</p>
+<h2 id="名字来源"><a href="#名字来源" class="headerlink" title="名字来源"></a>名字来源</h2><ol>
+<li>这个词原来为Guerrilla Patch，杂牌军、游击队，说明这部分不是原装的，在英文里guerilla发音和gorllia(猩猩)相似，再后来就写了monkey(猴子)。</li>
+<li>还有一种解释是说由于这种方式将原来的代码弄乱了(messing with it)，在英文里叫monkeying about(顽皮的)，所以叫做Monkey Patch。</li>
+</ol>
+<!-- Applications -->
+<h1 id="示例-应用场景"><a href="#示例-应用场景" class="headerlink" title="示例/应用场景"></a>示例/应用场景</h1><p>维基百科总结了4种应用场景</p>
+<ul>
+<li>Replace methods / attributes / functions at runtime, e.g. to stub out a function during testing;</li>
+<li>Modify/extend behaviour of a third-party product without maintaining a private copy of the source code;</li>
+<li>Apply a patch at runtime to the objects in memory, instead of the source code on disk;</li>
+<li>Distribute security or behavioural fixes that live alongside the original source code (an example of this would be distributing the fix as a plugin for the Ruby on Rails platform).</li>
+</ul>
+<h2 id="简单示例"><a href="#简单示例" class="headerlink" title="简单示例"></a>简单示例</h2><h3 id="对属性-打补丁"><a href="#对属性-打补丁" class="headerlink" title="对属性 打补丁"></a>对属性 打补丁</h3><p>以下来自wikpedia示例。<br>利用猴子补丁，动态修改math标准库中Pi的默认值。(这里仅修改了attributes，也可以对某些method进行重写)</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> math</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>math.pi</span><br><span class="line"><span class="number">3.141592653589793</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>math.pi = <span class="number">3</span>  <span class="comment"># 给标准库打补丁，即运行时修改math的pi属性</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>math.pi</span><br><span class="line"><span class="number">3</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>================================ RESTART ================================</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> math</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>math.pi</span><br><span class="line"><span class="number">3.141592653589793</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="对方法-打补丁"><a href="#对方法-打补丁" class="headerlink" title="对方法 打补丁"></a>对方法 打补丁</h3><figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Foo</span>(<span class="params"><span class="built_in">object</span></span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">bar</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="built_in">print</span> <span class="string">&#x27;Foo.bar&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">bar</span>(<span class="params">self</span>):</span>  <span class="comment"># 这是补丁</span></span><br><span class="line">    <span class="built_in">print</span> <span class="string">&#x27;Modified bar&#x27;</span></span><br><span class="line"></span><br><span class="line">Foo().bar()</span><br><span class="line">Foo.bar = bar  <span class="comment"># 给Foo的bar方法打补丁，即运行时修改类的方法</span></span><br><span class="line">Foo().bar()</span><br></pre></td></tr></table></figure>
+<p>由于Python中的名字空间是开放，通过dict来实现，所以很容易就可以达到patch的目的。</p>
+<h2 id="实际应用案例"><a href="#实际应用案例" class="headerlink" title="实际应用案例"></a>实际应用案例</h2><h3 id="socket的热补丁"><a href="#socket的热补丁" class="headerlink" title="socket的热补丁"></a>socket的热补丁</h3><p>用过gevent就会知道,会在最开头的地方gevent.monkey.patch_all();把标准库中的thread/socket等给替换掉.这样我们在后面使用socket的时候可以跟平常一样使用,无需修改任何代码,但是它变成非阻塞的了.</p>
+<h3 id="SQL注入攻击"><a href="#SQL注入攻击" class="headerlink" title="SQL注入攻击"></a>SQL注入攻击</h3><p>网页和数据库</p>
+<h3 id="Zope、Plone中的安全补丁"><a href="#Zope、Plone中的安全补丁" class="headerlink" title="Zope、Plone中的安全补丁"></a>Zope、Plone中的安全补丁</h3><blockquote>
+<p>In Zope and Plone, security patches are often delivered using dynamic class modification, but they are called hot fixes.<br>– wikipedia</p>
+</blockquote>
+<p>很多安全补丁也是一种猴子补丁，只不过叫法不同而已。</p>
+<h3 id="Eventlet-Patcher"><a href="#Eventlet-Patcher" class="headerlink" title="Eventlet Patcher"></a>Eventlet Patcher</h3><p>现在我们先来看一下eventlet中的Patcher的调用代码吧，这段代码对标准的ftplib做monkey patch，将eventlet的GreenSocket替换标准的socket。</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> eventlet <span class="keyword">import</span> patcher  </span><br><span class="line"><span class="comment"># *<span class="doctag">NOTE:</span> there might be some funny business with the &quot;SOCKS&quot; module  </span></span><br><span class="line"><span class="comment"># if it even still exists  </span></span><br><span class="line"><span class="keyword">from</span> eventlet.green <span class="keyword">import</span> socket  </span><br><span class="line">patcher.inject(<span class="string">&#x27;ftplib&#x27;</span>, <span class="built_in">globals</span>(), (<span class="string">&#x27;socket&#x27;</span>, socket))  </span><br><span class="line"><span class="keyword">del</span> patcher  </span><br></pre></td></tr></table></figure>
+
+<p>Eventlet中大量使用了该技巧，以替换标准库中的组件，比如socket。</p>
+<p>未完待续，参考 <span class="exturl" data-url="aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3NlaXplZi9hcnRpY2xlL2RldGFpbHMvNTczMjY1Nw==">https://blog.csdn.net/seizef/article/details/5732657<i class="fa fa-external-link-alt"></i></span></p>
+<h3 id="从Gevent学习猴子补丁的设计"><a href="#从Gevent学习猴子补丁的设计" class="headerlink" title="从Gevent学习猴子补丁的设计"></a>从Gevent学习猴子补丁的设计</h3><p>异步协程工具Gevent是python上面最有名也支持面最广通用性最好的协程工具,它底层基于greenlet,而且可以通过使用猴子补丁将标准库中的同步模块自动的转换成异步.同时他也提供了方便的并发模型和常用的web服务器工具.</p>
+<p>gevent能够 修改标准库里面大部分的阻塞式系统调用，包括socket、ssl、threading和 select等模块，而变为协作式运行。</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> socket</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="built_in">print</span>(socket.socket)     <span class="comment"># monkey patch前</span></span><br><span class="line">&lt;<span class="class"><span class="keyword">class</span> &#x27;<span class="title">socket</span>.<span class="title">_socketobject</span>&#x27;&gt;</span></span><br><span class="line"><span class="class">&gt;&gt;&gt;</span></span><br><span class="line"><span class="class">&gt;&gt;&gt; <span class="title">from</span> <span class="title">gevent</span> <span class="title">import</span> <span class="title">monkey</span> # <span class="title">monkey</span> <span class="title">patch</span>后</span></span><br><span class="line"><span class="class">&gt;&gt;&gt; <span class="title">monkey</span>.<span class="title">patch_socket</span>()</span></span><br><span class="line"><span class="class">&gt;&gt;&gt; <span class="title">print</span>(<span class="params">socket.socket</span>)</span></span><br><span class="line"><span class="class">&lt;<span class="title">class</span> &#x27;<span class="title">gevent</span>.<span class="title">_socket2</span>.<span class="title">socket</span>&#x27;&gt;  # 改变了标准<span class="title">socket</span>库</span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">&gt;&gt;&gt; <span class="title">import</span> <span class="title">select</span>        # <span class="title">monkey</span> <span class="title">patch</span>前</span></span><br><span class="line"><span class="class">&gt;&gt;&gt; <span class="title">print</span>(<span class="params">select.select</span>)  #  <span class="title">select</span>()轮询的阻塞调用</span></span><br><span class="line"><span class="class">&lt;<span class="title">built</span>-<span class="title">in</span> <span class="title">function</span> <span class="title">select</span>&gt;</span></span><br><span class="line"><span class="class">&gt;&gt;&gt;</span></span><br><span class="line"><span class="class">&gt;&gt;&gt; <span class="title">monkey</span>.<span class="title">patch_select</span>() # <span class="title">monkey</span> <span class="title">patch</span>后</span></span><br><span class="line"><span class="class">&gt;&gt;&gt; <span class="title">print</span>(<span class="params">select.select</span>) # <span class="title">select</span>()轮询的异步调用</span></span><br><span class="line"><span class="class">&lt;<span class="title">function</span> <span class="title">select</span> <span class="title">at</span> 0<span class="title">x7fb8a7239d70</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>例如，Redis的python绑定一般使用常规的tcp socket来与redis-server实例通信。 通过简单地调用gevent.monkey.patch_all()，可以使得redis的绑定协作式的调度 请求，与gevent栈的其它部分一起工作。</p>
+<p>这让我们可以将一般不能与gevent共同工作的库结合起来，而不用写哪怕一行代码。 虽然猴子补丁仍然是邪恶的(evil)，但在这种情况下它是“有用的邪恶(useful evil)”。</p>
+<h3 id="patch-all"><a href="#patch-all" class="headerlink" title="patch_all"></a>patch_all</h3><p>除了socket外,gevent还可以为其他的模块打补丁,一起打补丁可以使用</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">patch_all(socket=<span class="literal">True</span>, dns=<span class="literal">True</span>, time=<span class="literal">True</span>, select=<span class="literal">True</span>, thread=<span class="literal">True</span>, os=<span class="literal">True</span>, ssl=<span class="literal">True</span>, httplib=<span class="literal">False</span>,subprocess=<span class="literal">True</span>, sys=<span class="literal">False</span>, aggressive=<span class="literal">True</span>, Event=<span class="literal">False</span>, builtins=<span class="literal">True</span>, signal=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+<p>函数。</p>
+<p>我们可以看到像<code>socket</code>,<code>dns</code>,<code>time</code>,<code>selectthread</code>,<code>os</code>, <code>ssl</code>, <code>httplib</code>,<code>subprocess</code>, <code>sys</code>, <code>aggressive</code>, <code>Event</code>, <code>builtins</code>, <code>signal</code>模块都可以打上补丁,打上以后,他们就是非阻塞的了.</p>
+<h3 id="核心协程模块greenlet"><a href="#核心协程模块greenlet" class="headerlink" title="核心协程模块greenlet"></a>核心协程模块greenlet</h3><figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> gevent</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">foo</span>():</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Running in foo&#x27;</span>)</span><br><span class="line">    gevent.sleep(<span class="number">0</span>)  <span class="comment"># 这行的作用是什么？</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Explicit context switch to foo again&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">bar</span>():</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Explicit context to bar&#x27;</span>)</span><br><span class="line">    gevent.sleep(<span class="number">0</span>)  <span class="comment">#</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&#x27;Implicit context switch back to bar&#x27;</span>)</span><br><span class="line"></span><br><span class="line">gevent.joinall([</span><br><span class="line">    gevent.spawn(foo),</span><br><span class="line">    gevent.spawn(bar),</span><br><span class="line">])</span><br></pre></td></tr></table></figure>
+<p>输出</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Running <span class="keyword">in</span> foo</span><br><span class="line">Explicit context to bar</span><br><span class="line">Explicit context switch to foo again</span><br><span class="line">Implicit context switch back to bar</span><br><span class="line">[&lt;Greenlet at <span class="number">0x7fb8a72c3eb0</span>&gt;, &lt;Greenlet at <span class="number">0x7fb8a72c3a50</span>&gt;]</span><br></pre></td></tr></table></figure>
+<p>上述例子能看到，执行顺序是  <code>foo--&gt;bar--foo--bar</code>，来回切换。即gevent.sleep()并不会真正的阻塞整个线程，而是将cpu的控制权显式的交给未被gevent.sleep()阻塞的协程使用。</p>
+<p>协程是单线程程序（从上述例子来讲），如果我们使用time.sleep()，那么整个线程都会被阻塞。</p>
+<h3 id="gevent-sleep与time-sleep的区别"><a href="#gevent-sleep与time-sleep的区别" class="headerlink" title="gevent.sleep与time.sleep的区别"></a><code>gevent.sleep</code>与<code>time.sleep</code>的区别</h3><ul>
+<li><p>gevent is a cooperative analog to the threading module. When using gevent.sleep it you would never use time.sleep.  So no example is needed.</p>
+</li>
+<li><p>time.sleep would suspend the entire process, blocking all greenlet threads. <span class="exturl" data-url="aHR0cHM6Ly9tYWlsLnB5dGhvbi5vcmcvcGlwZXJtYWlsL3B5dGhvbi1saXN0LzIwMTQtSnVseS82NzU3MjYuaHRtbA==">来源<i class="fa fa-external-link-alt"></i></span>。 以上说法针对的是协程(单线程程序)。而对于多线程，time.sleep仅仅阻塞当前线程，不阻塞其他线程，<span class="exturl" data-url="aHR0cHM6Ly9zdGFja292ZXJmbG93LmNvbS9xdWVzdGlvbnMvOTI5MjgvdGltZS1zbGVlcC1zbGVlcHMtdGhyZWFkLW9yLXByb2Nlc3M=">来源<i class="fa fa-external-link-alt"></i></span>，<span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2dldmVudC9nZXZlbnQvYmxvYi85NTdjNDdmODg5MGFlNGViNGYxZmQ4MzQ2NGM4ZTFkMTczYjdmN2RhL3NyYy9nZXZlbnQvbW9ua2V5LnB5I0w0OTE=">源码-patch_time<i class="fa fa-external-link-alt"></i></span></p>
+</li>
+</ul>
+<p><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2dldmVudC9nZXZlbnQvYmxvYi85NTdjNDdmODg5MGFlNGViNGYxZmQ4MzQ2NGM4ZTFkMTczYjdmN2RhL3NyYy9nZXZlbnQvbW9ua2V5LnB5I0wxMDc4">gevent/monkey.py<i class="fa fa-external-link-alt"></i></span></p>
+<h3 id="猴子补丁-与-SocketIO"><a href="#猴子补丁-与-SocketIO" class="headerlink" title="猴子补丁 与 SocketIO"></a>猴子补丁 与 SocketIO</h3><p>用过gevent就会知道,会在最开头的地方gevent.monkey.patch_all();把标准库中的thread/socket等给替换掉.这样我们在后面使用socket的时候可以跟平常一样使用,无需修改任何代码,但是它变成非阻塞的了.</p>
+<p>我看到猴子补丁，是从Gevent中看到的。SocketIO服务器发送数据，浏览器端并非实时接收，而是批量接收 (跟过马路有点像，凑够一波发送一次)。</p>
+<p>这里涉及到buffer和flush。</p>
+<ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL21pZ3VlbGdyaW5iZXJnL0ZsYXNrLVNvY2tldElPL2lzc3Vlcy8xMDY=">https://github.com/miguelgrinberg/Flask-SocketIO/issues/106<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL21pZ3VlbGdyaW5iZXJnL0ZsYXNrLVNvY2tldElPL2lzc3Vlcy8xNDE=">https://github.com/miguelgrinberg/Flask-SocketIO/issues/141<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+<p>没看懂的部分，后面再看。</p>
+<blockquote>
+<p> That is really the only way to make this work when you use gevent, threading is cooperative so you have to release the CPU so that other tasks associated with the server get a chance to run and flush the messages. Any chance you haven’t monkey patched the standard library?<br>— Flask-SocketIO的作者miguelgrinberg link</p>
+</blockquote>
+<p>这里说的意思是，<code>socketio.emit(message)</code> 默认会加缓存(buffer)。需要主动flush才能立即发送。而<code>gevent.sleep(</code>是flush的一种方式，因为它会  将cpu的控制权显式的交给未被gevent.sleep()阻塞的协程使用，切换之前会先flush一下。</p>
+<p>socketio.emit默认会有个buffer（为了高效），为什么gevent.sleep会flush这个buffer？让我们重新梳理一下思路：</p>
+<ol>
+<li><code>gevent.sleep</code>会<code>释放cpu控制权</code>，即<code>切换协程</code>，从而不阻塞其他协程运行。 <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2dldmVudC9nZXZlbnQvc2VhcmNoP3V0Zjg9JUUyJTlDJTkzJnE9c3dpdGNoJnR5cGU9">gevent切换协程的源码<i class="fa fa-external-link-alt"></i></span></li>
+<li>gevent进行<code>协程切换</code>前，需要<code>flush当前协程</code>。 <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2dldmVudC9nZXZlbnQvc2VhcmNoP3V0Zjg9JUUyJTlDJTkzJnE9Zmx1c2gmdHlwZT0=">gevent进行flush的源码<i class="fa fa-external-link-alt"></i></span></li>
+<li><code>flush当前协程</code>导致socket.emit中的缓存立即发送</li>
+</ol>
+<h3 id="猴子补丁与-import-json"><a href="#猴子补丁与-import-json" class="headerlink" title="猴子补丁与 import json,"></a>猴子补丁与 import json,</h3><p>之前做的一个游戏服务器,很多地方用的import json,后来发现ujson比自带json快了N倍,于是问题来了,难道几十个文件要一个个把import json改成import ujson as json吗?<br>其实只需要在进程startup的地方monkey patch就行了.是影响整个进程空间的.<br>同一进程空间中一个module只会被运行一次.</p>
+<h1 id="习题"><a href="#习题" class="headerlink" title="习题"></a>习题</h1><h2 id="猴子补丁是动态语言的专利么？"><a href="#猴子补丁是动态语言的专利么？" class="headerlink" title="猴子补丁是动态语言的专利么？"></a>猴子补丁是动态语言的专利么？</h2><p>使用猴子补丁的条件主要是可以打开类、可以重定义现有属性、方法。修改类方法的指针，或者属性</p>
+<h3 id="C"><a href="#C" class="headerlink" title="C"></a>C</h3><h3 id="C-1"><a href="#C-1" class="headerlink" title="C++"></a>C++</h3><p>C++ 类有哪个方法是编译时确定好的, 没法打开类, 对象属于哪个类是 new 对象的代码确定好的, 既然 new 的代码在编译时确定了, 再载入补丁库也修改不了 (除非搞缓冲区溢出攻击…)</p>
+<p>比如python中可以math.Pi=3。</p>
+<h3 id="java"><a href="#java" class="headerlink" title="java"></a>java</h3><p>java强大的反射，即使<code>属性</code>或<code>方法</code>被设置为了<code>private final</code>也可以动态更改。讲道理也可以动态补丁。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>不是脚本语言的专利……是语言设计留不留口的问题？</p>
+<h2 id="猴子补丁的坑"><a href="#猴子补丁的坑" class="headerlink" title="猴子补丁的坑"></a>猴子补丁的坑</h2><h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly9lbi53aWtpcGVkaWEub3JnL3dpa2kvTW9ua2V5X3BhdGNo">Monkey patch | wikipedia<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9zdGFja292ZXJmbG93LmNvbS9xdWVzdGlvbnMvNTYyNjE5My93aGF0LWlzLW1vbmtleS1wYXRjaGluZw==">what-is-monkey-patching | StackOverflow<i class="fa fa-external-link-alt"></i></span></li>
+<li>待看 《松本行弘的程序世界》专门有一章讲了猴子补丁的设计</li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9ydWJ5LWNoaW5hLm9yZy90b3BpY3MvMTc2MTk=">猴子补丁是动态语言的专利么？ | ruby-china<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cDovL2Jsb2cuaHN6b2ZmaWNpYWwuc2l0ZS9UdXRvcmlhbEZvclB5dGhvbi8lRTUlODUlODMlRTclQkMlOTYlRTclQTglOEIvJUU3JThDJUI0JUU1JUFEJTkwJUU4JUExJUE1JUU0JUI4JTgxJUU1JTkyJThDJUU3JTgzJUFEJUU2JTlCJUI0JUU2JTk2JUIwLmh0bWw=">猴子补丁和热更新 | 网络博客<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+
+
+      <footer class="post-footer">
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/fd7a7791/" rel="prev" title="单页应用">
+      <i class="fa fa-chevron-left"></i> 单页应用
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/pub/e2f6e239/" rel="next" title="【Hexo插件系列】日志的自动分类插件 hexo-auto-category">
+      【Hexo插件系列】日志的自动分类插件 hexo-auto-category <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89"><span class="nav-number">1.1.</span> <span class="nav-text">定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%8D%E5%AD%97%E6%9D%A5%E6%BA%90"><span class="nav-number">1.2.</span> <span class="nav-text">名字来源</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B-%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">2.</span> <span class="nav-text">示例&#x2F;应用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E7%A4%BA%E4%BE%8B"><span class="nav-number">2.1.</span> <span class="nav-text">简单示例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E5%B1%9E%E6%80%A7-%E6%89%93%E8%A1%A5%E4%B8%81"><span class="nav-number">2.1.1.</span> <span class="nav-text">对属性 打补丁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E6%96%B9%E6%B3%95-%E6%89%93%E8%A1%A5%E4%B8%81"><span class="nav-number">2.1.2.</span> <span class="nav-text">对方法 打补丁</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E9%99%85%E5%BA%94%E7%94%A8%E6%A1%88%E4%BE%8B"><span class="nav-number">2.2.</span> <span class="nav-text">实际应用案例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#socket%E7%9A%84%E7%83%AD%E8%A1%A5%E4%B8%81"><span class="nav-number">2.2.1.</span> <span class="nav-text">socket的热补丁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SQL%E6%B3%A8%E5%85%A5%E6%94%BB%E5%87%BB"><span class="nav-number">2.2.2.</span> <span class="nav-text">SQL注入攻击</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Zope%E3%80%81Plone%E4%B8%AD%E7%9A%84%E5%AE%89%E5%85%A8%E8%A1%A5%E4%B8%81"><span class="nav-number">2.2.3.</span> <span class="nav-text">Zope、Plone中的安全补丁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Eventlet-Patcher"><span class="nav-number">2.2.4.</span> <span class="nav-text">Eventlet Patcher</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8EGevent%E5%AD%A6%E4%B9%A0%E7%8C%B4%E5%AD%90%E8%A1%A5%E4%B8%81%E7%9A%84%E8%AE%BE%E8%AE%A1"><span class="nav-number">2.2.5.</span> <span class="nav-text">从Gevent学习猴子补丁的设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#patch-all"><span class="nav-number">2.2.6.</span> <span class="nav-text">patch_all</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E5%8D%8F%E7%A8%8B%E6%A8%A1%E5%9D%97greenlet"><span class="nav-number">2.2.7.</span> <span class="nav-text">核心协程模块greenlet</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#gevent-sleep%E4%B8%8Etime-sleep%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">2.2.8.</span> <span class="nav-text">gevent.sleep与time.sleep的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8C%B4%E5%AD%90%E8%A1%A5%E4%B8%81-%E4%B8%8E-SocketIO"><span class="nav-number">2.2.9.</span> <span class="nav-text">猴子补丁 与 SocketIO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8C%B4%E5%AD%90%E8%A1%A5%E4%B8%81%E4%B8%8E-import-json"><span class="nav-number">2.2.10.</span> <span class="nav-text">猴子补丁与 import json,</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B9%A0%E9%A2%98"><span class="nav-number">3.</span> <span class="nav-text">习题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8C%B4%E5%AD%90%E8%A1%A5%E4%B8%81%E6%98%AF%E5%8A%A8%E6%80%81%E8%AF%AD%E8%A8%80%E7%9A%84%E4%B8%93%E5%88%A9%E4%B9%88%EF%BC%9F"><span class="nav-number">3.1.</span> <span class="nav-text">猴子补丁是动态语言的专利么？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#C"><span class="nav-number">3.1.1.</span> <span class="nav-text">C</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C-1"><span class="nav-number">3.1.2.</span> <span class="nav-text">C++</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#java"><span class="nav-number">3.1.3.</span> <span class="nav-text">java</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">3.1.4.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8C%B4%E5%AD%90%E8%A1%A5%E4%B8%81%E7%9A%84%E5%9D%91"><span class="nav-number">3.2.</span> <span class="nav-text">猴子补丁的坑</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : '7b5bc9fe',
+      //id          : '937d9de8d75418216ba3e6a36383373b',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

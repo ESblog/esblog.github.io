@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="简介数学上的softmax在数学，尤其是概率论和相关领域中，Softmax函数，或称归一化指数函数，是逻辑函数的一种推广。它能将一个含任意实数的K维向量  ${\displaystyle \mathbf {z} }$“压缩”到另一个K维实向量  ${\displaystyle \sigma (\mathbf {z} )}$ 中，使得每一个元素的范围都在 ${\displaystyle (0,1)}">
+<meta property="og:type" content="article">
+<meta property="og:title" content="softmax的困扰、改进">
+<meta property="og:url" content="https://blog.eson.org/pub/e85b0673/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="简介数学上的softmax在数学，尤其是概率论和相关领域中，Softmax函数，或称归一化指数函数，是逻辑函数的一种推广。它能将一个含任意实数的K维向量  ${\displaystyle \mathbf {z} }$“压缩”到另一个K维实向量  ${\displaystyle \sigma (\mathbf {z} )}$ 中，使得每一个元素的范围都在 ${\displaystyle (0,1)}">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-08-22T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-21T08:48:04.247Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="机器学习, 计算机视觉, 深度学习, 自然语言处理, ESON">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.eson.org/pub/e85b0673/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>softmax的困扰、改进 | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/e85b0673/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          softmax的困扰、改进
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-08-23 00:00:00" itemprop="dateCreated datePublished" datetime="2018-08-23T00:00:00+08:00">2018-08-23</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">机器学习</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/trick/" itemprop="url" rel="index"><span itemprop="name">trick</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><h2 id="数学上的softmax"><a href="#数学上的softmax" class="headerlink" title="数学上的softmax"></a>数学上的softmax</h2><p>在数学，尤其是概率论和相关领域中，Softmax函数，或称归一化指数函数，是逻辑函数的一种推广。它能将一个含任意实数的K维向量  ${\displaystyle \mathbf {z} }$“压缩”到另一个K维实向量  ${\displaystyle \sigma (\mathbf {z} )}$ 中，使得每一个元素的范围都在 ${\displaystyle (0,1)}$ 之间，并且所有元素的和为1。该函数的形式通常按下面的式子给出：</p>
+<p>$${\displaystyle \sigma (\mathbf {z} ) _ {j}={\frac {e^{z_ {j}}}{\sum _ {k=1}^{K}e^{z_ {k}}}}}   \quad j = 1, …, K.$$</p>
+<h2 id="softmax的应用"><a href="#softmax的应用" class="headerlink" title="softmax的应用"></a>softmax的应用</h2><p>Softmax函数实际上是有限项离散概率分布的梯度对数归一化。因此，Softmax函数在包括 多项逻辑回归，多项线性判别分析，朴素贝叶斯分类器和人工神经网络等的多种基于概率的多分类问题方法中都有着广泛应用。特别地，在多项逻辑回归和线性判别分析中，函数的输入是从K个不同的线性函数得到的结果，而样本向量 x 属于第 j 个分类的概率为：</p>
+<p>$$<br>P(y=j\mid \mathbf {x} )=\frac {e^{\mathbf {x} ^{\mathsf {T}}\mathbf {w}_ {j}}}{\sum_{k=1}^{K}e^{\mathbf {x} ^{\mathsf {T}}\mathbf {w}_ {k}}}<br>$$</p>
+<p>这可以被视作K个线性函数<br>$ \mathbf {x} \mapsto \mathbf {x} ^{\mathsf {T}}\mathbf {w}_ {1},\ldots ,\mathbf {x} \mapsto \mathbf {x} ^{\mathsf {T}}\mathbf {w}_{K}$<br>Softmax函数的复合（ $\mathbf {x} ^{\mathsf {T}}\mathbf {w}  \mathbf {x} \mathbf {w}$ ）。</p>
+<h2 id="loss-function"><a href="#loss-function" class="headerlink" title="loss function"></a>loss function</h2><p>softmax loss是我们最熟悉的loss之一了，分类任务中使用它，分割任务中依然使用它。softmax loss实际上是由softmax和cross-entropy loss组合而成，两者放一起数值计算更加稳定。这里我们将其数学推导一起回顾一遍。</p>
+<p>令z是softmax层的输入，f(z)是softmax的输出，则</p>
+<h2 id="softmax的瓶颈"><a href="#softmax的瓶颈" class="headerlink" title="softmax的瓶颈"></a>softmax的瓶颈</h2><p>softmax需要计算<strong>每个类别的score</strong>，并且归一化为概率p。<br>当类别特别多（比如大词表）的情况下，计算量超大。</p>
+<ul>
+<li>参数量=计算量=$n \times V$</li>
+<li>复杂度$O(n^2)$</li>
+</ul>
+<!--
+requires computing scores for every word in
+the vocabulary and to normalize them to form a probability
+distribution.
+-->
+
+<p>对于大词表V</p>
+<p>softmax的瓶颈常见于语言模型的巨量词汇、</p>
+<h1 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h1><h2 id="汇总"><a href="#汇总" class="headerlink" title="汇总"></a>汇总</h2><h3 id="对损失函数的近似方法"><a href="#对损失函数的近似方法" class="headerlink" title="对损失函数的近似方法"></a>对损失函数的近似方法</h3><!--
+Loss function approximation.
+-->
+
+<ul>
+<li><strong>HSM: Hierarchical Softmax</strong>: 用两层的树((Goodman, 2001a; Mikolov<br>et al., 2011c)，或者更深层的结构（）<ul>
+<li>word2vec, faxtText,</li>
+</ul>
+</li>
+<li><strong>NCE</strong>:</li>
+<li><strong>重要性采样</strong></li>
+<li><strong>class-based softmax</strong>:</li>
+<li><strong>adaptive softmax</strong>: 对class-based softmax的改进，针对GPU的加速</li>
+</ul>
+<p><strong>其他</strong></p>
+<ul>
+<li>Large-Margin Softmax Loss</li>
+<li>weighted softmax loss</li>
+<li>soft softmax loss</li>
+<li>angular softmax loss</li>
+<li>L2-constrained softmax loss</li>
+<li>additive margin softmax loss</li>
+</ul>
+<h3 id="基于采样的近似方法"><a href="#基于采样的近似方法" class="headerlink" title="基于采样的近似方法"></a>基于采样的近似方法</h3><!--
+Sampling based approximation
+-->
+
+
+<h3 id="基于"><a href="#基于" class="headerlink" title="基于"></a>基于</h3><!--
+Self-normalized approaches.
+-->
+
+
+<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><ol>
+<li>简单的trick</li>
+</ol>
+<p>[batch_size, seq_length, hidden_size] * [hidden_size, vocab_size] 这样的操作，可以reshape成</p>
+<p>[batch_size * seq_length, hidden_size] * [hidden_size, vocab_size] 的操作。即真个sequence一起算softmax。</p>
+<p>但是有些decode中，上一时刻的output作为下一时刻的输入，就没办法这样算了。</p>
+<h2 id="对loss-function的优化-近似（Loss-function-approximation）"><a href="#对loss-function的优化-近似（Loss-function-approximation）" class="headerlink" title="对loss-function的优化/近似（Loss function approximation）"></a>对loss-function的优化/近似（Loss function approximation）</h2><ul>
+<li>HSM: hierarchical softmax</li>
+</ul>
+<p>树结构是一般基于frequency binning或者word similarities</p>
+<p>hierarchical softmax是很多层二分类，在GPU上效率并不高。<br>假如，浅层的多分类，每层没必要是两个类。单层矩阵运算更容易用GPU加速<br>层数少了，在GPU上速度提升了，(当然如果是cpu，速度会更慢)</p>
+<h2 id="基于采样的优化-近似-Sampling-based-approximation"><a href="#基于采样的优化-近似-Sampling-based-approximation" class="headerlink" title="基于采样的优化/近似 (Sampling based approximation)"></a>基于采样的优化/近似 (Sampling based approximation)</h2><p>importance sampling</p>
+<p>不同的采样策略：</p>
+<ul>
+<li>unigram</li>
+<li>bigram</li>
+<li>power-raised distribution of the unigram</li>
+</ul>
+<h2 id="Self-normalized-approaches"><a href="#Self-normalized-approaches" class="headerlink" title="Self-normalized approaches"></a>Self-normalized approaches</h2><h2 id="class-based-softmax"><a href="#class-based-softmax" class="headerlink" title="class based softmax"></a>class based softmax</h2><p>Classes for fast maximum entropy training. Joshua Goodman, 2001</p>
+<p>We  assign  each  word  in  the<br>vocabulary to a unique class. 比如，猫、狗属于动物类，周二、周三属于工作日。</p>
+<p><strong>FAQ</strong></p>
+<ul>
+<li>类之间有没有word overlap？没有，这样能减小计算量。(HS的二叉树也)</li>
+<li>有没有大类小类？多层类？没有</li>
+<li>class与word的对应关系是怎样得到的？ 由用户自定义，自定义的方法有：<ul>
+<li>按语义分类：猫、狗属于动物类，周二、周三属于工作日。</li>
+<li>按词频分类：首先词频排序，然后分块作为class</li>
+</ul>
+</li>
+</ul>
+<h2 id="adaptive-softmax"><a href="#adaptive-softmax" class="headerlink" title="adaptive softmax"></a>adaptive softmax</h2><p>Facebook 人工智能研究（FAIR）设计出一种新式的 softmax 函数逼近，专用于 GPUs，帮助其在语言模型的基础上通过巨量词汇来有效训练神经网络。</p>
+<p>这种方法叫做自适应 softmax（adaptive softmax），<strong>利用不平衡词分布形成簇（cluster），这种簇能明确地减少对计算复杂度的期望</strong>，从而<strong>规避对词汇量的线性依赖</strong>。这种方法通过利用流行架构的特殊性和矩阵-矩阵向量运算（matrix-matrix vector operations）进一步减少了训练和测试时的计算成本。这使得它特别适合于 GPU，而以往的方法，如分层 softmax，NCE 和重要性采样，都是为标准的 CPU 设计的。</p>
+<p>有点类似HS和重要性采样吧？词频高的</p>
+<p><strong>FAQ</strong></p>
+<ul>
+<li>adaptive softmax为什么能加速？</li>
+<li>为什么要这样分cluster？</li>
+</ul>
+<h3 id="核心"><a href="#核心" class="headerlink" title="核心"></a>核心</h3><h2 id="NCE"><a href="#NCE" class="headerlink" title="NCE"></a>NCE</h2><p>negative sampling。这种只针对training吧？inference怎样sampling呢？</p>
+<p>(CPU上会更低效)</p>
+<h1 id="FAQ"><a href="#FAQ" class="headerlink" title="FAQ"></a>FAQ</h1><h2 id="关于名称"><a href="#关于名称" class="headerlink" title="关于名称"></a>关于名称</h2><ul>
+<li>softmax直接来看是一个归一化方法，loss的形式和是不是概率是不是softmax形式是没有必然联系的。当然它们现在的形式都是可以从entropy延伸出来，但是换一个新的loss，softmax也可以照用，或者不用softmax归一化，这个loss也一样可以继续用于优化。我觉得还是叫entropy loss比较好。</li>
+<li>全称是softmax cross entropy loss，但这个实在是太长了</li>
+<li>没什么全称的吧，好多地方都叫得不一样，就叫entropy loss最好了，既简洁又准确，这个loss就是entropy的形式</li>
+<li>这个损失函数的核心是softmax函数，用softmax得到概率才能用cross entropy，得到概率的方式也有很多，比如sigmoid后l1归一化。</li>
+<li>caffe里除了softmax cross entropy，还有sigmoid cross entropy。</li>
+</ul>
+<h1 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h1><ul>
+<li>tensor2tensor:</li>
+</ul>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li>维基百科写的很好，很多篇幅摘自维基百科</li>
+<li><a href="">efficient softmax approximation for GPUs</a>  综述归纳的很好</li>
+<li><span class="exturl" data-url="aHR0cHM6Ly96aHVhbmxhbi56aGlodS5jb20vcC8zNDA0NDYzNA==">一文道尽softmax loss及其变种<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3F1bm5pZV95aS9hcnRpY2xlL2RldGFpbHMvODAxMjgwMjQ=">漫谈词向量之基于Softmax与Sampling的方法 | 待看<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+
+
+      <footer class="post-footer">
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/ed599e37/" rel="prev" title="python collection">
+      <i class="fa fa-chevron-left"></i> python collection
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/pub/4e753448/" rel="next" title="数学体系架构">
+      数学体系架构 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E5%AD%A6%E4%B8%8A%E7%9A%84softmax"><span class="nav-number">1.1.</span> <span class="nav-text">数学上的softmax</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#softmax%E7%9A%84%E5%BA%94%E7%94%A8"><span class="nav-number">1.2.</span> <span class="nav-text">softmax的应用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#loss-function"><span class="nav-number">1.3.</span> <span class="nav-text">loss function</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#softmax%E7%9A%84%E7%93%B6%E9%A2%88"><span class="nav-number">1.4.</span> <span class="nav-text">softmax的瓶颈</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BC%98%E5%8C%96"><span class="nav-number">2.</span> <span class="nav-text">优化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B1%87%E6%80%BB"><span class="nav-number">2.1.</span> <span class="nav-text">汇总</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0%E7%9A%84%E8%BF%91%E4%BC%BC%E6%96%B9%E6%B3%95"><span class="nav-number">2.1.1.</span> <span class="nav-text">对损失函数的近似方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E9%87%87%E6%A0%B7%E7%9A%84%E8%BF%91%E4%BC%BC%E6%96%B9%E6%B3%95"><span class="nav-number">2.1.2.</span> <span class="nav-text">基于采样的近似方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E"><span class="nav-number">2.1.3.</span> <span class="nav-text">基于</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B6%E4%BB%96"><span class="nav-number">2.2.</span> <span class="nav-text">其他</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9loss-function%E7%9A%84%E4%BC%98%E5%8C%96-%E8%BF%91%E4%BC%BC%EF%BC%88Loss-function-approximation%EF%BC%89"><span class="nav-number">2.3.</span> <span class="nav-text">对loss-function的优化&#x2F;近似（Loss function approximation）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E9%87%87%E6%A0%B7%E7%9A%84%E4%BC%98%E5%8C%96-%E8%BF%91%E4%BC%BC-Sampling-based-approximation"><span class="nav-number">2.4.</span> <span class="nav-text">基于采样的优化&#x2F;近似 (Sampling based approximation)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Self-normalized-approaches"><span class="nav-number">2.5.</span> <span class="nav-text">Self-normalized approaches</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#class-based-softmax"><span class="nav-number">2.6.</span> <span class="nav-text">class based softmax</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#adaptive-softmax"><span class="nav-number">2.7.</span> <span class="nav-text">adaptive softmax</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83"><span class="nav-number">2.7.1.</span> <span class="nav-text">核心</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NCE"><span class="nav-number">2.8.</span> <span class="nav-text">NCE</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#FAQ"><span class="nav-number">3.</span> <span class="nav-text">FAQ</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E%E5%90%8D%E7%A7%B0"><span class="nav-number">3.1.</span> <span class="nav-text">关于名称</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E4%BE%8B"><span class="nav-number">4.</span> <span class="nav-text">实例</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : 'e85b0673',
+      //id          : 'ec5e2deb5da76bb54f7ca4ff68c9dc62',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="尚未完成，备份     参数(模型大小，静态) 计算量 特征图大小(memory消耗) 参数自由度(可滑动、复用度) 特征图的自由度 参数的秩&#x2F;映射能力 输出特征图[n,c]的秩&#x2F;困惑度&#x2F;表达力   评价    全连接 [$n \times c$, $n \times c$] $ n \times c  \times n \times c$  0  4 2      conv [k,c,c] kc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【卷积】2. 深度学习中的卷积进化史">
+<meta property="og:url" content="https://blog.eson.org/pub/7203e497/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="尚未完成，备份     参数(模型大小，静态) 计算量 特征图大小(memory消耗) 参数自由度(可滑动、复用度) 特征图的自由度 参数的秩&#x2F;映射能力 输出特征图[n,c]的秩&#x2F;困惑度&#x2F;表达力   评价    全连接 [$n \times c$, $n \times c$] $ n \times c  \times n \times c$  0  4 2      conv [k,c,c] kc">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20CNN%20-%20WHC%20-%20cs231n.jpeg">
+<meta property="og:image" content="http://wx2.sinaimg.cn/large/006Fmjmcly1fdwjpji6qtj30dw05d0t8.jpg">
+<meta property="og:image" content="https://tracholar.github.io/assets/images/conv2d.gif">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20CNN%20-%20动态图.gif">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20CNN%20-%202D卷积%20-%20动态图.gif">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20CNN%20-%202D卷积%20-%20转置卷积%20-%20动态图.gif">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20CNN%20-%20Depthwise%20Separable%20Convolutions%20-%20Diagonalwise%20Refactorization.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20CNN%20-%20Flatterned%20Convolution.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20CNN%20-%20Factorization%20rank1%20-%20Inception.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20CNN%20-%20空洞卷积%20-%20动态图.gif">
+<meta property="article:published_time" content="2018-04-08T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-11-15T10:02:29.834Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="机器学习, 计算机视觉, 深度学习, 自然语言处理, ESON">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.eson.org/images/raw/NN%20-%20CNN%20-%20WHC%20-%20cs231n.jpeg">
+
+<link rel="canonical" href="https://blog.eson.org/pub/7203e497/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>【卷积】2. 深度学习中的卷积进化史 | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/7203e497/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【卷积】2. 深度学习中的卷积进化史
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-04-09 00:00:00" itemprop="dateCreated datePublished" datetime="2018-04-09T00:00:00+08:00">2018-04-09</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/model-basic/" itemprop="url" rel="index"><span itemprop="name">model-basic</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/model-basic/CNN/" itemprop="url" rel="index"><span itemprop="name">CNN</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/model-basic/CNN/%E5%8D%B7%E7%A7%AF/" itemprop="url" rel="index"><span itemprop="name">卷积</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>6 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>尚未完成，备份</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>参数(模型大小，静态)</th>
+<th>计算量</th>
+<th>特征图大小(memory消耗)</th>
+<th>参数自由度(可滑动、复用度)</th>
+<th>特征图的自由度</th>
+<th>参数的秩/映射能力</th>
+<th>输出特征图[n,c]的秩/困惑度/表达力</th>
+<th></th>
+<th></th>
+<th>评价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>全连接</td>
+<td>[$n \times c$, $n \times c$]</td>
+<td>$ n \times c  \times n \times c$</td>
+<td></td>
+<td>0</td>
+<td></td>
+<td>4</td>
+<td>2</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>conv</td>
+<td>[k,c,c]</td>
+<td>k<em>c</em>n*c</td>
+<td></td>
+<td>1</td>
+<td></td>
+<td>3</td>
+<td>2</td>
+<td></td>
+<td></td>
+<td>conv局部连接替代全连接+权值共享，大大减少参数，其次减少计算量</td>
+</tr>
+<tr>
+<td>conv分解-DSC</td>
+<td>[k,c] + [1,c,c]</td>
+<td>k<em>c+c</em>c</td>
+<td></td>
+<td>2</td>
+<td></td>
+<td>2</td>
+<td>2</td>
+<td></td>
+<td></td>
+<td>对卷积核的rank2分解</td>
+</tr>
+<tr>
+<td>conv分解-Flattern</td>
+<td>[k] + [c] + [c]</td>
+<td>k+c+c</td>
+<td></td>
+<td>3</td>
+<td></td>
+<td>1</td>
+<td></td>
+<td></td>
+<td></td>
+<td>对卷积核的rank1分解</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>self-attention</td>
+<td></td>
+<td>n<em>c</em>c<em>3 + n</em>n*d</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>RSA</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>权值共享度越高，参数越少</td>
+<td></td>
+<td></td>
+<td></td>
+<td>参数秩越高，映射能力越强。</td>
+<td>减小特征图的秩，类似减少维度、增加正则约束、信息压缩</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>越少越好</td>
+<td>越少越好</td>
+<td></td>
+<td></td>
+<td></td>
+<td>越高越好</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>这和映射能力是trade off的关系</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<h1 id="名词"><a href="#名词" class="headerlink" title="名词"></a>名词</h1><img title="卷积网络架构" src="/images/raw/NN - CNN - WHC - cs231n.jpeg">
+
+<p>feature map的维度[H,W,C]，通常称为[height, weight, channel/depth]</p>
+<ul>
+<li><strong>GConv</strong>: group convolution，分组卷积<ul>
+<li>优势: 减少了计算量和参数量，组间独立类似稀疏约束</li>
+<li>缺陷: 限制了通道之间信息的流动，降低了模型表达能力</li>
+</ul>
+</li>
+<li>spatial conv，主要</li>
+</ul>
+<p>排除法</p>
+<ul>
+<li><strong>**wise</strong>: **-by-**的意思，逐个。<ul>
+<li>组词: 一张张，一片片，一个个，一组组，逐点，逐张，逐个，逐组</li>
+<li>在数学上的概念通常表示单元之间独立。</li>
+</ul>
+</li>
+<li><strong>PWConv</strong>: pointwise convolution, 逐点卷积，[1,1,new_c]<ul>
+<li>也叫position-wise，因为把每次操作一个position，f(position)，即position间独立(不交互)。</li>
+<li>言外之意: <strong>除position以外，其他维度可以交互/不独立</strong>，比如<code>channel combination</code></li>
+</ul>
+</li>
+<li><strong>DWConv</strong>: depthwise convolution, 逐通道卷积，也叫channelwise，<strong>channel by channel的意思</strong><ul>
+<li>[w,h,c]</li>
+<li>每次操作一个channel，以一个channel为操作对象，f(channel)，即channel间独立(不交互)，不同channel进行相同操作</li>
+<li>言外之意: <strong>除channel以外，其他维度的交互</strong>,比如: <code>spatial convolution</code> performed independently over every channel of an input</li>
+<li>depthwise则是极致的group，有多少个channel就分成多少组。讲的真清楚，但是这样做是不是<strong>太狠了</strong>？channel之间的交互一点都不剩了</li>
+<li>实例：<ul>
+<li>机器翻译中常用的attention，是position之间的交互，channel之间无交互</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><strong>深度可分离卷积</strong>: 将普通的卷积运算拆分成逐通道卷积（depthwise convolution）和逐点卷积（pointwise convolution）两部进行，有效地减少了计算量和参数量；<em>减少了多少？</em></li>
+</ul>
+<p>pointwise group convolution怎么跟depthwise差不多啊？</p>
+<ul>
+<li>逐点群卷积</li>
+</ul>
+<h1 id="汇总"><a href="#汇总" class="headerlink" title="汇总"></a>汇总</h1><ul>
+<li>全连接，是[W,H,C]整个feature的全连接</li>
+<li>卷积，是局部feature的全连接。<ul>
+<li>即[w,h,c] 维度上的全连接</li>
+<li>当$w<em>h</em>c$，计算量仍然很大</li>
+<li>当w=W,h=H 时，也叫全卷积，就等价于全连接。</li>
+</ul>
+</li>
+<li>1*1卷积是channel上的全连接</li>
+</ul>
+<p>这些实质是</p>
+<ol>
+<li><strong>利用稀疏连接(sparse connection)的方式来提高卷积的效率</strong>。</li>
+<li>采用group/split的思想来实现稀疏，简单易行</li>
+</ol>
+<ul>
+<li>一维卷积: 常用于序列模型，自然语言处理领域。</li>
+<li>二维卷积: 常用于计算机视觉、图像处理领域</li>
+<li>三维卷积: 常用于医学领域（CT影响），视频处理领域（时间维度）</li>
+</ul>
+<!--
+3D卷积中[weight,height,time], 对这三个维度分解。 channel维度算不算？不算，channel维度是全连接的，但是也需要来分解
+-->
+
+
+<p><strong>一维卷积</strong></p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">输入特征图:</span> [<span class="string">n</span>,<span class="string">c</span>] <span class="comment"># channel即embedding</span></span><br><span class="line"><span class="string">卷积核:</span> [<span class="string">k</span>,<span class="string">c</span>,<span class="string">c</span>] <span class="comment"># 这里简化 c_out = c_in，当然也可以不相等</span></span><br><span class="line"><span class="string">输出特征图:</span> [<span class="string">n</span>,<span class="string">c</span>]</span><br></pre></td></tr></table></figure>
+
+
+<p><strong>二维卷积</strong></p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">输入特征图:</span> [<span class="string">H</span>,<span class="string">W</span>,<span class="string">C</span>]</span><br><span class="line"><span class="string">卷积核:</span> [<span class="string">k</span>,<span class="string">k</span>,<span class="string">C</span>,<span class="string">C</span>]</span><br><span class="line"><span class="string">输出特征图:</span> [<span class="string">H&#x27;</span>,<span class="string">W&#x27;</span>,<span class="string">C&#x27;</span>]</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th>参数</th>
+<th>计算量</th>
+<th>参数的秩</th>
+<th>特征图的秩</th>
+<th></th>
+<th>评价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>全连接</td>
+<td>w<em>h</em>c1<em>w</em>h*c2</td>
+<td>w<em>h</em>c1<em>w</em>h*c2</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>conv</td>
+<td>[k,k,c1,c2]</td>
+<td>k<em>k</em>c1<em>c2</em>w*h</td>
+<td></td>
+<td></td>
+<td></td>
+<td>conv通过权值共享，大大减少参数，其次减少计算量</td>
+</tr>
+<tr>
+<td>group-conv</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>DSC</td>
+<td>[k,k,c1] + [1,1,c1,c2]</td>
+<td></td>
+<td>2</td>
+<td></td>
+<td></td>
+<td>对卷积核的rank2分解</td>
+</tr>
+<tr>
+<td>Flattern-conv</td>
+<td>[k,k,c1] + [1,1,c1,c2]</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>对卷积核的rank1分解</td>
+</tr>
+</tbody></table>
+<p><strong>三维卷积</strong><br>视频</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">输入特征图:</span> [<span class="string">T</span>,<span class="string">H</span>,<span class="string">W</span>,<span class="string">C</span>]</span><br><span class="line"><span class="string">卷积核:</span> [<span class="string">t</span>,<span class="string">k</span>,<span class="string">k</span>,<span class="string">C</span>,<span class="string">C&#x27;</span>]</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>计算量少</li>
+<li>参数量少</li>
+<li>内存消耗少</li>
+<li>映射能力强</li>
+<li>特征表达能力强</li>
+</ul>
+<p>这就是我们的需求，但是很多环节是trade off的关系。</p>
+<h2 id="merge的方式"><a href="#merge的方式" class="headerlink" title="merge的方式"></a>merge的方式</h2><p>group限制了通道之间信息的流动，降低了模型表达能力，<br>所以group后一般都会再merge一次。即传统的split-transform-merge架构</p>
+<ul>
+<li><strong>concat</strong>:<ul>
+<li>concat没有不同channel之间的融合，即仍然保持维度上的独立性。所以一般后面会接channel融合的策略，比如1*1卷积</li>
+<li>实例: alexNet、Transformer、</li>
+</ul>
+</li>
+<li><strong>升维 + sum/mean</strong>:<ul>
+<li>一般group内的<strong>channel数需要还原</strong>。因为如果不还原直接add，group比较多的时候信息损失严重</li>
+<li>实例: mobileNet</li>
+</ul>
+</li>
+<li><strong>升维 + weighted-sum</strong>:<ul>
+<li>实例: weighted-transformer、</li>
+</ul>
+</li>
+<li><strong>shuffle</strong>: channel shuffle<ul>
+<li>用处: Channel Shuffle for Group Convolutions</li>
+<li>实例: ShuffleNet</li>
+</ul>
+</li>
+<li><strong>其他策略呢？</strong></li>
+</ul>
+<h1 id="卷积-VS-全连接"><a href="#卷积-VS-全连接" class="headerlink" title="卷积 VS 全连接"></a>卷积 VS 全连接</h1><p>全连接的结构下会引起参数数量的膨胀，容易过拟合且局部最优。</p>
+<p>CNN层改全连接为局部连接，这是由于图片的特殊性造成的（图像的一部分的统计特性与其他部分是一样的），通过<code>局部连接</code>和<code>参数共享</code>大范围的减少参数值。可以通过使用多个filter来提取图片的不同特征（多卷积核）。</p>
+<blockquote>
+<p>麻蛋，这是背课文啊。</p>
+</blockquote>
+<h1 id="卷积在深度学习中的应用"><a href="#卷积在深度学习中的应用" class="headerlink" title="卷积在深度学习中的应用"></a>卷积在深度学习中的应用</h1><blockquote>
+<p>Convolutional neural networks therefore constitute a very useful tool for machine learning practitioners. However, learning to use CNNs for the first time is generally an intimidating experience.</p>
+</blockquote>
+<img title="边缘检测滤波器(卷积核)对图像的滤波(卷积)" src="http://wx2.sinaimg.cn/large/006Fmjmcly1fdwjpji6qtj30dw05d0t8.jpg">
+
+<h2 id="CNN为什么work？"><a href="#CNN为什么work？" class="headerlink" title="CNN为什么work？"></a>CNN为什么work？</h2><ul>
+<li>局部连接代替全连接，&amp; 权值共享</li>
+<li>pooling层，</li>
+<li>是</li>
+</ul>
+<h1 id="发展"><a href="#发展" class="headerlink" title="发展"></a>发展</h1><ul>
+<li>2012年， 基于深度学习CNN网络的AlexNet在ILSVRC竞赛的ImageNet上大放异彩</li>
+<li>检测: 2014年Ross Girshick利用CNN成功取代了HOG、DPM等特征提取， ross等人把目标检测分成了三个步骤，首先是对图像提取detection proposal，其实就是图像中一些可能是检测物体的区域，然后使用cnn对这些proposal进行特征提取，最后用svm对这些提取到的特征进行分类，从而完成检测的任务，这是 Two-stage object detectors鼻祖。</li>
+</ul>
+<h1 id="简单卷积"><a href="#简单卷积" class="headerlink" title="简单卷积"></a>简单卷积</h1><img title="" src="https://tracholar.github.io/assets/images/conv2d.gif">
+<!-- http://cs231n.github.io/convolutional-networks/ -->
+
+<img title="△ 卷积核为3、步幅为1和带有边界扩充的二维卷积结构" src="/images/raw/NN - CNN - 动态图.gif">
+
+<p>卷积核为3、步幅为1和带有边界扩充的二维卷积结构</p>
+<ul>
+<li>卷积核大小（Kernel Size）：定义了卷积操作的感受野。在二维卷积中，通常设置为3，即卷积核大小为3×3。</li>
+<li>步幅（Stride）：定义了卷积核遍历图像时的步幅大小。其默认值通常设置为1，也可将步幅设置为2后对图像进行下采样，这种方式与最大池化类似。</li>
+<li>边界扩充（Padding）：定义了网络层处理样本边界的方式。当卷积核大于1且不进行边界扩充，输出尺寸将相应缩小；当卷积核以标准方式进行边界扩充，则输出数据的空间尺寸将与输入相等。</li>
+<li>输入与输出通道（Channels）：构建卷积层时需定义输入通道I，并由此确定输出通道O。这样，可算出每个网络层的参数量为I×O×K，其中K为卷积核的参数个数。例，某个网络层有64个大小为3×3的卷积核，则对应K值为 3×3 =9。</li>
+</ul>
+<h1 id="卷积的变形"><a href="#卷积的变形" class="headerlink" title="卷积的变形"></a>卷积的变形</h1><ol>
+<li>关于size</li>
+</ol>
+<ul>
+<li>1, $1 \times 1$, $1 \times 1 \times 1$</li>
+<li>全卷积</li>
+</ul>
+<ol>
+<li>基于分组的</li>
+</ol>
+<ul>
+<li>group conv</li>
+</ul>
+<ol>
+<li>基于分解的</li>
+<li>基于</li>
+</ol>
+<h2 id="基于拆分-分组的-split-group"><a href="#基于拆分-分组的-split-group" class="headerlink" title="基于拆分/分组的 split/group"></a>基于拆分/分组的 split/group</h2><h2 id="group-conv"><a href="#group-conv" class="headerlink" title="group conv"></a>group conv</h2><p>对channel 分group，然后各group独立，最后再合并。</p>
+<h3 id="关于group之间是否共享卷积核？以及影响？"><a href="#关于group之间是否共享卷积核？以及影响？" class="headerlink" title="关于group之间是否共享卷积核？以及影响？"></a>关于group之间是否共享卷积核？以及影响？</h3><h3 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h3><p>AlexNet中采用group conv的初衷是为了利用多GPU。为了减少GPU之间的交互带来的速度影响，只在特定的层才有共享权重</p>
+<h2 id="最小-卷积核"><a href="#最小-卷积核" class="headerlink" title="最小 卷积核"></a>最小 卷积核</h2><p>最小的卷积核，在1维卷积中是kernel size为1的卷积，二维卷积中是kernel size为1*1的卷积。</p>
+<p>这种卷积又被称为<a href="Mobilenets"><strong>Pointwise Convolution</strong></a>，即feature map上的<code>每个point采用相同的卷积操作</code>。</p>
+<p><strong>作用</strong></p>
+<p>在channel上升维、降维。</p>
+<h3 id="1-times-1-卷积-二维卷积"><a href="#1-times-1-卷积-二维卷积" class="headerlink" title="$1 \times 1$ 卷积 (二维卷积)"></a>$1 \times 1$ 卷积 (二维卷积)</h3><p>针对[H,W,C]的输入，进行 1,1二维卷积</p>
+<!-- i.e. a 1x1 convolution, projecting the channels output by the depthwise convolution onto a new channel space.
+-->
+
+
+<p>$$<br>[H,W,C] \xrightarrow[1 \times 1 \times in \times out]{conv2d}  [H’,W’,C’]<br>$$</p>
+<p>1*1卷积并未对图像尺寸进行调整，仅仅是channel之间的融合。</p>
+<p>当$out_channel &gt; in_channel$时，起到升维的作用；反之，则起到降维的作用。</p>
+<p>1*1kernel广泛用于NIN、GoogLeNet、ResNet</p>
+<p><strong>注意</strong></p>
+<ul>
+<li><strong>缺陷</strong>: 1*1卷积并未考虑空间邻域的信息，仅仅是channel之间的整合。所以一般会配合</li>
+<li><strong>优势</strong>: 计算量小，参数少</li>
+</ul>
+<p><strong>实战架构</strong>:</p>
+<ol>
+<li><strong>构造bottleneck架构</strong>: <i class="fa fa-hourglass"></i></li>
+</ol>
+<ul>
+<li>由于<code>1*1卷积</code>方便维度变换，很多网络构造bottleneck架构，即<em>高维的IO，低维的middle</em>，目的是在<em>低维下进行复杂运算，减少计算量</em>。</li>
+<li><strong>注意</strong>: 不要为了bottleneck而bottleneck，其根本目的是为了减少计算量。要分析网络的计算瓶颈，再配已适当的策略才是正途。<!-- reducing and then increasing (restoring) dimensions, leaving the 3×3 layer a bottleneck with smaller input/output dimensions. --></li>
+<li><strong>实例</strong>: NIN, GoogLeNet, <a href="">ResNet</a></li>
+</ul>
+<ol>
+<li><strong>卷积的分解</strong></li>
+</ol>
+<ul>
+<li>所有的depthwise seprable convolution</li>
+<li>ss</li>
+</ul>
+<blockquote>
+<p>对应一维卷积，就是kernel_size 为1卷积</p>
+</blockquote>
+<h2 id="最大卷积核-全卷积"><a href="#最大卷积核-全卷积" class="headerlink" title="最大卷积核 - 全卷积"></a>最大卷积核 - 全卷积</h2><p>全卷积(FCN)</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">注意区别于FCN架构，见FCN.md</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Transposed-Convolutions"><a href="#Transposed-Convolutions" class="headerlink" title="Transposed Convolutions"></a>Transposed Convolutions</h2><img title="△ 卷积核为3、步幅为2和无边界扩充的二维卷积结构" src="/images/raw/NN - CNN - 2D卷积 - 动态图.gif">
+
+<img title="△ 卷积核为3×3、步幅为2和无边界扩充的二维转置卷积" src="/images/raw/NN - CNN - 2D卷积 - 转置卷积 - 动态图.gif">
+
+<h1 id="分解"><a href="#分解" class="headerlink" title="分解"></a>分解</h1><p>Separable, Factorization</p>
+<blockquote>
+<p>应该是一个意思吧？</p>
+</blockquote>
+<ul>
+<li><strong>Separable</strong><ul>
+<li>即分离(split)的意思，将传统的一层conv分离为两层，一层用于filtering，一层用于combining<!-- splits this into two layers, a separate layer for filtering and a separate layer for combining. --></li>
+<li>不可分离呢？</li>
+</ul>
+</li>
+</ul>
+<p>很自然我们会有两个疑问：为什么要分解？为什么能分解？</p>
+<p><strong>为什么能分解？理论基础:</strong></p>
+<p>实质是低秩矩阵分解，压缩参数，减少计算量。详见系列3</p>
+<p><strong>为什么要分解？优势:</strong></p>
+<ul>
+<li>加速 <!-- fast --></li>
+<li>少参 <!-- few parameter--></li>
+<li>低秩约束 <!-- low rank regulation --></li>
+</ul>
+<!-- Depthwise separable convolutions reduce the number of parameters and computation used in convolutional operations while increasing representational efficiency. 提高表征效率？ -->
+
+<p><strong>怎么分解？</strong></p>
+<p>[n,c_in,c_out]的卷积核</p>
+<ul>
+<li>满秩分解</li>
+<li>低秩矩阵分解<ul>
+<li>rank=2: 张量乘法分解成两个矩阵乘法 <br><br>例如: 深度可分离卷积 <br><br>二维卷积(图像):$[h,w,C,C’] = [h,w,C] * [1 \times 1 \times c \times C’]$</li>
+<li>Rank=1:  即tucker分解， <!-- 3D filter separation under rank-one assumption --><br>例如: inception中的某些拆分</li>
+</ul>
+</li>
+</ul>
+<h2 id="rank-2-深度可分离卷积"><a href="#rank-2-深度可分离卷积" class="headerlink" title="rank=2 深度可分离卷积"></a>rank=2 深度可分离卷积</h2><p>深度可分离卷积结构（depthwise separable convolution）</p>
+<ul>
+<li><strong>Depthwise</strong><ul>
+<li><strong>depth</strong>: channel数<!-- depth is the number of channels or filters in a layer --></li>
+<li><strong>depthwise</strong>: channel之间的操作是独立的，不交互的。<!-- -->
+<!-- applies a single filter to each input channel; a spatial convolution performed independently over each channel of an input.--></li>
+</ul>
+</li>
+</ul>
+<p>DSC是分解卷积(factorized convolutions)的一种，它将常规的卷积<code>分解为一个depthwise conv与一个1*1 conv</code>。</p>
+<ul>
+<li>depthwise conv: 用于channel内的filtering</li>
+<li>pointwise conv($1 \times 1$): 用于channel间的combining</li>
+</ul>
+<img title="Depthwise Separable convolution可以分解为1个depthwise conv和1个pointwise conv" src="/images/raw/NN - CNN - Depthwise Separable Convolutions - Diagonalwise Refactorization.png">
+
+<p><a href="">图来源Diagonalwise Refactorization</a></p>
+<p><strong>定义</strong>:</p>
+<p>DepthSepConv defines kxk depthwise convolution followed by 1x1 convolution</p>
+<ul>
+<li>因为depthwise卷积是channel间独立的，所以一般会后接1*1卷积，做channel间的融合</li>
+</ul>
+<p>传统卷积<br>$$<br>[H,W,C] \xrightarrow[k \times k \times C \times C’]{conv2d} [H’,W’,C’]<br>$$</p>
+<ul>
+<li>卷积参数量: $k \times k \times C \times C’$</li>
+<li>计算量:</li>
+</ul>
+<p><strong>参数</strong></p>
+<ul>
+<li>depth_multiplier:</li>
+<li>ss</li>
+</ul>
+<p><strong>常见误区</strong></p>
+<ul>
+<li>depthwise = conv2d(k,w,C,1)。错误<ul>
+<li>depthwise不同于常规的conv2d，是一种的卷积操作，需要经过cudnn加速才能有效果提升。cudnn7.0才开始支持该模块的加速 <!-- depthwise_conv2d applies a different filter to each input channel --></li>
+<li>depthwise_conv(k,w,C)，没有那个1</li>
+</ul>
+</li>
+<li>depthwise是对所有输入channel采用独立且相同的操作。错误<ul>
+<li>只是独立操作，每个channel的操作不要求相同</li>
+</ul>
+</li>
+<li></li>
+</ul>
+<p><span class="exturl" data-url="aHR0cHM6Ly93d3cuemhpaHUuY29tL3F1ZXN0aW9uLzI2NTQzNDQ2NA==">为什么depthwise convolution 比 convolution更加耗时？ | 知乎<i class="fa fa-external-link-alt"></i></span></p>
+<p><strong>历史 &amp; 应用</strong></p>
+<ul>
+<li>Factorized Convolutional Neural Networks 2016 引用率很低</li>
+<li>Rigid-motion scattering for image classification 2014 首次提出</li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9hcnhpdi5vcmcvYWJzLzE1MDIuMDMxNjc=">Inception models<i class="fa fa-external-link-alt"></i></span>在前几层用到了，用于减小模型复杂度</li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9hcnhpdi5vcmcvYWJzLzE3MDQuMDQ4NjE=">MobileNet 2017 首次<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9hcnhpdi5vcmcvYWJzLzE3MDYuMDMwNTk=">SliceNet 2017 | 机器翻译<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+<p>factorized convolutions是什么鬼？</p>
+<ul>
+<li>Factorized Networks</li>
+<li>Xception network</li>
+<li>Squeezenet</li>
+</ul>
+<p>为什么能降低参数量，同时还能保持精度？</p>
+<p>类似矩阵分解的思想。</p>
+<p>Group conv是一种channel分组的方式，Depthwise +Pointwise是卷积的方式，只是ShuffleNet里面把两者应用起来了。因此Group conv和Depthwise +Pointwise并不能划等号。</p>
+<p>而group卷积只是单纯的通道分组处理，降低复杂度。</p>
+<h3 id="rank-1-Flatterned-Convolution"><a href="#rank-1-Flatterned-Convolution" class="headerlink" title="rank 1 - Flatterned Convolution"></a>rank 1 - Flatterned Convolution</h3><img title="Flatterned Convolution" src="/images/raw/NN - CNN - Flatterned Convolution.png">
+
+
+<img title="Inception中，对n*n的卷积进行分解。该分解方式采用了rank 1分解" src="/images/raw/NN - CNN - Factorization rank1 - Inception.png">
+
+
+<p><strong>一维卷积</strong></p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">输入特征图:</span> [<span class="string">n</span>,<span class="string">c</span>] <span class="comment"># channel即embedding</span></span><br><span class="line"><span class="string">卷积核:</span> [<span class="string">k</span>,<span class="string">c</span>,<span class="string">c</span>] <span class="comment"># rank=3. 这里简化 c_out = c_in，当然也可以不相等</span></span><br><span class="line"><span class="string">输出特征图:</span> [<span class="string">n</span>,<span class="string">c</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 对卷积核进行rank 1分解</span></span><br><span class="line"><span class="string">卷积核1:</span> [<span class="string">k</span>,<span class="number">1</span>,<span class="number">1</span>]  <span class="string">-&gt;</span> [<span class="string">n</span>,<span class="number">1</span>]</span><br><span class="line"><span class="string">卷积核2:</span> [<span class="number">1</span>,<span class="string">c</span>,<span class="number">1</span>]  <span class="string">-&gt;</span></span><br><span class="line"><span class="string">卷积核3:</span> [<span class="number">1</span>,<span class="number">1</span>,<span class="string">c</span>]  <span class="string">-&gt;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+<p><strong>二维卷积</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong>三维卷积</strong></p>
+<ul>
+<li><a href="">Flattened convolution neural networks for feedforward acceleration</a></li>
+</ul>
+<h2 id="Dilated-Convolutions"><a href="#Dilated-Convolutions" class="headerlink" title="Dilated Convolutions"></a>Dilated Convolutions</h2><p>空洞卷积（atrous convolutions）又名扩张卷积（dilated convolutions），向卷积层引入了一个称为 “扩张率(dilation rate)”的新参数，该参数定义了卷积核处理数据时各值的间距。</p>
+<img title="△ 卷积核为3、扩张率为2和无边界扩充的二维空洞卷积" src="/images/raw/NN - CNN - 空洞卷积 - 动态图.gif">
+
+<p>一个扩张率为2的3×3卷积核，感受野与5×5的卷积核相同，而且仅需要9个参数。你可以把它想象成一个5×5的卷积核，每隔一行或一列删除一行或一列。</p>
+<p>在相同的计算条件下，空洞卷积提供了更大的感受野。空洞卷积经常用在实时图像分割中。当网络层需要较大的感受野，但计算资源有限而无法提高卷积核数量或大小时，可以考虑空洞卷积。</p>
+<p>应用：</p>
+<ol>
+<li>wavenet 音频信号太过密集，比较适合</li>
+<li>SliceNet</li>
+</ol>
+<h2 id="Gated-Convolution"><a href="#Gated-Convolution" class="headerlink" title="Gated Convolution"></a>Gated Convolution</h2><ol>
+<li>Language Modeling with Gated Convolutional Networks</li>
+<li>Free-Form Image Inpainting with Gated Convolution。很牛逼的paper</li>
+</ol>
+<h1 id="计算量、复杂度汇总"><a href="#计算量、复杂度汇总" class="headerlink" title="计算量、复杂度汇总"></a>计算量、复杂度汇总</h1><p>时间复杂度、空间复杂度</p>
+<p>计算量、复杂度的度量，通常用O()来计算。<br>神经网络也通常用FLOPS来计算。</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">input:</span>  [<span class="number">64</span>,<span class="number">64</span>,<span class="number">3</span>]</span><br><span class="line"><span class="attr">kernel:</span> [<span class="number">5</span>,<span class="number">5</span>,<span class="number">3</span>,<span class="number">32</span>]</span><br><span class="line"><span class="attr">output:</span> [<span class="number">64</span>,<span class="number">64</span>,<span class="number">32</span>] <span class="comment"># same padding</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 计算量</span></span><br><span class="line"><span class="string">卷积的计算量:</span>   [<span class="number">5</span><span class="string">*5*3*64*64*32</span>]  <span class="comment"># 卷积比全连接，减少了非常多的计算量</span></span><br><span class="line"><span class="string">全连接的计算量:</span> [<span class="number">64</span><span class="string">*64*3*64*64*32</span>]</span><br><span class="line"><span class="number">3</span><span class="string">-group的计算量:</span> []</span><br><span class="line"><span class="string">DSC的计算量:</span> []</span><br><span class="line"></span><br><span class="line"><span class="comment"># 参数量</span></span><br><span class="line"><span class="string">卷积的参数量:</span>   [<span class="number">5</span><span class="string">*5*3*32</span>]    <span class="comment"># 少量的参数，通过参数共享/复用，发挥了强大的作用，能防止模型过拟合</span></span><br><span class="line"><span class="string">全连接的参数量:</span> [<span class="number">64</span><span class="string">*64*3*64*64*32</span>]   <span class="comment"># 注意，如此大的参数量</span></span><br></pre></td></tr></table></figure>
+
+<p>参数共享是一个神奇的东西，参数量剧减，模型小了非常多。</p>
+<h1 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h1><ol>
+<li>Andrew Ng 的UFLDL教程</li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9pa2hsZXN0b3YuZ2l0aHViLmlvL3BhZ2VzL21hY2hpbmUtbGVhcm5pbmcvY29udm9sdXRpb25zLXR5cGVzLw==">各种卷积结构原理及优劣 | Medium<i class="fa fa-external-link-alt"></i></span>  比较新</li>
+<li><span class="exturl" data-url="aHR0cHM6Ly90b3dhcmRzZGF0YXNjaWVuY2UuY29tL3R5cGVzLW9mLWNvbnZvbHV0aW9ucy1pbi1kZWVwLWxlYXJuaW5nLTcxNzAxMzM5N2Y0ZA==">一文了解各种卷积结构原理及优劣 | Medium<i class="fa fa-external-link-alt"></i></span> &amp; <span class="exturl" data-url="aHR0cHM6Ly96aHVhbmxhbi56aGlodS5jb20vcC8yODE4Njg1Nw==">中文翻译|知乎<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cDovL3RpbWRldHRtZXJzLmNvbS8yMDE1LzAzLzI2L2NvbnZvbHV0aW9uLWRlZXAtbGVhcm5pbmcv">理解深度学习中的卷积 | Tim Dettmers<i class="fa fa-external-link-alt"></i></span> &amp; <span class="exturl" data-url="aHR0cDovL3d3dy5oYW5rY3MuY29tL21sL3VuZGVyc3RhbmRpbmctdGhlLWNvbnZvbHV0aW9uLWluLWRlZXAtbGVhcm5pbmcuaHRtbA==">中文翻译 | 码农场<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cDovL2NvbGFoLmdpdGh1Yi5pby9wb3N0cy8yMDE0LTA3LVVuZGVyc3RhbmRpbmctQ29udm9sdXRpb25zLw==">Understanding Convolutions | colah<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly93d3cuemhpaHUuY29tL3F1ZXN0aW9uLzU0Njc3MTU3">卷积为什么叫「卷」积？ | 知乎<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly93d3cuemhpaHUuY29tL3F1ZXN0aW9uLzIyMjk4MzUy">如何通俗易懂地解释卷积？ | 知乎<i class="fa fa-external-link-alt"></i></span></li>
+<li><a href="..">A guide to convolution arithmetic for deep learning</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+      
+
+
+      <footer class="post-footer">
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/4f6e26d2/" rel="prev" title="残差网络ResNet">
+      <i class="fa fa-chevron-left"></i> 残差网络ResNet
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/pub/3f25fe26/" rel="next" title="github issue">
+      github issue <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%90%8D%E8%AF%8D"><span class="nav-number">1.</span> <span class="nav-text">名词</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B1%87%E6%80%BB"><span class="nav-number">2.</span> <span class="nav-text">汇总</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#merge%E7%9A%84%E6%96%B9%E5%BC%8F"><span class="nav-number">2.1.</span> <span class="nav-text">merge的方式</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8D%B7%E7%A7%AF-VS-%E5%85%A8%E8%BF%9E%E6%8E%A5"><span class="nav-number">3.</span> <span class="nav-text">卷积 VS 全连接</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8D%B7%E7%A7%AF%E5%9C%A8%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="nav-number">4.</span> <span class="nav-text">卷积在深度学习中的应用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#CNN%E4%B8%BA%E4%BB%80%E4%B9%88work%EF%BC%9F"><span class="nav-number">4.1.</span> <span class="nav-text">CNN为什么work？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%91%E5%B1%95"><span class="nav-number">5.</span> <span class="nav-text">发展</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E5%8D%B7%E7%A7%AF"><span class="nav-number">6.</span> <span class="nav-text">简单卷积</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8D%B7%E7%A7%AF%E7%9A%84%E5%8F%98%E5%BD%A2"><span class="nav-number">7.</span> <span class="nav-text">卷积的变形</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E6%8B%86%E5%88%86-%E5%88%86%E7%BB%84%E7%9A%84-split-group"><span class="nav-number">7.1.</span> <span class="nav-text">基于拆分&#x2F;分组的 split&#x2F;group</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#group-conv"><span class="nav-number">7.2.</span> <span class="nav-text">group conv</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E4%BA%8Egroup%E4%B9%8B%E9%97%B4%E6%98%AF%E5%90%A6%E5%85%B1%E4%BA%AB%E5%8D%B7%E7%A7%AF%E6%A0%B8%EF%BC%9F%E4%BB%A5%E5%8F%8A%E5%BD%B1%E5%93%8D%EF%BC%9F"><span class="nav-number">7.2.1.</span> <span class="nav-text">关于group之间是否共享卷积核？以及影响？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E4%BE%8B"><span class="nav-number">7.2.2.</span> <span class="nav-text">实例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%B0%8F-%E5%8D%B7%E7%A7%AF%E6%A0%B8"><span class="nav-number">7.3.</span> <span class="nav-text">最小 卷积核</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-times-1-%E5%8D%B7%E7%A7%AF-%E4%BA%8C%E7%BB%B4%E5%8D%B7%E7%A7%AF"><span class="nav-number">7.3.1.</span> <span class="nav-text">$1 \times 1$ 卷积 (二维卷积)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%A4%A7%E5%8D%B7%E7%A7%AF%E6%A0%B8-%E5%85%A8%E5%8D%B7%E7%A7%AF"><span class="nav-number">7.4.</span> <span class="nav-text">最大卷积核 - 全卷积</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Transposed-Convolutions"><span class="nav-number">7.5.</span> <span class="nav-text">Transposed Convolutions</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%88%86%E8%A7%A3"><span class="nav-number">8.</span> <span class="nav-text">分解</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#rank-2-%E6%B7%B1%E5%BA%A6%E5%8F%AF%E5%88%86%E7%A6%BB%E5%8D%B7%E7%A7%AF"><span class="nav-number">8.1.</span> <span class="nav-text">rank&#x3D;2 深度可分离卷积</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#rank-1-Flatterned-Convolution"><span class="nav-number">8.1.1.</span> <span class="nav-text">rank 1 - Flatterned Convolution</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dilated-Convolutions"><span class="nav-number">8.2.</span> <span class="nav-text">Dilated Convolutions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gated-Convolution"><span class="nav-number">8.3.</span> <span class="nav-text">Gated Convolution</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E9%87%8F%E3%80%81%E5%A4%8D%E6%9D%82%E5%BA%A6%E6%B1%87%E6%80%BB"><span class="nav-number">9.</span> <span class="nav-text">计算量、复杂度汇总</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%89%A9%E5%B1%95%E9%98%85%E8%AF%BB"><span class="nav-number">10.</span> <span class="nav-text">扩展阅读</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : '7203e497',
+      //id          : '483e099d343d63d521e1ece9aae33745',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

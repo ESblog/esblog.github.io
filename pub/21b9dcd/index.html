@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Python 字典Dictionary object implementation using a hash table ，通过描述可知，python 的字典就是实现了一个 hash 表。 Python 字典概述在 python 的字典中，一个键值对的对应保存就是 PyDictEntry 类型来保存； 源文件：Include&#x2F;dict-common.h">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python Dict对象源码">
+<meta property="og:url" content="https://blog.eson.org/pub/21b9dcd/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="Python 字典Dictionary object implementation using a hash table ，通过描述可知，python 的字典就是实现了一个 hash 表。 Python 字典概述在 python 的字典中，一个键值对的对应保存就是 PyDictEntry 类型来保存； 源文件：Include&#x2F;dict-common.h">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.eson.org/pub/21b9dcd/dict-mem.png">
+<meta property="article:published_time" content="2019-03-03T11:32:00.000Z">
+<meta property="article:modified_time" content="2021-06-21T09:29:11.033Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="机器学习, 计算机视觉, 深度学习, 自然语言处理, ESON">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.eson.org/pub/21b9dcd/dict-mem.png">
+
+<link rel="canonical" href="https://blog.eson.org/pub/21b9dcd/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Python Dict对象源码 | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/21b9dcd/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Python Dict对象源码
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-03-03 19:32:00" itemprop="dateCreated datePublished" datetime="2019-03-03T19:32:00+08:00">2019-03-03</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/" itemprop="url" rel="index"><span itemprop="name">programing</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/lan/" itemprop="url" rel="index"><span itemprop="name">lan</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/lan/python/" itemprop="url" rel="index"><span itemprop="name">python</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/lan/python/cpython%E6%BA%90%E7%A0%81/" itemprop="url" rel="index"><span itemprop="name">cpython源码</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/lan/python/cpython%E6%BA%90%E7%A0%81/objects/" itemprop="url" rel="index"><span itemprop="name">objects</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/lan/python/cpython%E6%BA%90%E7%A0%81/objects/dict/" itemprop="url" rel="index"><span itemprop="name">dict</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>18k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>17 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Python-字典"><a href="#Python-字典" class="headerlink" title="Python 字典"></a>Python 字典</h1><p>Dictionary object implementation using a hash table ，通过描述可知，python 的字典就是实现了一个 hash 表。</p>
+<h2 id="Python-字典概述"><a href="#Python-字典概述" class="headerlink" title="Python 字典概述"></a>Python 字典概述</h2><p>在 python 的字典中，一个键值对的对应保存就是 PyDictEntry 类型来保存；</p>
+<p><code>源文件：</code><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3B5dGhvbi9jcHl0aG9uL2Jsb2IvdjMuNy4wL09iamVjdHMvZGljdC1jb21tb24uaCNMMQ==">Include/dict-common.h<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Objects/dict-common.h</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    <span class="comment">/* Cached hash code of me_key. */</span></span><br><span class="line">    Py_hash_t me_hash;</span><br><span class="line">    PyObject *me_key;</span><br><span class="line">    PyObject *me_value; <span class="comment">/* This field is only meaningful for combined tables */</span></span><br><span class="line">&#125; PyDictKeyEntry;　</span><br></pre></td></tr></table></figure>
+
+
+
+<p>其中，me_hash 就是哈希生成的值，me_key 就是对应的 key 值，me_value 就是对应的值。<br>在 python 中，在一个 PyDictObject 对象的变化过程中，entry 的状态会在不同的状态间转换。基本上在如下四种状态中转换：Unused、Active、Dummy 和 Pending。</p>
+<ol>
+<li>Unused:没有插入任何一个获取的 key 与 value，并且在此之前也没有存储任何的 key,value，每一个 entry 在初始化的时候都会处于这种状态，并且 Unused 会被里面切换到 Active 态，当有 key 插入，这就是 entry 初始化的状态。</li>
+<li>Active:当 index&gt;=0 时，me_key 不为空并且 me_value 不为空，保存了一个键值对，Active 可以转变为 Dummy 或者 Pending 状态，当一个键被删除的时候，这只会在 me_value 不为空的时候出现。</li>
+<li>Dummy:先前保存了一个 Active 的键值对，但是这个键值对被删除了并且一个活跃的键值对还没有填入该位置，Dummy 可以转变为 Active 当删除的时候，Dummy 的位置不能被重新使用，一旦发生碰撞，探针序列就无法知道这对键值对曾是活跃的键值对。</li>
+<li>Pending:索引&gt;=0，键!=空，值=空（仅拆分），尚未插入到拆分表中。</li>
+</ol>
+<h2 id="字典的两种类型"><a href="#字典的两种类型" class="headerlink" title="字典的两种类型"></a>字典的两种类型</h2><p>python 的字典类型中包含了两种，分离字典（split-table dictionaries)与联合字典(combined-table dictonaries)。详细的信息可查看有关 dict 的描述<span class="exturl" data-url="aHR0cHM6Ly93d3cucHl0aG9uLm9yZy9kZXYvcGVwcy9wZXAtMDQxMi8=">pep-0412<i class="fa fa-external-link-alt"></i></span>。</p>
+<h3 id="split-table-dictionaries"><a href="#split-table-dictionaries" class="headerlink" title="split-table dictionaries"></a>split-table dictionaries</h3><p>当被创建的字典是用来保存 object 的<code>__dict__</code>属性时，该字典才会创建为一个 split-table，它们的键表都被缓存在类型属性中，并且允许所有该类型的实例都可以共享该 keys。当出现一个事件将字典的属性值进行改变的时候，个别字典将慢慢的转化成组合表的形式。这就保证了在大部分的应用场景下很高的内存利用效率，并保证了在各个场景下的正确性。当 split-dict 重新改变大小，它会立马改变为一个 combined-table，如果重置大小作为保存实例属性的结果，并且只有一个该 object 的实例，字典会立马再变为一个 split-table。如果从 split-table 中删除一个 key, value，它不会删除 keys tables 中对应的该值，而只是将 values 数值中移除了该 value。</p>
+<h3 id="combined-table-dictionaries"><a href="#combined-table-dictionaries" class="headerlink" title="combined-table dictionaries"></a>combined-table dictionaries</h3><p>直接通过 dict 內建函数与{}生成的字典，模块和大部分其他字典都会创建为 combined-table 字典，一个 combined-table 不会改变为一个 split-table 字典，该字典的行为方式与最初的字典的行为方式大致相同。</p>
+<h2 id="容器的相关数据结构"><a href="#容器的相关数据结构" class="headerlink" title="容器的相关数据结构"></a>容器的相关数据结构</h2><p>字典对象是通过 PyDictObject 来实现数据的，详情如下；</p>
+<p><code>源文件：</code><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3B5dGhvbi9jcHl0aG9uL2Jsb2IvdjMuNy4wL0luY2x1ZGUvZGljdG9iamVjdC5oI0wxNw==">Include/dictobject.h<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Include/dictobject.h</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">dictkeysobject</span> <span class="title">PyDictKeysObject</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* The ma_values pointer is NULL for a combined table</span></span><br><span class="line"><span class="comment"> * or points to an array of PyObject* for a split table</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    PyObject_HEAD</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Number of items in the dictionary */</span></span><br><span class="line">    Py_ssize_t ma_used;　				<span class="comment">// 使用的keys个数</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Dictionary version: globally unique, value change each time</span></span><br><span class="line"><span class="comment">       the dictionary is modified */</span></span><br><span class="line">    <span class="keyword">uint64_t</span> ma_version_tag;</span><br><span class="line"></span><br><span class="line">    PyDictKeysObject *ma_keys;　　　　　<span class="comment">// 如果有则是保存的keys数据</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* If ma_values is NULL, the table is &quot;combined&quot;: keys and values</span></span><br><span class="line"><span class="comment">       are stored in ma_keys.</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">       If ma_values is not NULL, the table is splitted:</span></span><br><span class="line"><span class="comment">       keys are stored in ma_keys and values are stored in ma_values */</span></span><br><span class="line">    PyObject **ma_values;　			 <span class="comment">// 如果不为空则保存的是values</span></span><br><span class="line">&#125; PyDictObject;</span><br></pre></td></tr></table></figure>
+
+<p>其中，PyDictKeysObject 的定义如下；</p>
+<p><code>源文件：</code><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3B5dGhvbi9jcHl0aG9uL2Jsb2IvdjMuNy4wL09iamVjdHMvZGljdC1jb21tb24uaCNMMjA=">Include/dict-common.h<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Objects/dict-common.h</span></span><br><span class="line"><span class="comment">/* See dictobject.c for actual layout of DictKeysObject */</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">dictkeysobject</span> &#123;</span></span><br><span class="line">    Py_ssize_t dk_refcnt;　　　　　　　　　　　　　　　　　　<span class="comment">// 引用计数</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Size of the hash table (dk_indices). It must be a power of 2. */</span></span><br><span class="line">    Py_ssize_t dk_size;　　　　　　　　　　　　　　　　　　　<span class="comment">// hash table 的大小必须是２的倍数</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Function to lookup in the hash table (dk_indices):</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">       - lookdict(): general-purpose, and may return DKIX_ERROR if (and</span></span><br><span class="line"><span class="comment">         only if) a comparison raises an exception.</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">       - lookdict_unicode(): specialized to Unicode string keys, comparison of</span></span><br><span class="line"><span class="comment">         which can never raise an exception; that function can never return</span></span><br><span class="line"><span class="comment">         DKIX_ERROR.</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">       - lookdict_unicode_nodummy(): similar to lookdict_unicode() but further</span></span><br><span class="line"><span class="comment">         specialized for Unicode string keys that cannot be the &lt;dummy&gt; value.</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">       - lookdict_split(): Version of lookdict() for split tables. */</span></span><br><span class="line">    dict_lookup_func dk_lookup;                       <span class="comment">// 哈希查找函数</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Number of usable entries in dk_entries. */</span></span><br><span class="line">    Py_ssize_t dk_usable;                             <span class="comment">// 可用的entry数量</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Number of used entries in dk_entries. */</span>　</span><br><span class="line">    Py_ssize_t dk_nentries;　　　　　　　　　            <span class="comment">// 已经使用的entry数量</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Actual hash table of dk_size entries. It holds indices in dk_entries,</span></span><br><span class="line"><span class="comment">       or DKIX_EMPTY(-1) or DKIX_DUMMY(-2).</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">       Indices must be: 0 &lt;= indice &lt; USABLE_FRACTION(dk_size).</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">       The size in bytes of an indice depends on dk_size:</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">       - 1 byte if dk_size &lt;= 0xff (char*)</span></span><br><span class="line"><span class="comment">       - 2 bytes if dk_size &lt;= 0xffff (int16_t*)</span></span><br><span class="line"><span class="comment">       - 4 bytes if dk_size &lt;= 0xffffffff (int32_t*)</span></span><br><span class="line"><span class="comment">       - 8 bytes otherwise (int64_t*)</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">       Dynamically sized, SIZEOF_VOID_P is minimum. */</span></span><br><span class="line">    <span class="keyword">char</span> dk_indices[];  <span class="comment">/* char is required to avoid strict aliasing. */</span>　　　<span class="comment">// 存入的entries</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* &quot;PyDictKeyEntry dk_entries[dk_usable];&quot; array follows:</span></span><br><span class="line"><span class="comment">       see the DK_ENTRIES() macro */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>相关数据结构的内存布局为；<br><img src="dict-mem.png" alt="python_dict_mem"></p>
+<h2 id="Python-字典示例"><a href="#Python-字典示例" class="headerlink" title="Python 字典示例"></a>Python 字典示例</h2><p>本次示例脚本如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">d = &#123;&#125;</span><br><span class="line">d[<span class="string">&#x27;1&#x27;</span>]=<span class="string">&#x27;2&#x27;</span></span><br><span class="line">d[<span class="string">&#x27;1&#x27;</span>]=<span class="string">&#x27;e&#x27;</span></span><br><span class="line">d.pop(<span class="string">&#x27;1&#x27;</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>通过 Python 的反汇编工具获取字节码；</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -m dis dict_test.py</span><br></pre></td></tr></table></figure>
+
+<p>输出的字节码如下；</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">2           0 BUILD_MAP                0</span><br><span class="line">            2 STORE_NAME               0 (d)</span><br><span class="line"></span><br><span class="line">3           4 LOAD_CONST               0 (&#x27;2&#x27;)</span><br><span class="line">            6 LOAD_NAME                0 (d)</span><br><span class="line">            8 LOAD_CONST               1 (&#x27;1&#x27;)</span><br><span class="line">           10 STORE_SUBSCR</span><br><span class="line"></span><br><span class="line">4          12 LOAD_CONST               2 (&#x27;e&#x27;)</span><br><span class="line">           14 LOAD_NAME                0 (d)</span><br><span class="line">           16 LOAD_CONST               1 (&#x27;1&#x27;)</span><br><span class="line">           18 STORE_SUBSCR</span><br><span class="line"></span><br><span class="line">5          20 LOAD_NAME                0 (d)</span><br><span class="line">           22 LOAD_METHOD              1 (pop)</span><br><span class="line">           24 LOAD_CONST               1 (&#x27;1&#x27;)</span><br><span class="line">           26 CALL_METHOD              1</span><br><span class="line">           28 POP_TOP</span><br><span class="line">           30 LOAD_CONST               3 (None)</span><br><span class="line">           32 RETURN_VALUE</span><br></pre></td></tr></table></figure>
+
+<p>通过字节码指令可知，首先调用了 BUILD_MAP 来创建一个新的字典，接着就对新建的字典 d 进行了赋值操作与更新操作，最后调用了 pop 方法删除一个 key。接下来就详细分析一下相关流程。</p>
+<h2 id="字典的初始化流程"><a href="#字典的初始化流程" class="headerlink" title="字典的初始化流程"></a>字典的初始化流程</h2><p>通过查找 BUILD_MAP 的虚拟机执行函数；</p>
+<p><code>源文件：</code><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3B5dGhvbi9jcHl0aG9uL2Jsb2IvdjMuNy4wL1B5dGhvbi9jZXZhbC5jI0wyMzU3">Python/ceval.c<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Python/ceval.c</span></span><br><span class="line"><span class="keyword">switch</span> (opcode) &#123;</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    TARGET(BUILD_MAP) &#123;</span><br><span class="line">        Py_ssize_t i;</span><br><span class="line">        PyObject *<span class="built_in">map</span> = _PyDict_NewPresized((Py_ssize_t)oparg);    <span class="comment">// 新建并初始化一个字典</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">map</span> == <span class="literal">NULL</span>)</span><br><span class="line">            <span class="keyword">goto</span> error;　                                          <span class="comment">// 如果新建失败则报错</span></span><br><span class="line">        <span class="keyword">for</span> (i = oparg; i &gt; <span class="number">0</span>; i--) &#123;　                          　<span class="comment">// 检查在新建的过程中是否通过参数传值</span></span><br><span class="line">            <span class="keyword">int</span> err;</span><br><span class="line">            PyObject *key = PEEK(<span class="number">2</span>*i);</span><br><span class="line">            PyObject *value = PEEK(<span class="number">2</span>*i - <span class="number">1</span>);</span><br><span class="line">            err = PyDict_SetItem(<span class="built_in">map</span>, key, value);　　        　　　<span class="comment">// 找到对应的值并讲该值设置到map中</span></span><br><span class="line">            <span class="keyword">if</span> (err != <span class="number">0</span>) &#123;　　　　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 检查是否报错</span></span><br><span class="line">                Py_DECREF(<span class="built_in">map</span>);</span><br><span class="line">                <span class="keyword">goto</span> error;　　　　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 如果错误就报错处理</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (oparg--) &#123;</span><br><span class="line">            Py_DECREF(POP());　　　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 弹出栈上输入参数的引用</span></span><br><span class="line">            Py_DECREF(POP());</span><br><span class="line">        &#125;</span><br><span class="line">        PUSH(<span class="built_in">map</span>);　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 讲生成的map压栈</span></span><br><span class="line">        DISPATCH();　　　　　　　　　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 检查是否需要执行下一条字节码指令</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从该函数的执行可知，初始化的函数是从_PyDict_NewPresized 开始，该函数就是生成并初始化一个字典；</p>
+<p><code>源文件：</code><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3B5dGhvbi9jcHl0aG9uL2Jsb2IvdjMuNy4wL09iamVjdHMvZGljdG9iamVjdC5jI0wxMjQw">Objects/dictobject.c<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Objects/dictobject.c</span></span><br><span class="line"></span><br><span class="line">PyObject *</span><br><span class="line">_PyDict_NewPresized(Py_ssize_t minused)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">const</span> Py_ssize_t max_presize = <span class="number">128</span> * <span class="number">1024</span>;　         <span class="comment">// 字典最大的容量</span></span><br><span class="line">    Py_ssize_t newsize;</span><br><span class="line">    PyDictKeysObject *new_keys;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* There are no strict guarantee that returned dict can contain minused</span></span><br><span class="line"><span class="comment">     * items without resize.  So we create medium size dict instead of very</span></span><br><span class="line"><span class="comment">     * large dict or MemoryError.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (minused &gt; USABLE_FRACTION(max_presize)) &#123;       <span class="comment">// 检查传入的数量是否超过最大值</span></span><br><span class="line">        newsize = max_presize;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        Py_ssize_t minsize = ESTIMATE_SIZE(minused);    <span class="comment">// 获取最小的值,在新建一个空的字典的时候该值为０</span></span><br><span class="line">        newsize = PyDict_MINSIZE;                       <span class="comment">// 设置字典的最小值　为８</span></span><br><span class="line">        <span class="keyword">while</span> (newsize &lt; minsize) &#123;                     <span class="comment">// 如果传入的值大于最小值则调整newsize 大小</span></span><br><span class="line">            newsize &lt;&lt;= <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    assert(IS_POWER_OF_2(newsize));</span><br><span class="line"></span><br><span class="line">    new_keys = new_keys_object(newsize);                <span class="comment">// 生成并初始化一个PyDictKeysObject对象</span></span><br><span class="line">    <span class="keyword">if</span> (new_keys == <span class="literal">NULL</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">return</span> new_dict(new_keys, <span class="literal">NULL</span>);                    <span class="comment">// 生成一个新的对象并返回</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先，先计算出需要生成的字典的大小，然后再初始化一个 PyDictKeysObject，最后就生成一个 PyDictObject 返回。继续查看 new_keys_object 的执行流程；</p>
+<p><code>源文件：</code><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3B5dGhvbi9jcHl0aG9uL2Jsb2IvdjMuNy4wL09iamVjdHMvZGljdG9iamVjdC5jI0w1MDM=">Objects/dictobject.c<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Objects/dictobject.c</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> PyDictKeysObject *<span class="title">new_keys_object</span><span class="params">(Py_ssize_t size)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PyDictKeysObject *dk;</span><br><span class="line">    Py_ssize_t es, usable;</span><br><span class="line"></span><br><span class="line">    assert(size &gt;= PyDict_MINSIZE);           <span class="comment">// 检查size是否大于最小size</span></span><br><span class="line">    assert(IS_POWER_OF_2(size));              <span class="comment">// 检查是否是２的倍数</span></span><br><span class="line"></span><br><span class="line">    usable = USABLE_FRACTION(size);           <span class="comment">// 检查是否可用　　根据经验在１/2和２/3之间效果最好</span></span><br><span class="line">    <span class="keyword">if</span> (size &lt;= <span class="number">0xff</span>) &#123;</span><br><span class="line">        es = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (size &lt;= <span class="number">0xffff</span>) &#123;</span><br><span class="line">        es = <span class="number">2</span>;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> SIZEOF_VOID_P &gt; 4</span></span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (size &lt;= <span class="number">0xffffffff</span>) &#123;</span><br><span class="line">        es = <span class="number">4</span>;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        es = <span class="keyword">sizeof</span>(Py_ssize_t);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (size == PyDict_MINSIZE &amp;&amp; numfreekeys &gt; <span class="number">0</span>) &#123;　　　　　　<span class="comment">// 是否有缓存，如果有缓存就选择缓存中的dk</span></span><br><span class="line">        dk = keys_free_list[--numfreekeys];</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        dk = PyObject_MALLOC(<span class="keyword">sizeof</span>(PyDictKeysObject)</span><br><span class="line">                             + es * size</span><br><span class="line">                             + <span class="keyword">sizeof</span>(PyDictKeyEntry) * usable);    <span class="comment">// 没有缓存可使用的字典则申请内存生成一个</span></span><br><span class="line">        <span class="keyword">if</span> (dk == <span class="literal">NULL</span>) &#123;</span><br><span class="line">            PyErr_NoMemory();</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    DK_DEBUG_INCREF dk-&gt;dk_refcnt = <span class="number">1</span>;                              <span class="comment">// 设置引用计数</span></span><br><span class="line">    dk-&gt;dk_size = size;                                             <span class="comment">// 设置大小</span></span><br><span class="line">    dk-&gt;dk_usable = usable;                                        <span class="comment">// 设置是否可用</span></span><br><span class="line">    dk-&gt;dk_lookup = lookdict_unicode_nodummy;                       <span class="comment">// 设置查找函数</span></span><br><span class="line">    dk-&gt;dk_nentries = <span class="number">0</span>;</span><br><span class="line">    <span class="built_in">memset</span>(&amp;dk-&gt;dk_indices[<span class="number">0</span>], <span class="number">0xff</span>, es * size);                    <span class="comment">// 将申请的内存置空</span></span><br><span class="line">    <span class="built_in">memset</span>(DK_ENTRIES(dk), <span class="number">0</span>, <span class="keyword">sizeof</span>(PyDictKeyEntry) * usable);</span><br><span class="line">    <span class="keyword">return</span> dk;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>主要就是通过传入的 size，检查是否超过设置的大小，检查是否有缓存的字典数据可用，如果没有则申请内存重新生成一个 dk，最后进行申请到的内存讲内容清空。接着就会进行 new_dict 初始化数据；</p>
+<p><code>源文件：</code><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3B5dGhvbi9jcHl0aG9uL2Jsb2IvdjMuNy4wL09iamVjdHMvZGljdG9iamVjdC5jI0w1Njg=">Objects/dictobject.c<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Objects/dictobject.c</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* Consumes a reference to the keys object */</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> PyObject *</span></span><br><span class="line"><span class="function"><span class="title">new_dict</span><span class="params">(PyDictKeysObject *keys, PyObject **values)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PyDictObject *mp;</span><br><span class="line">    assert(keys != <span class="literal">NULL</span>);</span><br><span class="line">    <span class="keyword">if</span> (numfree) &#123;　　　　　　　　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 判断缓冲池是否有</span></span><br><span class="line">        mp = free_list[--numfree];</span><br><span class="line">        assert (mp != <span class="literal">NULL</span>);</span><br><span class="line">        assert (Py_TYPE(mp) == &amp;PyDict_Type);　</span><br><span class="line">        _Py_NewReference((PyObject *)mp);　　　　　　　　　　　　　　<span class="comment">// 使用缓冲池对象　　　　</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        mp = PyObject_GC_New(PyDictObject, &amp;PyDict_Type);　　　　<span class="comment">// 缓冲池没有则申请新的对象并初始化</span></span><br><span class="line">        <span class="keyword">if</span> (mp == <span class="literal">NULL</span>) &#123;</span><br><span class="line">            DK_DECREF(keys);</span><br><span class="line">            free_values(values);</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    mp-&gt;ma_keys = keys;</span><br><span class="line">    mp-&gt;ma_values = values;</span><br><span class="line">    mp-&gt;ma_used = <span class="number">0</span>;　　　　　　　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 设置ma_used为0</span></span><br><span class="line">    mp-&gt;ma_version_tag = DICT_NEXT_VERSION();</span><br><span class="line">    assert(_PyDict_CheckConsistency(mp));</span><br><span class="line">    <span class="keyword">return</span> (PyObject *)mp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>new_dict 就是根据 keys，values 设置到从缓冲池或者新生成一个 dict 对象，最后返回。至此，dict 的创建工作已经完成。</p>
+<h2 id="字典的插入与查找"><a href="#字典的插入与查找" class="headerlink" title="字典的插入与查找"></a>字典的插入与查找</h2><p>通过字节码的指令 STORE_SUBSCR 可知，该命令就是讲’1’作为 key, ‘2’作为 value 插入到 d 中，此时查看该执行函数；</p>
+<p><code>源文件：</code><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3B5dGhvbi9jcHl0aG9uL2Jsb2IvdjMuNy4wL1B5dGhvbi9jZXZhbC5jI0wxNTYx">Python/ceval.c<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Python/ceval.c</span></span><br><span class="line"><span class="keyword">switch</span> (opcode) &#123;</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    TARGET(STORE_SUBSCR) &#123;</span><br><span class="line">        PyObject *sub = TOP();                 <span class="comment">// 第一个值为key</span></span><br><span class="line">        PyObject *container = SECOND();        <span class="comment">// 该为字典对象</span></span><br><span class="line">        PyObject *v = THIRD();                 <span class="comment">// 该为value</span></span><br><span class="line">        <span class="keyword">int</span> err;</span><br><span class="line">        STACKADJ(<span class="number">-3</span>);</span><br><span class="line">        <span class="comment">/* container[sub] = v */</span></span><br><span class="line">        err = PyObject_SetItem(container, sub, v);  <span class="comment">// 调用该方法设置值</span></span><br><span class="line">        Py_DECREF(v);</span><br><span class="line">        Py_DECREF(container);</span><br><span class="line">        Py_DECREF(sub);</span><br><span class="line">        <span class="keyword">if</span> (err != <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">goto</span> error;</span><br><span class="line">        DISPATCH();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此时，从栈中取出相关参数，并将这些值传入 PyObject_SetItem 函数进行处理设置值；</p>
+<p><code>源文件：</code><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3B5dGhvbi9jcHl0aG9uL2Jsb2IvdjMuNy4wL09iamVjdHMvYWJzdHJhY3QuYyNMMTg2">Objects/abstract.c<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Objects/abstract.c</span></span><br><span class="line"><span class="function"><span class="keyword">int</span></span></span><br><span class="line"><span class="function"><span class="title">PyObject_SetItem</span><span class="params">(PyObject *o, PyObject *key, PyObject *value)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PyMappingMethods *m;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (o == <span class="literal">NULL</span> || key == <span class="literal">NULL</span> || value == <span class="literal">NULL</span>) &#123;　　　　　　　　　　　<span class="comment">// 检查是否为空如果任一为空则报错</span></span><br><span class="line">        null_error();</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    m = o-&gt;ob_type-&gt;tp_as_mapping;　　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 获取类型的tp_as_mapping方法集　　　　　</span></span><br><span class="line">    <span class="keyword">if</span> (m &amp;&amp; m-&gt;mp_ass_subscript)　　　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 如果有设置该类型</span></span><br><span class="line">        <span class="keyword">return</span> m-&gt;mp_ass_subscript(o, key, value);                    <span class="comment">// 调用该mp_ass_subscript方法</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (o-&gt;ob_type-&gt;tp_as_sequence) &#123;                                 <span class="comment">// 获取作为队列的操作集</span></span><br><span class="line">        <span class="keyword">if</span> (PyIndex_Check(key)) &#123;　　　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 检查key是否是索引</span></span><br><span class="line">            Py_ssize_t key_value;</span><br><span class="line">            key_value = PyNumber_AsSsize_t(key, PyExc_IndexError);　</span><br><span class="line">            <span class="keyword">if</span> (key_value == <span class="number">-1</span> &amp;&amp; PyErr_Occurred())</span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">            <span class="keyword">return</span> PySequence_SetItem(o, key_value, value);　　　　　　　<span class="comment">// 调用索引插入</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (o-&gt;ob_type-&gt;tp_as_sequence-&gt;sq_ass_item) &#123;</span><br><span class="line">            type_error(<span class="string">&quot;sequence index must be &quot;</span></span><br><span class="line">                       <span class="string">&quot;integer, not &#x27;%.200s&#x27;&quot;</span>, key);</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    type_error(<span class="string">&quot;&#x27;%.200s&#x27; object does not support item assignment&quot;</span>, o);　　　<span class="comment">// 则该类型对象不支持设置</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中就调用了字典的 tp_as_mapping 的方法集，并调用了该方法集的 mp_ass_subscript 方法；此时我们分析一下，dict 的 tp_as_mapping 的方法集。此时就调用了 tp_as_mapping 的 mp_ass_subscript 方法，此时就是调用 dict 的 dict_ass_sub 方法；</p>
+<p><code>源文件：</code><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3B5dGhvbi9jcHl0aG9uL2Jsb2IvdjMuNy4wL09iamVjdHMvZGljdG9iamVjdC5jI0wyMDQw">Objects/dictobject.c<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Objects/dictobject.c</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span></span></span><br><span class="line"><span class="function"><span class="title">dict_ass_sub</span><span class="params">(PyDictObject *mp, PyObject *v, PyObject *w)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (w == <span class="literal">NULL</span>)</span><br><span class="line">        <span class="keyword">return</span> PyDict_DelItem((PyObject *)mp, v);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">return</span> PyDict_SetItem((PyObject *)mp, v, w);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可知，删除一个 key 就是 PyDict_DelItem,设置一个 key 就是 PyDict_SetItem；</p>
+<p><code>源文件：</code><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3B5dGhvbi9jcHl0aG9uL2Jsb2IvdjMuNy4wL09iamVjdHMvZGljdG9iamVjdC5jI0wxNDMz">Objects/dictobject.c<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Objects/dictobject.c</span></span><br><span class="line"><span class="function"><span class="keyword">int</span></span></span><br><span class="line"><span class="function"><span class="title">PyDict_SetItem</span><span class="params">(PyObject *op, PyObject *key, PyObject *value)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PyDictObject *mp;</span><br><span class="line">    Py_hash_t hash;</span><br><span class="line">    <span class="keyword">if</span> (!PyDict_Check(op)) &#123;　　　　　　　　　　　 <span class="comment">// 检查是否是字典类型</span></span><br><span class="line">        PyErr_BadInternalCall();</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    assert(key);</span><br><span class="line">    assert(value);</span><br><span class="line">    mp = (PyDictObject *)op;</span><br><span class="line">    <span class="keyword">if</span> (!PyUnicode_CheckExact(key) ||</span><br><span class="line">        (hash = ((PyASCIIObject *) key)-&gt;hash) == <span class="number">-1</span>)　　<span class="comment">// 检查传入的key是否hash为-1</span></span><br><span class="line">    &#123;</span><br><span class="line">        hash = PyObject_Hash(key);                      <span class="comment">// 生成hash调用key对应的tp_hash方法，在本例中传入的是str类型，则调用str类型的tp_hash方法</span></span><br><span class="line">        <span class="keyword">if</span> (hash == <span class="number">-1</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* insertdict() handles any resizing that might be necessary */</span></span><br><span class="line">    <span class="keyword">return</span> insertdict(mp, key, hash, value);          <span class="comment">// 生成hash调用key对应的tp_hash方法</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>insertdict 方法就是将生成的方法，插入到字典中去；</p>
+<p><code>源文件：</code><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3B5dGhvbi9jcHl0aG9uL2Jsb2IvdjMuNy4wL09iamVjdHMvZGljdG9iamVjdC5jI0w5ODc=">Objects/dictobject.c<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Objects/dictobject.c</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span></span></span><br><span class="line"><span class="function"><span class="title">insertdict</span><span class="params">(PyDictObject *mp, PyObject *key, Py_hash_t hash, PyObject *value)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PyObject *old_value;</span><br><span class="line">    PyDictKeyEntry *ep;</span><br><span class="line"></span><br><span class="line">    Py_INCREF(key);</span><br><span class="line">    Py_INCREF(value);</span><br><span class="line">    <span class="keyword">if</span> (mp-&gt;ma_values != <span class="literal">NULL</span> &amp;&amp; !PyUnicode_CheckExact(key)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (insertion_resize(mp) &lt; <span class="number">0</span>)                     <span class="comment">// 重新设置mp的大小  如果ma_values有值</span></span><br><span class="line">            <span class="keyword">goto</span> Fail;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Py_ssize_t ix = mp-&gt;ma_keys-&gt;dk_lookup(mp, key, hash, &amp;old_value);　　　　 <span class="comment">// 调用查找方法</span></span><br><span class="line">    <span class="keyword">if</span> (ix == DKIX_ERROR)</span><br><span class="line">        <span class="keyword">goto</span> Fail;</span><br><span class="line"></span><br><span class="line">    assert(PyUnicode_CheckExact(key) || mp-&gt;ma_keys-&gt;dk_lookup == lookdict);</span><br><span class="line">    MAINTAIN_TRACKING(mp, key, value);                                        <span class="comment">// 检查mp key values是否需要加入垃圾回收</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* When insertion order is different from shared key, we can&#x27;t share</span></span><br><span class="line"><span class="comment">     * the key anymore.  Convert this instance to combine table.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (_PyDict_HasSplitTable(mp) &amp;&amp;</span><br><span class="line">        ((ix &gt;= <span class="number">0</span> &amp;&amp; old_value == <span class="literal">NULL</span> &amp;&amp; mp-&gt;ma_used != ix) ||</span><br><span class="line">         (ix == DKIX_EMPTY &amp;&amp; mp-&gt;ma_used != mp-&gt;ma_keys-&gt;dk_nentries))) &#123;　　<span class="comment">// 检查是否是分离表，如果没查找到旧值并且</span></span><br><span class="line">        <span class="keyword">if</span> (insertion_resize(mp) &lt; <span class="number">0</span>)　　　　　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 重新设置该字典大小</span></span><br><span class="line">            <span class="keyword">goto</span> Fail;</span><br><span class="line">        ix = DKIX_EMPTY;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (ix == DKIX_EMPTY) &#123;</span><br><span class="line">        <span class="comment">/* Insert into new slot. */</span></span><br><span class="line">        assert(old_value == <span class="literal">NULL</span>);</span><br><span class="line">        <span class="keyword">if</span> (mp-&gt;ma_keys-&gt;dk_usable &lt;= <span class="number">0</span>) &#123;　　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 如果可用的值小于０</span></span><br><span class="line">            <span class="comment">/* Need to resize. */</span></span><br><span class="line">            <span class="keyword">if</span> (insertion_resize(mp) &lt; <span class="number">0</span>)　　　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 需要重新扩展字典大小</span></span><br><span class="line">                <span class="keyword">goto</span> Fail;</span><br><span class="line">        &#125;</span><br><span class="line">        Py_ssize_t hashpos = find_empty_slot(mp-&gt;ma_keys, hash);　　　　　　　　　<span class="comment">// 查找一个可用的hash位置</span></span><br><span class="line">        ep = &amp;DK_ENTRIES(mp-&gt;ma_keys)[mp-&gt;ma_keys-&gt;dk_nentries];　　　　　　　　　<span class="comment">// 获取存取的地址</span></span><br><span class="line">        dk_set_index(mp-&gt;ma_keys, hashpos, mp-&gt;ma_keys-&gt;dk_nentries);　　　　　　<span class="comment">// 设置该值</span></span><br><span class="line">        ep-&gt;me_key = key;　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 保存key</span></span><br><span class="line">        ep-&gt;me_hash = hash;                                                   <span class="comment">// 保存计算得出的hash值</span></span><br><span class="line">        <span class="keyword">if</span> (mp-&gt;ma_values) &#123;　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 如果mp的ma_values有值</span></span><br><span class="line">            assert (mp-&gt;ma_values[mp-&gt;ma_keys-&gt;dk_nentries] == <span class="literal">NULL</span>);</span><br><span class="line">            mp-&gt;ma_values[mp-&gt;ma_keys-&gt;dk_nentries] = value;　　　　　　　　　　　<span class="comment">// 设置该key对应的value</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            ep-&gt;me_value = value;                                             <span class="comment">// 直接讲value设置到entry上面</span></span><br><span class="line">        &#125;</span><br><span class="line">        mp-&gt;ma_used++;　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　 <span class="comment">// 使用个数加１</span></span><br><span class="line">        mp-&gt;ma_version_tag = DICT_NEXT_VERSION();　　</span><br><span class="line">        mp-&gt;ma_keys-&gt;dk_usable--;　　　　　　　　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 可用减１</span></span><br><span class="line">        mp-&gt;ma_keys-&gt;dk_nentries++;</span><br><span class="line">        assert(mp-&gt;ma_keys-&gt;dk_usable &gt;= <span class="number">0</span>);</span><br><span class="line">        assert(_PyDict_CheckConsistency(mp));</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (_PyDict_HasSplitTable(mp)) &#123;                                         <span class="comment">// 如果是分离的</span></span><br><span class="line">        mp-&gt;ma_values[ix] = value;                                           <span class="comment">// 直接设置ma_values对应的ix到values中</span></span><br><span class="line">        <span class="keyword">if</span> (old_value == <span class="literal">NULL</span>) &#123;</span><br><span class="line">            <span class="comment">/* pending state */</span></span><br><span class="line">            assert(ix == mp-&gt;ma_used);</span><br><span class="line">            mp-&gt;ma_used++;　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 使用加１</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        assert(old_value != <span class="literal">NULL</span>);</span><br><span class="line">        DK_ENTRIES(mp-&gt;ma_keys)[ix].me_value = value;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    mp-&gt;ma_version_tag = DICT_NEXT_VERSION();</span><br><span class="line">    Py_XDECREF(old_value); <span class="comment">/* which **CAN** re-enter (see issue #22653) */</span></span><br><span class="line">    assert(_PyDict_CheckConsistency(mp));</span><br><span class="line">    Py_DECREF(key);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">Fail:</span><br><span class="line">    Py_DECREF(value);</span><br><span class="line">    Py_DECREF(key);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先会调用相关的查找方法，去查找待搜索的值是否已经存在字典中，如果当前字典数据已经满了则会按照增长大小的函数生成一个新的字典，并把旧数据设置到新的字典中，当找到的字典匹配时则返回。</p>
+<p>其中 dk_lookup 对应的方法，在初始化之后对应的是 lookdict_unicode_nodummy；</p>
+<p><code>源文件：</code><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3B5dGhvbi9jcHl0aG9uL2Jsb2IvdjMuNy4wL09iamVjdHMvZGljdG9iamVjdC5jI0w4MTM=">Objects/dictobject.c<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Objects/dictobject.c</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* Faster version of lookdict_unicode when it is known that no &lt;dummy&gt; keys</span></span><br><span class="line"><span class="comment"> * will be present. */</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> Py_ssize_t _Py_HOT_FUNCTION</span></span><br><span class="line"><span class="function"><span class="title">lookdict_unicode_nodummy</span><span class="params">(PyDictObject *mp, PyObject *key,</span></span></span><br><span class="line"><span class="params"><span class="function">                         Py_hash_t hash, PyObject **value_addr)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    assert(mp-&gt;ma_values == <span class="literal">NULL</span>);</span><br><span class="line">    <span class="comment">/* Make sure this function doesn&#x27;t have to handle non-unicode keys,</span></span><br><span class="line"><span class="comment">       including subclasses of str; e.g., one reason to subclass</span></span><br><span class="line"><span class="comment">       unicodes is to override __eq__, and for speed we don&#x27;t cater to</span></span><br><span class="line"><span class="comment">       that here. */</span></span><br><span class="line">    <span class="keyword">if</span> (!PyUnicode_CheckExact(key)) &#123;　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 检查如果不是ｕｎicode则直接调用lookdict方法查找</span></span><br><span class="line">        mp-&gt;ma_keys-&gt;dk_lookup = lookdict;</span><br><span class="line">        <span class="keyword">return</span> lookdict(mp, key, hash, value_addr);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    PyDictKeyEntry *ep0 = DK_ENTRIES(mp-&gt;ma_keys);　　　　　　　　　　　　　<span class="comment">// 获取keys的首个元素地址</span></span><br><span class="line">    <span class="keyword">size_t</span> mask = DK_MASK(mp-&gt;ma_keys);　　　　　　　　　　　　　　　　　　　　<span class="comment">// 获取大小</span></span><br><span class="line">    <span class="keyword">size_t</span> perturb = (<span class="keyword">size_t</span>)hash;</span><br><span class="line">    <span class="keyword">size_t</span> i = (<span class="keyword">size_t</span>)hash &amp; mask;　　　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 获取生成的最终的值　　　　　　　　　　　　　　　　　</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">        Py_ssize_t ix = dk_get_index(mp-&gt;ma_keys, i);                <span class="comment">// 便利ma_keys　ｋey列表</span></span><br><span class="line">        assert (ix != DKIX_DUMMY);　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 判断不能为空</span></span><br><span class="line">        <span class="keyword">if</span> (ix == DKIX_EMPTY) &#123;                                     <span class="comment">// 如果为空则证明找到一个可以使用的</span></span><br><span class="line">            *value_addr = <span class="literal">NULL</span>;　　　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 讲key对应的value设置为空</span></span><br><span class="line">            <span class="keyword">return</span> DKIX_EMPTY;　　　　　　　　　　　　　　　　　　　　　　　 <span class="comment">// 返回</span></span><br><span class="line">        &#125;</span><br><span class="line">        PyDictKeyEntry *ep = &amp;ep0[ix];           　　　　　　　　　　　　<span class="comment">// 获取该位置元素值</span></span><br><span class="line">        assert(ep-&gt;me_key != <span class="literal">NULL</span>);</span><br><span class="line">        assert(PyUnicode_CheckExact(ep-&gt;me_key));</span><br><span class="line">        <span class="keyword">if</span> (ep-&gt;me_key == key ||</span><br><span class="line">            (ep-&gt;me_hash == hash &amp;&amp; unicode_eq(ep-&gt;me_key, key))) &#123;　　<span class="comment">// 如果key相同 ｈａｓｈ值也相同</span></span><br><span class="line">            *value_addr = ep-&gt;me_value;　　　　　　　　　　　　　　　　　　　 <span class="comment">// 将该值赋值</span></span><br><span class="line">            <span class="keyword">return</span> ix;</span><br><span class="line">        &#125;</span><br><span class="line">        perturb &gt;&gt;= PERTURB_SHIFT;　　　　　　　　　　　　　　　　　　　　　　<span class="comment">// 偏移</span></span><br><span class="line">        i = mask &amp; (i*<span class="number">5</span> + perturb + <span class="number">1</span>);　　　　　　　　　　　　　　　　　　　<span class="comment">// 获取下一个位置</span></span><br><span class="line">    &#125;</span><br><span class="line">    Py_UNREACHABLE();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该函数的主要工作就是查找，字典中是否有空余的值，或者如果找到了满足 hash 值与 key 相同的就将 value 设置为找到的值（这也是字典查找的核心逻辑）。至此，字典的插入的大致流程已经分析完毕。</p>
+<h2 id="Python-字典的操作测试"><a href="#Python-字典的操作测试" class="headerlink" title="Python 字典的操作测试"></a>Python 字典的操作测试</h2><p>现在我们动手观看一下具体的操作实例，首先声明，该例子仅供调试使用，目前调试的字典的 key 与 value 都是 float 类型并且不能 del 或者 pop 其中的 key。操作字典如下所示；</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ｄ = &#123;<span class="number">20000</span>:<span class="number">2</span>&#125;</span><br><span class="line">d[<span class="number">1</span>] = <span class="number">2</span></span><br><span class="line">d[<span class="number">3</span>] = <span class="number">2</span></span><br></pre></td></tr></table></figure>
+
+<p>首先，讲如下代码插入到 dictobject.c 的 1060 行；</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 测试代码</span></span><br><span class="line">PyObject* key1 = PyLong_FromLong(<span class="number">20000</span>);</span><br><span class="line">Py_hash_t hash1 = PyObject_Hash(key1);</span><br><span class="line">PyObject* old_value1;</span><br><span class="line">Py_ssize_t ix1 = mp-&gt;ma_keys-&gt;dk_lookup(mp, key1, hash1, &amp;old_value1);</span><br><span class="line"><span class="keyword">if</span> (ix1 == <span class="number">0</span>)&#123;</span><br><span class="line">    PyLongObject* give;</span><br><span class="line">    give = (PyLongObject* )key1;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;found value : %ld\n&quot;</span>, give-&gt;ob_digit[<span class="number">0</span>]);</span><br><span class="line">    PyDictKeyEntry *ep01 = DK_ENTRIES(mp-&gt;ma_keys);</span><br><span class="line">    <span class="keyword">int</span> i, count;</span><br><span class="line">    count = mp-&gt;ma_used;</span><br><span class="line">    <span class="keyword">int</span> size_count, j;</span><br><span class="line">    size_count = mp-&gt;ma_keys-&gt;dk_size;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%s &quot;</span>, mp-&gt;ma_keys-&gt;dk_indices);</span><br><span class="line">    <span class="keyword">int8_t</span> *indices = (<span class="keyword">int8_t</span>*)(mp-&gt;ma_keys-&gt;dk_indices);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;indices index values :&quot;</span>);</span><br><span class="line">    <span class="keyword">for</span> (j=<span class="number">0</span>; j&lt;size_count;j++)&#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;%d  &quot;</span>,(<span class="keyword">char</span>) indices[j]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">    <span class="keyword">for</span> (i=<span class="number">0</span>; i&lt;count;i++)&#123;</span><br><span class="line">        give = (PyLongObject* )ep01-&gt;me_key;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;size : %d &quot;</span>, mp-&gt;ma_keys-&gt;dk_size);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;found value while 　key : %ld   &quot;</span>, give-&gt;ob_digit[<span class="number">0</span>]);</span><br><span class="line">        give = (PyLongObject* )ep01-&gt;me_value;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;value  : %ld\n&quot;</span>, give-&gt;ob_digit[<span class="number">0</span>]);</span><br><span class="line">        ep01++;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后编译运行；</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Python <span class="number">3.7</span><span class="number">.3</span> (default, May <span class="number">22</span> <span class="number">2019</span>, <span class="number">16</span>:<span class="number">17</span>:<span class="number">57</span>)</span><br><span class="line">[GCC <span class="number">7.3</span><span class="number">.0</span>] on linux</span><br><span class="line"><span class="type">Type</span> <span class="string">&quot;help&quot;</span>, <span class="string">&quot;copyright&quot;</span>, <span class="string">&quot;credits&quot;</span> <span class="keyword">or</span> <span class="string">&quot;license&quot;</span> <span class="keyword">for</span> more information.</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>d = &#123;<span class="number">20000</span>:<span class="number">2</span>&#125;</span><br><span class="line">found value : <span class="number">20000</span></span><br><span class="line"> indices index values :<span class="number">0</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span></span><br><span class="line">size : <span class="number">8</span> found value <span class="keyword">while</span> 　key : <span class="number">20000</span>   value  : <span class="number">2</span></span><br></pre></td></tr></table></figure>
+
+<p>其中为什么初始化的时候输入 20000，是根据代码找到相关的 key 值，因为字典也被 python 自身实现的结构中引用了多次，所以我们就设置了一个特殊值来跟踪我们想要的字典；当 d 初始化的时候，就输出如上所示内容；我们接下来继续操作；</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>d = &#123;<span class="number">20000</span>:<span class="number">2</span>&#125;</span><br><span class="line">found value : <span class="number">20000</span></span><br><span class="line"> indices index values :<span class="number">0</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span></span><br><span class="line">size : <span class="number">8</span> found value <span class="keyword">while</span> 　key : <span class="number">20000</span>   value  : <span class="number">2</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>d[<span class="number">2</span>] = <span class="number">3</span></span><br><span class="line">found value : <span class="number">20000</span></span><br><span class="line"> indices index values :<span class="number">0</span>  -<span class="number">1</span>  <span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span></span><br><span class="line">size : <span class="number">8</span> found value <span class="keyword">while</span> 　key : <span class="number">20000</span>   value  : <span class="number">2</span></span><br><span class="line">size : <span class="number">8</span> found value <span class="keyword">while</span> 　key : <span class="number">2</span>   value  : <span class="number">3</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>d[<span class="number">3</span>] = <span class="number">4</span></span><br><span class="line">found value : <span class="number">20000</span></span><br><span class="line"> indices index values :<span class="number">0</span>  -<span class="number">1</span>  <span class="number">1</span>  <span class="number">2</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span></span><br><span class="line">size : <span class="number">8</span> found value <span class="keyword">while</span> 　key : <span class="number">20000</span>   value  : <span class="number">2</span></span><br><span class="line">size : <span class="number">8</span> found value <span class="keyword">while</span> 　key : <span class="number">2</span>   value  : <span class="number">3</span></span><br><span class="line">size : <span class="number">8</span> found value <span class="keyword">while</span> 　key : <span class="number">3</span>   value  : <span class="number">4</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>d[<span class="number">5</span>] = <span class="number">6</span></span><br><span class="line">found value : <span class="number">20000</span></span><br><span class="line"> indices index values :<span class="number">0</span>  -<span class="number">1</span>  <span class="number">1</span>  <span class="number">2</span>  -<span class="number">1</span>  <span class="number">3</span>  -<span class="number">1</span>  -<span class="number">1</span></span><br><span class="line">size : <span class="number">8</span> found value <span class="keyword">while</span> 　key : <span class="number">20000</span>   value  : <span class="number">2</span></span><br><span class="line">size : <span class="number">8</span> found value <span class="keyword">while</span> 　key : <span class="number">2</span>   value  : <span class="number">3</span></span><br><span class="line">size : <span class="number">8</span> found value <span class="keyword">while</span> 　key : <span class="number">3</span>   value  : <span class="number">4</span></span><br><span class="line">size : <span class="number">8</span> found value <span class="keyword">while</span> 　key : <span class="number">5</span>   value  : <span class="number">6</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>d[<span class="number">7</span>] = <span class="number">8</span></span><br><span class="line">found value : <span class="number">20000</span></span><br><span class="line"> indices index values :<span class="number">0</span>  -<span class="number">1</span>  <span class="number">1</span>  <span class="number">2</span>  -<span class="number">1</span>  <span class="number">3</span>  -<span class="number">1</span>  <span class="number">4</span></span><br><span class="line">size : <span class="number">8</span> found value <span class="keyword">while</span> 　key : <span class="number">20000</span>   value  : <span class="number">2</span></span><br><span class="line">size : <span class="number">8</span> found value <span class="keyword">while</span> 　key : <span class="number">2</span>   value  : <span class="number">3</span></span><br><span class="line">size : <span class="number">8</span> found value <span class="keyword">while</span> 　key : <span class="number">3</span>   value  : <span class="number">4</span></span><br><span class="line">size : <span class="number">8</span> found value <span class="keyword">while</span> 　key : <span class="number">5</span>   value  : <span class="number">6</span></span><br><span class="line">size : <span class="number">8</span> found value <span class="keyword">while</span> 　key : <span class="number">7</span>   value  : <span class="number">8</span></span><br></pre></td></tr></table></figure>
+
+<p>此后我们一直添加值进 d，从输出信息可知，index 就是记录了 PyDictKeyEntry 的索引值，-1 就表示该处未使用。<br>当我们继续向 d 中添加内容时；</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>d[<span class="number">9</span>] = <span class="number">10</span></span><br><span class="line">found value : <span class="number">20000</span></span><br><span class="line"> indices index values :<span class="number">0</span>  -<span class="number">1</span>  <span class="number">1</span>  <span class="number">2</span>  -<span class="number">1</span>  <span class="number">3</span>  -<span class="number">1</span>  <span class="number">4</span>  -<span class="number">1</span>  <span class="number">5</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span></span><br><span class="line">size : <span class="number">16</span> found value <span class="keyword">while</span> 　key : <span class="number">20000</span>   value  : <span class="number">2</span></span><br><span class="line">size : <span class="number">16</span> found value <span class="keyword">while</span> 　key : <span class="number">2</span>   value  : <span class="number">3</span></span><br><span class="line">size : <span class="number">16</span> found value <span class="keyword">while</span> 　key : <span class="number">3</span>   value  : <span class="number">4</span></span><br><span class="line">size : <span class="number">16</span> found value <span class="keyword">while</span> 　key : <span class="number">5</span>   value  : <span class="number">6</span></span><br><span class="line">size : <span class="number">16</span> found value <span class="keyword">while</span> 　key : <span class="number">7</span>   value  : <span class="number">8</span></span><br><span class="line">size : <span class="number">16</span> found value <span class="keyword">while</span> 　key : <span class="number">9</span>   value  : <span class="number">10</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>d[<span class="number">10</span>] = <span class="number">11</span></span><br><span class="line">found value : <span class="number">20000</span></span><br><span class="line"> indices index values :<span class="number">0</span>  -<span class="number">1</span>  <span class="number">1</span>  <span class="number">2</span>  -<span class="number">1</span>  <span class="number">3</span>  -<span class="number">1</span>  <span class="number">4</span>  -<span class="number">1</span>  <span class="number">5</span>  <span class="number">6</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span>  -<span class="number">1</span></span><br><span class="line">size : <span class="number">16</span> found value <span class="keyword">while</span> 　key : <span class="number">20000</span>   value  : <span class="number">2</span></span><br><span class="line">size : <span class="number">16</span> found value <span class="keyword">while</span> 　key : <span class="number">2</span>   value  : <span class="number">3</span></span><br><span class="line">size : <span class="number">16</span> found value <span class="keyword">while</span> 　key : <span class="number">3</span>   value  : <span class="number">4</span></span><br><span class="line">size : <span class="number">16</span> found value <span class="keyword">while</span> 　key : <span class="number">5</span>   value  : <span class="number">6</span></span><br><span class="line">size : <span class="number">16</span> found value <span class="keyword">while</span> 　key : <span class="number">7</span>   value  : <span class="number">8</span></span><br><span class="line">size : <span class="number">16</span> found value <span class="keyword">while</span> 　key : <span class="number">9</span>   value  : <span class="number">10</span></span><br><span class="line">size : <span class="number">16</span> found value <span class="keyword">while</span> 　key : <span class="number">10</span>   value  : <span class="number">11</span></span><br></pre></td></tr></table></figure>
+
+<p>从输出内容可知，字典的大小随之改变了，这也说明了 python 字典的最佳大小容量限定在 1/2 到 2/3 之间，如果超过这个阈值则字典就会自动扩容，扩容的策略大家可详细查看源码。</p>
+
+    </div>
+
+    
+    
+    
+      
+
+
+      <footer class="post-footer">
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/b6e91a25/" rel="prev" title="Python List 对象">
+      <i class="fa fa-chevron-left"></i> Python List 对象
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/pub/a3ffad4e/" rel="next" title="Python 整数对象">
+      Python 整数对象 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Python-%E5%AD%97%E5%85%B8"><span class="nav-number">1.</span> <span class="nav-text">Python 字典</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Python-%E5%AD%97%E5%85%B8%E6%A6%82%E8%BF%B0"><span class="nav-number">1.1.</span> <span class="nav-text">Python 字典概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%97%E5%85%B8%E7%9A%84%E4%B8%A4%E7%A7%8D%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.2.</span> <span class="nav-text">字典的两种类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#split-table-dictionaries"><span class="nav-number">1.2.1.</span> <span class="nav-text">split-table dictionaries</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#combined-table-dictionaries"><span class="nav-number">1.2.2.</span> <span class="nav-text">combined-table dictionaries</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%B9%E5%99%A8%E7%9A%84%E7%9B%B8%E5%85%B3%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-number">1.3.</span> <span class="nav-text">容器的相关数据结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Python-%E5%AD%97%E5%85%B8%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.4.</span> <span class="nav-text">Python 字典示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%97%E5%85%B8%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96%E6%B5%81%E7%A8%8B"><span class="nav-number">1.5.</span> <span class="nav-text">字典的初始化流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%97%E5%85%B8%E7%9A%84%E6%8F%92%E5%85%A5%E4%B8%8E%E6%9F%A5%E6%89%BE"><span class="nav-number">1.6.</span> <span class="nav-text">字典的插入与查找</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Python-%E5%AD%97%E5%85%B8%E7%9A%84%E6%93%8D%E4%BD%9C%E6%B5%8B%E8%AF%95"><span class="nav-number">1.7.</span> <span class="nav-text">Python 字典的操作测试</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : '21b9dcd',
+      //id          : 'ddf76ebbcd867a4e4496db9bf85bf754',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

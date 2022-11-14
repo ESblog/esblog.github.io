@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="buttion标签1&amp;#123;% btn #, Text %&amp;#125;               Text                         Text">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【Hexo插件系列】 常用tag">
+<meta property="og:url" content="https://blog.eson.org/pub/fc959554/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="buttion标签1&amp;#123;% btn #, Text %&amp;#125;               Text                         Text">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://c1.mifile.cn/f/i/hd/2016051101/a-lj.png">
+<meta property="og:image" content="http://c1.mifile.cn/f/i/hd/2016051101/a-lj.png">
+<meta property="og:image" content="http://c1.mifile.cn/f/i/hd/2016051101/a-lj.png">
+<meta property="og:image" content="http://c1.mifile.cn/f/i/hd/2016051101/a-lj.png">
+<meta property="article:published_time" content="2017-12-31T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-07-03T10:08:50.969Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="机器学习, 计算机视觉, 深度学习, 自然语言处理, ESON">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://c1.mifile.cn/f/i/hd/2016051101/a-lj.png">
+
+<link rel="canonical" href="https://blog.eson.org/pub/fc959554/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>【Hexo插件系列】 常用tag | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/fc959554/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【Hexo插件系列】 常用tag
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-01-01 00:00:00" itemprop="dateCreated datePublished" datetime="2018-01-01T00:00:00+08:00">2018-01-01</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/demo/" itemprop="url" rel="index"><span itemprop="name">demo</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/demo/hexo/" itemprop="url" rel="index"><span itemprop="name">hexo</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <link rel="stylesheet" href="/css/tag-chat.css" />
+<h2 id="buttion标签"><a href="#buttion标签" class="headerlink" title="buttion标签"></a>buttion标签</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;% btn #, Text %&#125;</span><br></pre></td></tr></table></figure>
+
+<a class="btn" href="#">
+            <i class="fa fa-"></i>Text
+          </a>
+<a class="btn" href="#">
+            <i class="fa fa-"></i>Text
+          </a>
+<a class="btn" href="#" title="Title">
+            <i class="fa fa-"></i>Text & Title
+          </a>
+<a class="btn" href="#">
+            <i class="fa fa-home fa-fw"></i>Text & Icon (fixed width)
+          </a>
+
+
+<ul>
+<li>为什么要采用 <code>#</code>, <code>,</code>, <code>&amp;</code> 作为分隔符?</li>
+<li>title的作用是什么？hover text吗？貌似没这功能</li>
+<li>相关issue &amp; 更多用法: <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2lpc3NuYW4vaGV4by10aGVtZS1uZXh0L3B1bGwvMTMyOA==">https://github.com/iissnan/hexo-theme-next/pull/1328<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+<h2 id="note标签"><a href="#note标签" class="headerlink" title="note标签"></a>note标签</h2><p><code>note</code>标签在<span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2lpc3NuYW4vaGV4by10aGVtZS1uZXh0L3B1bGwvMTY5Nw==">theme-next中集成<i class="fa fa-external-link-alt"></i></span>，它是<code>blockquote</code>的强化版，额外增加了一些样式</p>
+<ul>
+<li><strong>主题</strong>: simple, modern, flat</li>
+<li><strong>色系&amp;图标</strong>: default(灰色), primary(紫色), info(蓝色), success(绿色), warning(黄色), danger(红色)</li>
+</ul>
+<p>用法 &amp; 示例</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;% note success %&#125;</span><br><span class="line">success **欢迎**[note](.)</span><br><span class="line">&#123;% endnote %&#125;</span><br></pre></td></tr></table></figure>
+<div class="note success no-icon">
+            <p>success <strong>粗体</strong> <a href=".">链接</a> 无图标</p>
+          </div>
+<div class="note success">
+            <p>success <strong>粗体</strong> <a href=".">链接</a> 文本</p>
+          </div>
+<div class="note info">
+            <p>info <strong>粗体</strong> <a href=".">链接</a> 文本</p>
+          </div>
+<div class="note warning">
+            <p>warning <strong>粗体</strong> <a href=".">链接</a> 文本</p>
+          </div>
+<div class="note danger">
+            <p>danger <strong>粗体</strong> <a href=".">链接</a> 文本</p>
+          </div>
+
+
+
+<p><strong>建议</strong>: 采用更优雅的方式，比如<code>&gt;warning</code>的方式，继承markdown的<code>blockquote</code></p>
+<h2 id="label标签"><a href="#label标签" class="headerlink" title="label标签"></a>label标签</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Lorem &#123;% label default@ipsum %&#125; &#123;% label primary@dolor sit %&#125;.</span><br></pre></td></tr></table></figure>
+<p>Lorem <span class="label default">ipsum</span> <span class="label primary">dolor sit</span>.</p>
+<ul>
+<li>theme-next中集成</li>
+<li>相关issue &amp; usage: <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2lpc3NuYW4vaGV4by10aGVtZS1uZXh0L3B1bGwvMTY5Nw==">https://github.com/iissnan/hexo-theme-next/pull/1697<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+<blockquote>
+<p><strong>色系</strong>: 与note相同</p>
+</blockquote>
+<p>只是添加了颜色而已吧，搞这么复杂。</p>
+<h2 id="tab标签"><a href="#tab标签" class="headerlink" title="tab标签"></a>tab标签</h2><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+
+<div class="tabs" id="first-unique-name"><ul class="nav-tabs"><li class="tab active"><a href="#first-unique-name-1"><i class="fa fa-text-width"></i>code 1</a></li><li class="tab"><a href="#first-unique-name-2"><i class="fa fa-amazon"></i>solution 2</a></li><li class="tab"><a href="#first-unique-name-3">First unique name 3</a></li></ul><div class="tab-content"><div class="tab-pane active" id="first-unique-name-1"><p><strong>This is Tab 1.</strong><br>b = 1<br>c = 2<br>b + c</p></div><div class="tab-pane" id="first-unique-name-2"><p>b + c = 3</p></div><div class="tab-pane" id="first-unique-name-3"><p><strong>This is Tab 3.</strong></p></div></div></div>
+
+<ul>
+<li>theme-next中集成</li>
+<li>能不能采用更简洁的用法？为什么要采用html注释的方式？</li>
+<li>tab内貌似不能放code block</li>
+<li>相关issue: <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2lpc3NuYW4vaGV4by10aGVtZS1uZXh0L3B1bGwvMTY5Nw==">https://github.com/iissnan/hexo-theme-next/pull/1697<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+<h2 id="extrul标签"><a href="#extrul标签" class="headerlink" title="extrul标签"></a>extrul标签</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;% exturl Hexo Theme Next https://github.com/iissnan/hexo-theme-next/ %&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p><strong>评价</strong>: 不如直接写html，比如下面的例子</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">i</span> <span class="attr">class</span>=<span class="string">&quot;fa fa-external-link&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">i</span>&gt;</span></span><br><span class="line">[<span class="tag">&lt;<span class="name">i</span> <span class="attr">class</span>=<span class="string">&quot;fa fa-external-link&quot;</span>&gt;</span>link to <span class="tag">&lt;/<span class="name">i</span>&gt;</span>](ss)</span><br></pre></td></tr></table></figure>
+
+<p>update: 貌似已经废弃</p>
+<h2 id="类似的bootstrap标签"><a href="#类似的bootstrap标签" class="headerlink" title="类似的bootstrap标签"></a>类似的bootstrap标签</h2><ul>
+<li><span class="exturl" data-url="aHR0cDovL3d3dy5oYWhhY2suY29tL2hleG8tdGhlbWUtd2l4by9Eb2NzL3RhZy1wbHVnaW5zLWNuLw==">http://www.hahack.com/hexo-theme-wixo/Docs/tag-plugins-cn/<i class="fa fa-external-link-alt"></i></span>  挺赞</li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3d6cGFuL2hleG8tdGFnLWJvb3RzdHJhcA==">https://github.com/wzpan/hexo-tag-bootstrap<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+<h2 id="chat标签"><a href="#chat标签" class="headerlink" title="chat标签"></a>chat标签</h2><p>hexo-tag-chat，under construction.</p>
+<div class="chatContent" id="chatContent"><div class="clearfix">  <div class="message others"> <div class="avatar" data-author-id="lj"> <img src="http://c1.mifile.cn/f/i/hd/2016051101/a-lj.png" alt="雷军"> </div> <div class="content"> <div class="bubble  bubble_default left"> <div class="bubble_cont"> <div class="plain"> <pre>文字狱是清朝哪位皇帝兴起的;</pre> </div> </div> </div>  </div> </div>  </div><div class="clearfix">  <div class="message others"> <div class="avatar" data-author-id="lj"> <img src="http://c1.mifile.cn/f/i/hd/2016051101/a-lj.png" alt="雷军"> </div> <div class="content"> <div class="bubble  bubble_default left"> <div class="bubble_cont"> <div class="plain"> <pre>康熙</pre> </div> </div> </div>  </div> </div>  </div><div class="clearfix">  <div class="message others"> <div class="avatar" data-author-id="lj"> <img src="http://c1.mifile.cn/f/i/hd/2016051101/a-lj.png" alt="雷军"> </div> <div class="content"> <div class="bubble  bubble_default left"> <div class="bubble_cont"> <div class="plain"> <pre>拼音中四声起于;</pre> </div> </div> </div>  </div> </div>  </div><div class="clearfix">  <div class="message others"> <div class="avatar" data-author-id="lj"> <img src="http://c1.mifile.cn/f/i/hd/2016051101/a-lj.png" alt="雷军"> </div> <div class="content"> <div class="bubble  bubble_default left"> <div class="bubble_cont"> <div class="plain"> <pre>元<iclass=fa fa-external-link></i></pre> </div> </div> </div>  </div> </div>  </div></div>
+
+<p><strong>TODO</strong>:</p>
+<ul>
+<li>用icon还是用头像？icon可以用foneawesome，头像限制比较多 <br></li>
+<li>丰富头像库</li>
+</ul>
+<p><i class="fa fa-question"></i><br><i class="fa fa-user-circle"></i><br><i class="fa fa-user"></i><br><i class="fa fa-users"></i><br><i class="fa fa-user-graduate"></i><br><i class="fa fa-user-graduate"></i></p>
+<h2 id="instagram标签"><a href="#instagram标签" class="headerlink" title="instagram标签"></a>instagram标签</h2><p><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3RlYTMvaGV4by10YWctaW5zdGFncmFt">hexo-tag-instagram<i class="fa fa-external-link-alt"></i></span> 将 Instagram元素嵌入Hexo博客</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 默认配置 width:100%, captioned:true</span></span><br><span class="line">&#123;<span class="string">%</span> <span class="string">instagram</span> <span class="string">url:https://www.instagram.com/p/Bg71nq4HuAU/</span> <span class="string">%</span>&#125;</span><br><span class="line"><span class="comment"># 或</span></span><br><span class="line">&#123;<span class="string">%</span> <span class="string">instagram</span> <span class="string">Bg71nq4HuAU</span> <span class="string">%</span>&#125;</span><br><span class="line"><span class="comment"># 2. 无标题 + 调整尺寸</span></span><br><span class="line">&#123;<span class="string">%</span> <span class="string">instagram</span> <span class="literal">false</span> <span class="string">Bg71nq4HuAU</span> <span class="number">60</span><span class="string">%</span> <span class="string">%</span>&#125;</span><br><span class="line"><span class="comment"># 或</span></span><br><span class="line">&#123;<span class="string">%</span> <span class="string">instagram</span> <span class="string">captioned:false</span> <span class="string">id:Bg71nq4HuAU</span> <span class="string">width:60%</span> <span class="string">%</span>&#125;</span><br></pre></td></tr></table></figure>
+<div class="instagram-wrapper"><blockquote class="instagram-media" data-instgrm-version="7" style=" background:#FFF; border:0; border-radius:3px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin: 1px auto; padding:0; width:99.375%; width:-webkit-calc(60%- 2px); width:calc(60% - 2px);"><div style="padding:8px;"> <div style=" background:#F8F8F8; line-height:0; margin-top:40px; padding:50.0% 0; text-align:center; width:100%;"> <div style=" background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAsCAMAAAApWqozAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAMUExURczMzPf399fX1+bm5mzY9AMAAADiSURBVDjLvZXbEsMgCES5/P8/t9FuRVCRmU73JWlzosgSIIZURCjo/ad+EQJJB4Hv8BFt+IDpQoCx1wjOSBFhh2XssxEIYn3ulI/6MNReE07UIWJEv8UEOWDS88LY97kqyTliJKKtuYBbruAyVh5wOHiXmpi5we58Ek028czwyuQdLKPG1Bkb4NnM+VeAnfHqn1k4+GPT6uGQcvu2h2OVuIf/gWUFyy8OWEpdyZSa3aVCqpVoVvzZZ2VTnn2wU8qzVjDDetO90GSy9mVLqtgYSy231MxrY6I2gGqjrTY0L8fxCxfCBbhWrsYYAAAAAElFTkSuQmCC); display:block; height:44px; margin:0 auto -44px; position:relative; top:-22px; width:44px;"></div></div><p style=" color:#c9c8cd; font-family:Arial,sans-serif; font-size:14px; line-height:17px; margin-bottom:0; margin-top:8px; overflow:hidden; padding:8px 0 7px; text-align:center; text-overflow:ellipsis; white-space:nowrap;"><a href="https://www.instagram.com/p/Bg71nq4HuAU/" style=" color:#c9c8cd; font-family:Arial,sans-serif; font-size:14px; font-style:normal; font-weight:normal; line-height:17px; text-decoration:none;" target="_blank"></a></p></div></blockquote></div><script async defer src="//platform.instagram.com/en_US/embeds.js"></script>
+
+    </div>
+
+    
+    
+    
+      
+
+
+      <footer class="post-footer">
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/84080d8a/" rel="prev" title="计算机视觉--常用数据库">
+      <i class="fa fa-chevron-left"></i> 计算机视觉--常用数据库
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/pub/435df108/" rel="next" title="关于SEO">
+      关于SEO <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#buttion%E6%A0%87%E7%AD%BE"><span class="nav-number">1.</span> <span class="nav-text">buttion标签</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#note%E6%A0%87%E7%AD%BE"><span class="nav-number">2.</span> <span class="nav-text">note标签</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#label%E6%A0%87%E7%AD%BE"><span class="nav-number">3.</span> <span class="nav-text">label标签</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#tab%E6%A0%87%E7%AD%BE"><span class="nav-number">4.</span> <span class="nav-text">tab标签</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#extrul%E6%A0%87%E7%AD%BE"><span class="nav-number">5.</span> <span class="nav-text">extrul标签</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B1%BB%E4%BC%BC%E7%9A%84bootstrap%E6%A0%87%E7%AD%BE"><span class="nav-number">6.</span> <span class="nav-text">类似的bootstrap标签</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#chat%E6%A0%87%E7%AD%BE"><span class="nav-number">7.</span> <span class="nav-text">chat标签</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#instagram%E6%A0%87%E7%AD%BE"><span class="nav-number">8.</span> <span class="nav-text">instagram标签</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : 'fc959554',
+      //id          : 'd3c9fabdce1de6ef30a85e713d2fed7b',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

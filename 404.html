@@ -1,0 +1,209 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<!-- Viewport metatags -->
+<meta name="HandheldFriendly" content="true" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+
+<title>404错误页面</title>
+
+<style type="text/css">
+
+a,body,div,h1,html,p,span{
+    border:0;
+    margin:0;
+    padding:0;
+    font-size:100%
+}
+html,body{
+    height:100%
+}
+ body{
+    background-image:url("/images/blueprint.png")
+}
+ ::-moz-focus-inner{
+    border:0;
+    padding:0;
+    margin:0
+}
+::-webkit-input-placeholder{
+    color:#999
+}
+:-moz-placeholder{
+    color:#999
+}
+a{
+    color:#73991f;
+    text-decoration:none;
+    outline:0
+}
+a:hover{
+    text-decoration:underline
+}
+::-moz-selection{
+    color:#fff;
+    background:#a9ca60
+}
+body{
+    background-color:#f2f2f2;
+    color:#444;
+    font:12px/1.5 'Helvetica Neue',Arial,Helvetica,sans-serif
+}
+div#da-wrapper{
+    height:auto;
+    min-height:100%;
+    position:relative;
+    min-width:320px
+}
+div#da-wrapper,div#da-wrapper.fluid{
+    width:100%
+}
+div#da-wrapper .da-container,div#da-wrapper.fluid .da-container{
+    width:96%;
+    margin:auto
+}
+div#da-content{
+    clear:both;
+    padding-bottom:58px
+}
+@media only screen and (max-width:480px){
+    div#da-wrapper .da-container{
+        width:100%!important
+    }
+    div#da-content{
+        margin-top:auto
+    }
+}
+div#da-error-wrapper{
+    width:320px;
+    padding:30px 0;
+    margin:auto;
+    position:relative
+}
+div#da-error-wrapper .da-error-heading{
+    color:#e15656;
+    text-align:center;
+    font-size:24px;
+    font-family:Georgia,"Times New Roman",Times,serif
+}
+@-webkit-keyframes error-swing{
+    0%{
+        -webkit-transform:rotate(1deg)
+    }
+    100%{
+        -webkit-transform:rotate(-2deg)
+    }
+}
+@-moz-keyframes error-swing{
+    0%{
+        -moz-transform:rotate(1deg)
+    }
+    100%{
+        -moz-transform:rotate(-2deg)
+    }
+}
+@keyframes error-swing{
+    0%{
+        transform:rotate(1deg)
+    }
+    100%{
+        transform:rotate(-2deg)
+    }
+}
+div#da-error-wrapper #da-error-code{
+    width:285px;
+    height:170px;
+    padding:127px 16px 0 16px;
+    position:relative;
+    margin:auto;
+    margin-bottom:20px;
+    z-index:5;
+    line-height:1;
+    font-size:32px;
+    text-align:center;
+    background:url("/images/error-hanger.png") no-repeat center center;
+    -webkit-transform-origin:center top;
+    -moz-transform-origin:center top;
+    transform-origin:center top;
+    -webkit-animation:error-swing infinite 2s ease-in-out alternate;
+    -moz-animation:error-swing infinite 2s ease-in-out alternate;
+    animation:error-swing infinite 2s ease-in-out alternate
+}
+div#da-error-wrapper #da-error-code span{
+    font-size:96px;
+    display:block
+}
+div#da-error-wrapper #da-error-pin{
+    height:38px;
+    display:block;
+    margin:auto;
+    margin-bottom:-27px;
+    z-index:10;
+    position:relative;
+    background:url("/images/error-pin.png") no-repeat center center
+}
+div#da-error-wrapper p{
+    text-align:center;
+    font-size:20px
+}
+div#da-error-wrapper p a{
+     margin:5px;
+    color:#fff;
+    background:#a6d037;
+    text-decoration:none;
+    padding:1px 6px;
+    display:inline-block;
+    -webkit-border-radius:4px;
+    -o-border-radius:4px;
+    -moz-border-radius:4px;
+    border-radius:4px
+}
+h1{
+    font-weight:normal
+}
+h1{
+    font-size:21px
+}
+p,h1{
+    margin-bottom:20px
+}
+</style>
+
+</head>
+
+<body>
+    
+	<!-- Main Wrapper. Set this to 'fixed' for fixed layout and 'fluid' for fluid layout' -->
+	<div id="da-wrapper" class="fluid">
+    
+        <!-- Content -->
+        <div id="da-content">
+            
+            <!-- Container -->
+            <div class="da-container clearfix">
+            
+            	<div id="da-error-wrapper">
+                	
+                   	<div id="da-error-pin"></div>
+                    <div id="da-error-code">
+                    	error <span>404</span>                    </div>
+                
+                	<h1 class="da-error-heading">哎哟喂！您访问的页面不存在！</h1>
+                    <p> <br><a href="https://blog.eson.org">返回首页</a><br><a href="">休闲游戏</a></h1>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer 
+        <div id="da-footer">
+        	<div class="da-container clearfix">
+           	<p> 2013 smallseashell . All Rights Reserved. 小贝壳资源下载 </div>
+        </div>
+		-->
+    </div>
+    
+</body>
+</html>

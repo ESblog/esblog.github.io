@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="为什么要用HTTPS？HTTP 协议是不加密传输数据的，也就是用户跟你的网站之间传递数据有可能在途中被截获，破解传递的真实内容，所以使用不加密的 HTTP 的网站是不太安全的。所以， Google 的 Chrome 浏览器将在 2017 年 1 月开始，标记使用不加密的 HTTP 协议的网站为 Not Secure，不安全。 HTTPS 会为您的网站建立加密的信息安全通道，保证数据传输的安全，防止">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SSL证书">
+<meta property="og:url" content="https://blog.eson.org/pub/c08a993/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="为什么要用HTTPS？HTTP 协议是不加密传输数据的，也就是用户跟你的网站之间传递数据有可能在途中被截获，破解传递的真实内容，所以使用不加密的 HTTP 的网站是不太安全的。所以， Google 的 Chrome 浏览器将在 2017 年 1 月开始，标记使用不加密的 HTTP 协议的网站为 Not Secure，不安全。 HTTPS 会为您的网站建立加密的信息安全通道，保证数据传输的安全，防止">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://pic2.zhimg.com/v2-dcdb73f0c00439b83f756d7423df917d_1200x500.jpg">
+<meta property="article:published_time" content="2018-03-02T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-07-03T10:08:50.969Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="机器学习, 计算机视觉, 深度学习, 自然语言处理, ESON">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic2.zhimg.com/v2-dcdb73f0c00439b83f756d7423df917d_1200x500.jpg">
+
+<link rel="canonical" href="https://blog.eson.org/pub/c08a993/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>SSL证书 | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/c08a993/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SSL证书
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-03-03 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-03T00:00:00+08:00">2018-03-03</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/" itemprop="url" rel="index"><span itemprop="name">web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/%E5%BB%BA%E7%AB%99/" itemprop="url" rel="index"><span itemprop="name">建站</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/%E5%BB%BA%E7%AB%99/SSL%E8%AF%81%E4%B9%A6/" itemprop="url" rel="index"><span itemprop="name">SSL证书</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <div class="post-gallery" itemscope itemtype="http://schema.org/ImageGallery">
+            <img src="https://pic2.zhimg.com/v2-dcdb73f0c00439b83f756d7423df917d_1200x500.jpg" itemprop="contentUrl">
+        </div>
+        <h1 id="为什么要用HTTPS？"><a href="#为什么要用HTTPS？" class="headerlink" title="为什么要用HTTPS？"></a>为什么要用HTTPS？</h1><p>HTTP 协议是不加密传输数据的，也就是用户跟你的网站之间传递数据有可能在途中<strong>被截获</strong>，破解传递的真实内容，所以使用不加密的 HTTP 的网站是不太安全的。所以， Google 的 Chrome 浏览器将在 2017 年 1 月开始，标记使用不加密的 HTTP 协议的网站为 Not Secure，不安全。</p>
+<p>HTTPS 会为您的网站建立加密的信息安全通道，保证数据传输的安全，防止传输内容被第三方冒充或篡改。</p>
+<p>部署 HTTPS 网站的时候需要证书，证书由 CA 机构签发，大部分传统 CA 机构签发证书是需要收费的，这不利于推动 HTTPS 协议的使用。</p>
+<h2 id="证书的类型"><a href="#证书的类型" class="headerlink" title="证书的类型"></a>证书的类型</h2><p>SSL证书没有所谓的“品质”和“等级”之分，只有三种不同的类型。SSL证书需要向国际公认的证书证书认证机构（简称CA，Certificate Authority）申请。<code>CA机构</code>颁发的证书有3种类型：</p>
+<ul>
+<li><strong>域名型SSL证书</strong>（DV SSL）：信任等级普通，只需验证网站的真实性便可颁发证书保护网站；  </li>
+<li><strong>企业型SSL证书</strong>（OV SSL）：信任等级强，须要验证企业的身份，审核严格，安全性更高；</li>
+<li><strong>增强型SSL证书</strong>（EV SSL）：信任等级最高，一般用于银行证券等金融机构，审核严格，安全性最高，同时可以激活绿色网址栏。</li>
+</ul>
+<h3 id="SSL证书的颁发机构-CA机构"><a href="#SSL证书的颁发机构-CA机构" class="headerlink" title="SSL证书的颁发机构 - CA机构"></a>SSL证书的颁发机构 - CA机构</h3><ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly9sZXRzZW5jcnlwdC5vcmcv">Let’s Encrypt<i class="fa fa-external-link-alt"></i></span>: Let’s Encrypt 是目前使用范围最为广泛的免费 SSL 证书，而且官方博客宣布，自 2018 年开始提供通配符 SSL 证书，也就是 wildcard certificates。<ul>
+<li>在线申请网址1（中文）：<span class="exturl" data-url="aHR0cHM6Ly9mcmVlc3NsLm9yZy8=">https://freessl.org/<i class="fa fa-external-link-alt"></i></span></li>
+<li>在线申请网址2（英文）：<span class="exturl" data-url="aHR0cHM6Ly93d3cuc3NsZm9yZnJlZS5jb20v">https://www.sslforfree.com/<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+</li>
+<li>Symantec</li>
+<li>GeoTrust</li>
+<li>TrustAsia 亚信</li>
+<li><a href="alwaysonssl.com/">AlwaysOnSSL</a></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly93d3cuY29tb2RvLmNvbS8=">Comodo<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly93d3cuY2xvdWRmbGFyZS5jb20v">Cloudflare<i class="fa fa-external-link-alt"></i></span>: Cloudflare 很早就开始提供免费 SSL 证书，前提是你的域名要放在 Cloudflare 解析，注册为 Free Plan 就可以。</li>
+</ul>
+<p>自从 Let’s encrypt 开始提供免费DV SSL后，SSL 证书市场就已经开始洗牌了。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Issued by: Encryption Everywhere DV TLS CA - G1</span><br><span class="line">Issued by: Let&#x27;s Encrypt Authority X3</span><br></pre></td></tr></table></figure>
+
+<h2 id="第三方机构-辅助申请证书"><a href="#第三方机构-辅助申请证书" class="headerlink" title="第三方机构 - 辅助申请证书"></a>第三方机构 - 辅助申请证书</h2><p><strong>阿里云</strong><br>阿里云提供免费DV SSL证书</p>
+<ul>
+<li>Symantec 免费版 单域名证书 - 免费</li>
+<li>GeoTrust <strong>通配符</strong>DV SSL证书 - 收费</li>
+</ul>
+<p><strong>又拍云</strong> 免费提供 Let’s Encrypt 和 Symantec 签发的两款 DV SSL 证书，也是业内唯一一家提供两种。立即签署颁发，并实现了Let’s Encrypt 自动续期功能。</p>
+<p><strong>腾讯</strong>的就是方便，不过时间只有一年。</p>
+<p><strong>cloudflare</strong> 免费版并不是很快。而且他强制你 nameserver 指过去(可把域名解析都托管过去，也可只托管指定主机）</p>
+<p><strong>coding.net</strong> coding pages会自动给证书续期</p>
+<img src="/images/raw/建站 - HTTPS - CodingPages.png">
+
+<blockquote>
+<p>注意：申请 SSL/TLS 证书需要通过 Let’s Encrypt 的 HTTP 方式验证域名所有权。如果您的域名在境外无法访问 Coding Pages 的服务器，将导致 SSL/TLS 证书申请失败。</p>
+</blockquote>
+<h2 id="Let’s-Encrypt证书"><a href="#Let’s-Encrypt证书" class="headerlink" title="Let’s Encrypt证书"></a>Let’s Encrypt证书</h2><p><span class="exturl" data-url="aHR0cHM6Ly93d3cuemhpaHUuY29tL3F1ZXN0aW9uLzE5NTc4NDIy">SSL 证书服务，大家用哪家的？<i class="fa fa-external-link-alt"></i></span></p>
+<ul>
+<li>Let’s Encrypt：免费，快捷，支持多域名，三条命令即时签署+导出证书。缺点是暂时</li>
+<li>2018年3月14日，Let’s Encrypt 对外宣布 ACME v2 已正式支持<code>通配符证书</code>。</li>
+</ul>
+<p>Let’s encrypt 的免费证书默认有效期为 90 天，到期后如果要续期可以执行：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">certbot-auto renew</span><br></pre></td></tr></table></figure>
+
+<h2 id="操作流程"><a href="#操作流程" class="headerlink" title="操作流程"></a>操作流程</h2><p>要使用 HTTPS，你需要安全机构颁发的安全证书，然后配置服务器，去使用这个证书。下面介绍一下在阿里云免费申请安全证书，还有配置一般的 NGINX 服务器支持 HTTPS 的方法。</p>
+<ol>
+<li>申请证书、绑定域名</li>
+<li>下载证书</li>
+<li>使用证书: 配置 相应的Web服务器</li>
+</ol>
+<h3 id="github-pages如何使用SSL证书？"><a href="#github-pages如何使用SSL证书？" class="headerlink" title="github pages如何使用SSL证书？"></a>github pages如何使用SSL证书？</h3><p>虽然 Github 早在2016年就已经为 <code>*.github.io</code> 添加了 HTTPS 支持，但自定义域名开启 HTTPS 却是一件令人头疼的事情。大家只能使用 Cloudflare 之类的支持 SSL 的 CDN 曲线支持 HTTPS 。</p>
+<p><strong>好消息</strong>: 2018年5月1日，<span class="exturl" data-url="aHR0cHM6Ly9ibG9nLmdpdGh1Yi5jb20vMjAxOC0wNS0wMS1naXRodWItcGFnZXMtY3VzdG9tLWRvbWFpbnMtaHR0cHMv">GitHub 宣布与 Let&#39;s Encrypt 合作<i class="fa fa-external-link-alt"></i></span>，为 Github Pages 自定义域名提供官方的HTTPS 支持。如果在 Github Pages 绑定了域名，现在可以使用 Let&#39;s Encrypt 签发的 SSL 证书为绑定的域名开启 HTTPS 访问。</p>
+<p>如果 <code>enforce HTTPS</code> 不可勾选，并且提示 <code>Not yet available for your site because the certificate has not finished being issued</code> ，说明证书尚未申请完成，等待一天即可。</p>
+<p>github pages采用的github的服务器，不能直接设置https，但可以<strong>通过CDN来设置SSL</strong>。</p>
+<ul>
+<li>github_pages + cloudflare（cdn+https）</li>
+<li>gitpage + 又拍云(cdn,https)</li>
+</ul>
+<blockquote>
+<p>又拍云需要域名备案</p>
+</blockquote>
+<h2 id="cloudflare"><a href="#cloudflare" class="headerlink" title="cloudflare"></a>cloudflare</h2><h3 id="配置CDN流程"><a href="#配置CDN流程" class="headerlink" title="配置CDN流程"></a>配置CDN流程</h3><ol>
+<li>进入万网控制台</li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9oZWxwLmFsaXl1bi5jb20va25vd2xlZGdlX2RldGFpbC8zOTg0NS5odG1s">修改dns服务器<i class="fa fa-external-link-alt"></i></span>，默认dns服务器 dns1.hichina.com,dns2.hichina.com，修改成cloudflare的dns服务器</li>
+</ol>
+<blockquote>
+<p>To use Cloudflare, you need to change your domain’s authoritative DNS servers, which are also referred to as nameservers.</p>
+</blockquote>
+<p>用 cloudflare,但是他要我更换 dns 服务器，更换后貌似导致域名访问不了 coding pages 的服务器了。原因是cloudflare接管DNS解析后，不支持双线部署。</p>
+<h3 id="设置https"><a href="#设置https" class="headerlink" title="设置https"></a>设置https</h3><ul>
+<li>在CF的Crypto页中，SSL设置为Flexible。这将允许CDN到github pages之间的访问为http。</li>
+<li>现在，通过https://你的域名已经可以访问站点首页了。</li>
+</ul>
+<h3 id="强制https"><a href="#强制https" class="headerlink" title="强制https"></a>强制https</h3><p>CF提供Page Rules功能，可设置路由规则。通过规则中的<code>Always use https</code>选项，可以将用户强制跳转到https</p>
+<p>参考 <span class="exturl" data-url="aHR0cHM6Ly9ibG9nLmNoaW9ubGFiLm1vZS8yMDE2LzAxLzI4L2dpdGh1Yi1wYWdlcy13aXRoLWh0dHBzLw==">https://blog.chionlab.moe/2016/01/28/github-pages-with-https/<i class="fa fa-external-link-alt"></i></span></p>
+<h3 id="证书信息"><a href="#证书信息" class="headerlink" title="证书信息"></a>证书信息</h3><figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">网站:</span> <span class="string">blog.eson.org</span></span><br><span class="line"><span class="string">颁发给:</span> <span class="string">sni90514.cloudflaressl.com</span>  <span class="comment"># 这个是</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><p>它的原理是当访客使用 HTTPS 访问站点的时候，</p>
+<ol>
+<li>从访客到 Cloudflare</li>
+<li>然后从 Cloudflare 到站点这段是明文的</li>
+</ol>
+<p>s</p>
+<div id="sequence-0"></div>
+
+<p>虽然不是全程加密，假设从 Cloudflare 到站点的信道相对可靠的话，也能很大程度上解决中间人劫持的问题。</p>
+<ul>
+<li>更改DNS服务器。这样万网域名<code>eson.org</code>中的所有配置失效，转由cloudflare提供DNS解析服务。<ul>
+<li>但是cloudflare没有线路配置，也就没必要双线部署了</li>
+</ul>
+</li>
+<li>DNS导向到github page之前，进行了缓存。</li>
+</ul>
+<h1 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h1><ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly96aHVhbmxhbi56aGlodS5jb20vcC8zNjI3NzYzMw==">关于免费SSL证书的那些事儿 | 知乎<i class="fa fa-external-link-alt"></i></span><script src="https://cdnjs.cloudflare.com/ajax/libs/webfont/1.6.27/webfontloader.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/snap.svg/0.4.1/snap.svg-min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/js-sequence-diagrams/1.0.6/sequence-diagram-min.js"></script><textarea id="sequence-0-code" style="display: none">浏览器->Cloudflare: 加密数据
+Cloudflare-->web服务器: 明文</textarea><textarea id="sequence-0-options" style="display: none">{"scale":1,"line-width":2,"line-length":50,"text-margin":10,"font-size":12,"theme":"simple"}</textarea><script>  var code = document.getElementById("sequence-0-code").value;  var options = JSON.parse(decodeURIComponent(document.getElementById("sequence-0-options").value));  var diagram = Diagram.parse(code);  diagram.drawSVG("sequence-0", options);</script></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+
+
+      <footer class="post-footer">
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/d2f02b9b/" rel="prev" title="Coding Pages托管静态博客-原理浅析">
+      <i class="fa fa-chevron-left"></i> Coding Pages托管静态博客-原理浅析
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/pub/8b29356c/" rel="next" title="Hexo中的SEO技巧">
+      Hexo中的SEO技巧 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%94%A8HTTPS%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">为什么要用HTTPS？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%81%E4%B9%A6%E7%9A%84%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.1.</span> <span class="nav-text">证书的类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SSL%E8%AF%81%E4%B9%A6%E7%9A%84%E9%A2%81%E5%8F%91%E6%9C%BA%E6%9E%84-CA%E6%9C%BA%E6%9E%84"><span class="nav-number">1.1.1.</span> <span class="nav-text">SSL证书的颁发机构 - CA机构</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC%E4%B8%89%E6%96%B9%E6%9C%BA%E6%9E%84-%E8%BE%85%E5%8A%A9%E7%94%B3%E8%AF%B7%E8%AF%81%E4%B9%A6"><span class="nav-number">1.2.</span> <span class="nav-text">第三方机构 - 辅助申请证书</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Let%E2%80%99s-Encrypt%E8%AF%81%E4%B9%A6"><span class="nav-number">1.3.</span> <span class="nav-text">Let’s Encrypt证书</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="nav-number">1.4.</span> <span class="nav-text">操作流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#github-pages%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8SSL%E8%AF%81%E4%B9%A6%EF%BC%9F"><span class="nav-number">1.4.1.</span> <span class="nav-text">github pages如何使用SSL证书？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cloudflare"><span class="nav-number">1.5.</span> <span class="nav-text">cloudflare</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AECDN%E6%B5%81%E7%A8%8B"><span class="nav-number">1.5.1.</span> <span class="nav-text">配置CDN流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AEhttps"><span class="nav-number">1.5.2.</span> <span class="nav-text">设置https</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%BA%E5%88%B6https"><span class="nav-number">1.5.3.</span> <span class="nav-text">强制https</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%81%E4%B9%A6%E4%BF%A1%E6%81%AF"><span class="nav-number">1.5.4.</span> <span class="nav-text">证书信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8E%9F%E7%90%86"><span class="nav-number">1.5.5.</span> <span class="nav-text">原理</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%89%A9%E5%B1%95%E9%98%85%E8%AF%BB"><span class="nav-number">2.</span> <span class="nav-text">扩展阅读</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : 'c08a993',
+      //id          : '340a9d03ee67390c5b0ba6c66b1dfad2',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

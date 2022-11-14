@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="简介越深网络一定越好吗？  深层网络会遭遇退化问题(degradation): 随着网络层数的增加，精度会到达饱和区，而后迅速下降。  作者在CIFAR-10数据进行实验，采用3x3 卷积层的简单堆叠来测试网络深度的影响。发现当层数增加到20层的时候网络进入饱和区(即使再增加网络的深度，精度也不会提高)。不仅如此，继续增加深度还会导致模型退化，训练精度和测试精度迅速下降。这说明当网络变得很深以后，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="残差网络ResNet">
+<meta property="og:url" content="https://blog.eson.org/pub/4f6e26d2/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="简介越深网络一定越好吗？  深层网络会遭遇退化问题(degradation): 随着网络层数的增加，精度会到达饱和区，而后迅速下降。  作者在CIFAR-10数据进行实验，采用3x3 卷积层的简单堆叠来测试网络深度的影响。发现当层数增加到20层的时候网络进入饱和区(即使再增加网络的深度，精度也不会提高)。不仅如此，继续增加深度还会导致模型退化，训练精度和测试精度迅速下降。这说明当网络变得很深以后，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20Resnet%20-%20degradation2.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20Resnet%20-%20plain%20net.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20Resnet%20-%20residual%20connection.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20Resnet%20-%20bottleneck%20-%20xusong.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20Resnet%20-%20bottleneck%20-%20wide%20resnet.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20CNN%20-%20WHC%20-%20cs231n.jpeg">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20Resnet%20-%20architecture.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20visualization%20-%20VGG56.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20visualization%20-%20VGG110.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20visualization%20-%20resnet56.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/NN%20-%20visualization%20-%20densenet121.png">
+<meta property="article:published_time" content="2018-04-07T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-21T08:48:04.252Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="机器学习, 计算机视觉, 深度学习, 自然语言处理, ESON">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.eson.org/images/raw/NN%20-%20Resnet%20-%20degradation2.png">
+
+<link rel="canonical" href="https://blog.eson.org/pub/4f6e26d2/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>残差网络ResNet | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/4f6e26d2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          残差网络ResNet
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-04-08 00:00:00" itemprop="dateCreated datePublished" datetime="2018-04-08T00:00:00+08:00">2018-04-08</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/model-basic/" itemprop="url" rel="index"><span itemprop="name">model-basic</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/model-basic/CNN/" itemprop="url" rel="index"><span itemprop="name">CNN</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><h2 id="越深网络一定越好吗？"><a href="#越深网络一定越好吗？" class="headerlink" title="越深网络一定越好吗？"></a>越深网络一定越好吗？</h2><!-- Is learning better networks as easy as stacking more layers? -->
+
+<p>深层网络会遭遇退化问题(degradation): 随着网络层数的增加，精度会到达饱和区，而后迅速下降。</p>
+<p><img title="CIFAR-10上的20层和50层的训练误差(左图)、测试误差(右图)。深层网络竟然会造成更高的训练误差。
+with 20-layer and 56-laye" src="/images/raw/NN - Resnet - degradation2.png"></p>
+<p>作者在CIFAR-10数据进行实验，采用3x3 卷积层的简单堆叠来测试网络深度的影响。<br>发现当层数增加到20层的时候网络进入饱和区(即使再增加网络的深度，精度也不会提高)。<br>不仅如此，继续增加深度还会导致模型退化，<strong>训练精度</strong>和测试精度迅速下降。<br>这说明当网络变得很深以后，深度网络就变得更加难以训练了。(<strong>注意：这不是过拟合</strong>。过拟合是训练误差小，测试误差大)</p>
+<p>随着网络层级的不断增加，模型精度不断得到提升。<br>而当网络层级增加到一定的数目以后，</p>
+<blockquote>
+<p>“Overly deep” plain nets have higher training error</p>
+</blockquote>
+<p>【问题来了】为什么随着网络层级越深，训练误差越大了？</p>
+<p>从原理上来说其实56层网络的解空间是包括了20层网络的解空间的。<br>换而言之也就是说，56层网络取得的性能应该大于等于20层网络的性能的。但是从训练的迭代过程来看，56层的网络无论从训练误差来看还是测试误差来看，误差都大于20层的网络（这也说明了为什么这不是过拟合现象，因为56层网络本身的<strong>训练误差都没有降下去</strong>）。导致这个原因就是虽然56层网络的解空间包含了20层网络的解空间，但是我们在训练网络用的是随机梯度下降策略，往往解到的不是全局最优解，而是局部的最优解，显而易见<strong>56层网络的解空间更加的复杂，所以导致使用随机梯度下降算法无法解到最优解</strong>。</p>
+<h1 id="模型"><a href="#模型" class="headerlink" title="模型"></a>模型</h1><p>如何又能加深网络层数、又能解决梯度消失问题、又能提升模型精度呢？</p>
+<blockquote>
+<p>那么我们作这样一个假设：假设现有一个比较浅的网络（Shallow Net）已达到了饱和的准确率，这时在它后面再加上几个恒等映射层（Identity mapping，也即y=x，输出等于输入），这样就增加了网络的深度，并且<strong>起码误差不会增加</strong>，也即更深的网络不应该带来训练集上误差的上升。而这里提到的使用恒等映射直接将前一层输出传到后面的思想，便是著名深度残差网络ResNet的灵感来源。</p>
+</blockquote>
+<p>这里没看懂。恒等映射层是 y=x, 还是y=f(x)+x ?</p>
+<h1 id="residual-shortcut-connection"><a href="#residual-shortcut-connection" class="headerlink" title="residual/shortcut connection"></a>residual/shortcut connection</h1><p>shortcut连接有多重形式</p>
+<ul>
+<li>恒等映射(Identity Mapping)<ul>
+<li>无参</li>
+<li>有利于模型训练</li>
+</ul>
+</li>
+<li>变换后的映射(Projection Shortcuts)<ul>
+<li>A: zero-padding shortcuts are used for increasing dimensions, and all shortcuts are parameterfree</li>
+<li>B: projection shortcuts are used for increasing dimensions, and other<br>shortcuts are identity; 论文推荐用这个策略？</li>
+<li>C: all shortcuts are projections。</li>
+</ul>
+</li>
+</ul>
+<h2 id="恒等映射"><a href="#恒等映射" class="headerlink" title="恒等映射"></a>恒等映射</h2><figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">structure:</span> <span class="string">basic-block</span></span><br><span class="line"><span class="attr">shortcut:</span> <span class="string">Identity</span> <span class="string">Mapping</span></span><br></pre></td></tr></table></figure>
+
+<p>Residual Learning</p>
+<div style="display:inline;">
+<img height="250px" style="margin: 20px;" title="plain net" src="/images/raw/NN - Resnet - plain net.png">
+<img height="250px" style="margin: 20px;" title="residual connection" src="/images/raw/NN - Resnet - residual connection.png">
+</div>
+
+
+<ul>
+<li>普通网络中：<br>$H(x)$ is any desired mapping,<br>hope the 2 weight layers fit $H(x)$</li>
+<li>残差网络：$H(x)$ is any desired mapping,<br>hope the 2 weight layers fit 𝐻(𝑥)<br>hope the 2 weight layers fit $F(x)$<br>let $H(x)=F(x)+x$</li>
+</ul>
+<blockquote>
+<p>resnet中首次提出</p>
+</blockquote>
+<p><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2ZjaG9sbGV0L2RlZXAtbGVhcm5pbmctbW9kZWxzL2Jsb2IvbWFzdGVyL3Jlc25ldDUwLnB5I0w0Mg==">code-pytorch<i class="fa fa-external-link-alt"></i></span></p>
+<h2 id="Bottleneck架构"><a href="#Bottleneck架构" class="headerlink" title="Bottleneck架构"></a>Bottleneck架构</h2><figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">structure:</span> <span class="string">bottleneck</span></span><br><span class="line"><span class="attr">shortcut:</span> <span class="string">Identity</span> <span class="string">Mapping</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>resnet中首次提出</p>
+</blockquote>
+<img title="左边是basic block, 右侧是bottleneck block。两者都加入了residual connection。" src="/images/raw/NN - Resnet - bottleneck - xusong.png">
+
+<img title="另外一种画法，强调highway" src="/images/raw/NN - Resnet - bottleneck - wide resnet.png">
+
+<!--
+left: basic-block with IdentityMapping; right: bottleneck-block with IdentityMapping
+-->
+
+<p>右侧是bottleneck连接，左右两个网络具有相似的复杂度，但是右侧的bottlenect设计能够用于更深层的网络。</p>
+<h2 id="conv-as-shortcut"><a href="#conv-as-shortcut" class="headerlink" title="conv as shortcut"></a>conv as shortcut</h2><!-- conv layer at shortcut -->
+
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">structure:</span> <span class="string">bottleneck</span></span><br><span class="line"><span class="attr">shortcut:</span> <span class="string">conv</span></span><br></pre></td></tr></table></figure>
+
+<p>这里的shortcut不再是恒等映射(identity mapping)，而是采用的conv。</p>
+<p>这是对恒等映射的改进吗？相比恒等映射，优势在哪？</p>
+<p><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2ZjaG9sbGV0L2RlZXAtbGVhcm5pbmctbW9kZWxzL2Jsb2IvbWFzdGVyL3Jlc25ldDUwLnB5I0wxMTc=">code-pytorch<i class="fa fa-external-link-alt"></i></span></p>
+<h1 id="疑问"><a href="#疑问" class="headerlink" title="疑问"></a>疑问</h1><h2 id="为什么不能简单地增加网络层数？"><a href="#为什么不能简单地增加网络层数？" class="headerlink" title="为什么不能简单地增加网络层数？"></a>为什么不能简单地增加网络层数？</h2><p>对于原来的网络，如果简单地增加深度，会导致梯度弥散或梯度爆炸。</p>
+<blockquote>
+<p>对于该问题的解决方法是正则化初始化和中间的正则化层（Batch Normalization），这样的话可以训练几十层的网络。</p>
+</blockquote>
+<p>虽然通过上述方法能够训练了，但是又会出现另一个问题，就是退化问题，网络层数增加，但是在训练集上的准确率却饱和甚至下降了。这个不能解释为overfitting，因为overfit应该表现为在训练集上表现更好才对。<br>退化问题说明了深度网络不能很简单地被很好地优化。<br>作者通过实验：通过浅层网络+ y=x 等同映射构造深层模型，结果深层模型并没有比浅层网络有等同或更低的错误率，推断退化问题可能是因为深层的网络并不是那么好训练，也就是求解器很难去利用多层网络拟合同等函数。</p>
+<h2 id="怎么解决退化问题？"><a href="#怎么解决退化问题？" class="headerlink" title="怎么解决退化问题？"></a>怎么解决退化问题？</h2><p>深度残差网络。如果深层网络的后面那些层是恒等映射，那么模型就退化为一个浅层网络。那现在要解决的就是学习恒等映射函数了。 但是直接让一些层去拟合一个潜在的恒等映射函数H(x) = x，比较困难，这可能就是深层网络难以训练的原因。但是，如果把网络设计为H(x) = F(x) + x,如下图。我们可以转换为学习一个残差函数F(x) = H(x) - x. 只要F(x)=0，就构成了一个恒等映射H(x) = x. 而且，拟合残差肯定更加容易。</p>
+<h1 id="维度设计"><a href="#维度设计" class="headerlink" title="维度设计"></a>维度设计</h1><img title="常见的卷积网络架构，厚度代表维度" src="/images/raw/NN - CNN - WHC - cs231n.jpeg">
+
+<ul>
+<li><strong>整体架构</strong>: channel数目(depth)逐渐增加，W,H逐渐减小</li>
+<li><strong>局部设计</strong>: bottleneck，即降维-&gt;变换-&gt;升维</li>
+</ul>
+<img title="ResNet的架构(ImageNet)" src="/images/raw/NN - Resnet - architecture.png">
+
+
+<h1 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h1><ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL0thaW1pbmdIZS9kZWVwLXJlc2lkdWFsLW5ldHdvcmtz">官方实现 | KaimingHe caffe<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+<p><strong>keras</strong></p>
+<p>强调identity_block，恒等映射</p>
+<p><strong>pytorch</strong></p>
+<p>强调bottlenect</p>
+<ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3B5dG9yY2gvZXhhbXBsZXMvdHJlZS9tYXN0ZXIvaW1hZ2VuZXQ=">resnet示例-pytorch<i class="fa fa-external-link-alt"></i></span><ul>
+<li>依赖 <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3B5dG9yY2gvdmlzaW9uL2Jsb2IvbWFzdGVyL3RvcmNodmlzaW9uL21vZGVscy9yZXNuZXQucHk=">resnet模型-pytorch<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+</li>
+<li>另外一个resnet版本 <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2tlcmFzLXRlYW0va2VyYXMvYmxvYi9tYXN0ZXIva2VyYXMvYXBwbGljYXRpb25zL3Jlc25ldDUwLnB5">https://github.com/keras-team/keras/blob/master/keras/applications/resnet50.py<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3RlbnNvcmZsb3cvbW9kZWxzL3RyZWUvbWFzdGVyL29mZmljaWFsL3Jlc25ldA==">resnet-tensorflow<i class="fa fa-external-link-alt"></i></span><ul>
+<li>提供cifar10 imagenet的示例</li>
+</ul>
+</li>
+</ul>
+<h1 id="ResNet可视化"><a href="#ResNet可视化" class="headerlink" title="ResNet可视化"></a>ResNet可视化</h1><!-- 2*2布局 -->
+<img title="56层的VGG网络" src="/images/raw/NN - visualization - VGG56.png">
+<img title="110层的VGG网络" src="/images/raw/NN - visualization - VGG110.png">
+<img title="56层的resnet" src="/images/raw/NN - visualization - resnet56.png">
+<img title="121层的resnet" src="/images/raw/NN - visualization - densenet121.png">
+
+<p>来自 <span class="exturl" data-url="aHR0cHM6Ly93d3cuY3MudW1kLmVkdS9+dG9tZy9wcm9qZWN0cy9sYW5kc2NhcGVzLw==">https://www.cs.umd.edu/~tomg/projects/landscapes/<i class="fa fa-external-link-alt"></i></span></p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly96aHVhbmxhbi56aGlodS5jb20vcC8zNjYyNDE5Mw==">SGD在两层神经网络上是怎么收敛的？ | 知乎<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9tcC53ZWl4aW4ucXEuY29tL3M/X19iaXo9TXpBM016STRNamd6TXc9PSZtaWQ9MjY1MDc0MTIxMSZpZHg9MSZzbj1mYTIyMjlmOTdhNjM5Nzc4NTNkN2ViY2VhNzg1ODA3NiZjaGtzbT04NzFhZGRhNWIwNmQ1NGIzNDM4OWVkYWM4NTVmNTViNDE2M2I4MWZmYzI1YzM4ZjI2Y2MxMmU5OTgyMmQ4N2MzZTI4YzQ1OWQ3OGY5Jm1wc2hhcmU9MSZzY2VuZT0xJnNyY2lkPTA0MjdFbmpKcDFPMTBaeHNWNmNqek40aCZwYXNzX3RpY2tldD14VkQ2dEZNT2NCdU1qMENFQkIySVA5MkErK2tTZ0NRR0VHZFNwRU8wK1ZnTFR6Yy8xOHhuWjZTN2Fsd0dJWGhvI3Jk">ResNet及其多种变体<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly93d3cuamlhbnNodS5jb20vcC9lNTg0MzdmMzlmNjU=">https://www.jianshu.com/p/e58437f39f65<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+
+
+      <footer class="post-footer">
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/af0b984c/" rel="prev" title="rsync 原理">
+      <i class="fa fa-chevron-left"></i> rsync 原理
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/pub/7203e497/" rel="next" title="【卷积】2. 深度学习中的卷积进化史">
+      【卷积】2. 深度学习中的卷积进化史 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B6%8A%E6%B7%B1%E7%BD%91%E7%BB%9C%E4%B8%80%E5%AE%9A%E8%B6%8A%E5%A5%BD%E5%90%97%EF%BC%9F"><span class="nav-number">1.1.</span> <span class="nav-text">越深网络一定越好吗？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.</span> <span class="nav-text">模型</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#residual-shortcut-connection"><span class="nav-number">3.</span> <span class="nav-text">residual&#x2F;shortcut connection</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%81%92%E7%AD%89%E6%98%A0%E5%B0%84"><span class="nav-number">3.1.</span> <span class="nav-text">恒等映射</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bottleneck%E6%9E%B6%E6%9E%84"><span class="nav-number">3.2.</span> <span class="nav-text">Bottleneck架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#conv-as-shortcut"><span class="nav-number">3.3.</span> <span class="nav-text">conv as shortcut</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%96%91%E9%97%AE"><span class="nav-number">4.</span> <span class="nav-text">疑问</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E7%AE%80%E5%8D%95%E5%9C%B0%E5%A2%9E%E5%8A%A0%E7%BD%91%E7%BB%9C%E5%B1%82%E6%95%B0%EF%BC%9F"><span class="nav-number">4.1.</span> <span class="nav-text">为什么不能简单地增加网络层数？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3%E9%80%80%E5%8C%96%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="nav-number">4.2.</span> <span class="nav-text">怎么解决退化问题？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BB%B4%E5%BA%A6%E8%AE%BE%E8%AE%A1"><span class="nav-number">5.</span> <span class="nav-text">维度设计</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%BA%90%E7%A0%81"><span class="nav-number">6.</span> <span class="nav-text">源码</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ResNet%E5%8F%AF%E8%A7%86%E5%8C%96"><span class="nav-number">7.</span> <span class="nav-text">ResNet可视化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">8.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : '4f6e26d2',
+      //id          : '93b4369c2c5821b302bc40d7d660ef79',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

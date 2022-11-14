@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="架构 Object.java(rt.jar) 调用 jdk的native方法(Object.c)。 native方法 调用hotspot jvm的方法(jvm.cpp)。  Object.java java source版本：oracle 1.7  Object 还有隐形的构造函数.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【java源码系列】 - Object">
+<meta property="og:url" content="https://blog.eson.org/pub/1c98e0dc/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="架构 Object.java(rt.jar) 调用 jdk的native方法(Object.c)。 native方法 调用hotspot jvm的方法(jvm.cpp)。  Object.java java source版本：oracle 1.7  Object 还有隐形的构造函数.">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-02-01T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-11-12T10:36:56.325Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="机器学习, 计算机视觉, 深度学习, 自然语言处理, ESON">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.eson.org/pub/1c98e0dc/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>【java源码系列】 - Object | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/1c98e0dc/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【java源码系列】 - Object
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-02-02 00:00:00" itemprop="dateCreated datePublished" datetime="2017-02-02T00:00:00+08:00">2017-02-02</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/" itemprop="url" rel="index"><span itemprop="name">programing</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/lan/" itemprop="url" rel="index"><span itemprop="name">lan</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/lan/java/" itemprop="url" rel="index"><span itemprop="name">java</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/lan/java/jdk/" itemprop="url" rel="index"><span itemprop="name">jdk</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/lan/java/jdk/rt/" itemprop="url" rel="index"><span itemprop="name">rt</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/lan/java/jdk/rt/lang/" itemprop="url" rel="index"><span itemprop="name">lang</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>13k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>12 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h2><ul>
+<li>Object.java(rt.jar) 调用 jdk的native方法(Object.c)。</li>
+<li>native方法 调用hotspot jvm的方法(jvm.cpp)。</li>
+</ul>
+<h2 id="Object-java"><a href="#Object-java" class="headerlink" title="Object.java"></a>Object.java</h2><ul>
+<li>java source版本：oracle 1.7</li>
+</ul>
+<p>Object 还有隐形的构造函数.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">new Object();</span><br><span class="line">new Object[int]; // 在ArrayList的构造函数中用到了</span><br></pre></td></tr></table></figure>
+
+<p>疑问：</p>
+<h3 id="为什么Object-java中看不到构造函数"><a href="#为什么Object-java中看不到构造函数" class="headerlink" title="为什么Object.java中看不到构造函数"></a>为什么Object.java中看不到构造函数</h3><p>编译器为它生成了构造函数</p>
+<h3 id="为什么在stack-trace中看不到调用Object"><a href="#为什么在stack-trace中看不到调用Object" class="headerlink" title="为什么在stack trace中看不到调用Object."></a>为什么在stack trace中看不到调用Object.<init></h3><p>有7个native方法。</p>
+<ul>
+<li>private static native void registerNatives();</li>
+<li>protected native Object clone() throws CloneNotSupportedException;</li>
+<li>public final native Class&lt;?&gt; getClass();</li>
+<li>public native int hashCode();</li>
+<li>public final native void notify();</li>
+<li>public final native void notifyAll();</li>
+<li>public final native void wait(long timeout) throws InterruptedException;</li>
+</ul>
+<ul>
+<li>但是构造函数是怎样实现的呢？(见jvm目录的init.md)</li>
+</ul>
+<p>由于Object类中有JNI方法调用，按照JNI的规则，应当生成JNI 的头文件。<br>在此目录下执行javah -jni java.lang.Object 指令，将生成一个java_lang_Object.h头文件(自动生成的header，没什么意义)</p>
+<h2 id="Object-c"><a href="#Object-c" class="headerlink" title="Object.c"></a>Object.c</h2><ul>
+<li>source版本：openjdk-7-fcs-src-b147-27_jun_2011</li>
+<li>路径: openjdk\jdk\src\share\native\java\lang\Object.c</li>
+<li>没有Object.h</li>
+</ul>
+<p>Object.c</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*-</span></span><br><span class="line"><span class="comment"> *      Implementation of class Object</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> *      former threadruntime.c, Sun Sep 22 12:09:39 1991</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;limits.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;jni.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;jni_util.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;jvm.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;java_lang_Object.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// JVM_这些函数是在jvm.c中实现的</span></span><br><span class="line"><span class="keyword">static</span> JNINativeMethod methods[] = &#123;</span><br><span class="line">    &#123;<span class="string">&quot;hashCode&quot;</span>,    <span class="string">&quot;()I&quot;</span>,                    (<span class="keyword">void</span> *)&amp;JVM_IHashCode&#125;,  <span class="comment">//  返回int</span></span><br><span class="line">    &#123;<span class="string">&quot;wait&quot;</span>,        <span class="string">&quot;(J)V&quot;</span>,                   (<span class="keyword">void</span> *)&amp;JVM_MonitorWait&#125;, <span class="comment">// 返回void，参数是long</span></span><br><span class="line">    &#123;<span class="string">&quot;notify&quot;</span>,      <span class="string">&quot;()V&quot;</span>,                    (<span class="keyword">void</span> *)&amp;JVM_MonitorNotify&#125;,  <span class="comment">// 返回void</span></span><br><span class="line">    &#123;<span class="string">&quot;notifyAll&quot;</span>,   <span class="string">&quot;()V&quot;</span>,                    (<span class="keyword">void</span> *)&amp;JVM_MonitorNotifyAll&#125;, <span class="comment">// 返回void</span></span><br><span class="line">    &#123;<span class="string">&quot;clone&quot;</span>,       <span class="string">&quot;()Ljava/lang/Object;&quot;</span>,   (<span class="keyword">void</span> *)&amp;JVM_Clone&#125;, <span class="comment">// 返回Ojbect</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function">JNIEXPORT <span class="keyword">void</span> JNICALL</span></span><br><span class="line"><span class="function"><span class="title">Java_java_lang_Object_registerNatives</span><span class="params">(JNIEnv *env, jclass cls)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    (*env)-&gt;RegisterNatives(env, cls,</span><br><span class="line">                            methods, <span class="keyword">sizeof</span>(methods)/<span class="keyword">sizeof</span>(methods[<span class="number">0</span>]));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">JNIEXPORT jclass JNICALL</span></span><br><span class="line"><span class="function"><span class="title">Java_java_lang_Object_getClass</span><span class="params">(JNIEnv *env, jobject <span class="keyword">this</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span> == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        JNU_ThrowNullPointerException(env, <span class="literal">NULL</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> (*env)-&gt;GetObjectClass(env, <span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中JNINativeMethod的结构体如下:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    <span class="keyword">char</span> *name; <span class="comment">// Java中函数的名字</span></span><br><span class="line">    <span class="keyword">char</span> *signature; <span class="comment">// signature 方法签名，描述了函数的参数和返回值</span></span><br><span class="line">    <span class="keyword">void</span> *fnPtr;  <span class="comment">// native实现的函数指针，指向C函数</span></span><br><span class="line">&#125; JNINativeMethod;</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="跟踪-hashcode"><a href="#跟踪-hashcode" class="headerlink" title="跟踪 hashcode"></a>跟踪 hashcode</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// jvm.h 路径: openjdk\hotspot\src\share\vm\prims\jvm.h</span></span><br><span class="line"><span class="function">JNIEXPORT jint JNICALL</span></span><br><span class="line"><span class="function"><span class="title">JVM_IHashCode</span><span class="params">(JNIEnv *env, jobject obj)</span></span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// jvm.cpp 路径: openjdk\hotspot\src\share\vm\prims\jvm.cpp</span></span><br><span class="line">JVM_ENTRY(jint, JVM_IHashCode(JNIEnv* env, jobject handle))</span><br><span class="line">  JVMWrapper(<span class="string">&quot;JVM_IHashCode&quot;</span>);</span><br><span class="line">  <span class="comment">// as implemented in the classic virtual machine; return 0 if object is NULL</span></span><br><span class="line">  <span class="keyword">return</span> handle == <span class="literal">NULL</span> ? <span class="number">0</span> : ObjectSynchronizer::FastHashCode (THREAD, JNIHandles::resolve_non_null(handle)) ;</span><br><span class="line">JVM_END</span><br></pre></td></tr></table></figure>
+
+<p>FastHashCode才是真正计算hashcode的代码</p>
+<h3 id="FastHashCode"><a href="#FastHashCode" class="headerlink" title="FastHashCode"></a>FastHashCode</h3><p>这是hashCode()的具体实现</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 路径: openjdk\hotspot\src\share\vm\runtime\synchronizer.cpp</span></span><br><span class="line"><span class="function"><span class="keyword">intptr_t</span> <span class="title">ObjectSynchronizer::FastHashCode</span> <span class="params">(Thread * Self, oop obj)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (UseBiasedLocking) &#123;</span><br><span class="line">    <span class="comment">// <span class="doctag">NOTE:</span> many places throughout the JVM do not expect a safepoint</span></span><br><span class="line">    <span class="comment">// to be taken here, in particular most operations on perm gen</span></span><br><span class="line">    <span class="comment">// objects. However, we only ever bias Java instances and all of</span></span><br><span class="line">    <span class="comment">// the call sites of identity_hash that might revoke biases have</span></span><br><span class="line">    <span class="comment">// been checked to make sure they can handle a safepoint. The</span></span><br><span class="line">    <span class="comment">// added check of the bias pattern is to avoid useless calls to</span></span><br><span class="line">    <span class="comment">// thread-local storage.</span></span><br><span class="line">    <span class="keyword">if</span> (obj-&gt;mark()-&gt;has_bias_pattern()) &#123;</span><br><span class="line">      <span class="comment">// Box and unbox the raw reference just in case we cause a STW safepoint.</span></span><br><span class="line">      <span class="function">Handle <span class="title">hobj</span> <span class="params">(Self, obj)</span> </span>;</span><br><span class="line">      <span class="comment">// Relaxing assertion for bug 6320749.</span></span><br><span class="line">      assert (Universe::verify_in_progress() ||</span><br><span class="line">              !SafepointSynchronize::is_at_safepoint(),</span><br><span class="line">             <span class="string">&quot;biases should not be seen by VM thread here&quot;</span>);</span><br><span class="line">      BiasedLocking::revoke_and_rebias(hobj, <span class="literal">false</span>, JavaThread::current());</span><br><span class="line">      obj = hobj() ;</span><br><span class="line">      assert(!obj-&gt;mark()-&gt;has_bias_pattern(), <span class="string">&quot;biases should be revoked by now&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// hashCode() is a heap mutator ...</span></span><br><span class="line">  <span class="comment">// Relaxing assertion for bug 6320749.</span></span><br><span class="line">  assert (Universe::verify_in_progress() ||</span><br><span class="line">          !SafepointSynchronize::is_at_safepoint(), <span class="string">&quot;invariant&quot;</span>) ;</span><br><span class="line">  assert (Universe::verify_in_progress() ||</span><br><span class="line">          Self-&gt;is_Java_thread() , <span class="string">&quot;invariant&quot;</span>) ;</span><br><span class="line">  assert (Universe::verify_in_progress() ||</span><br><span class="line">         ((JavaThread *)Self)-&gt;thread_state() != _thread_blocked, <span class="string">&quot;invariant&quot;</span>) ;</span><br><span class="line"></span><br><span class="line">  ObjectMonitor* monitor = <span class="literal">NULL</span>;</span><br><span class="line">  markOop temp, test;</span><br><span class="line">  <span class="keyword">intptr_t</span> hash;</span><br><span class="line">  markOop mark = ReadStableMark (obj);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// object should remain ineligible for biased locking</span></span><br><span class="line">  assert (!mark-&gt;has_bias_pattern(), <span class="string">&quot;invariant&quot;</span>) ;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (mark-&gt;is_neutral()) &#123;</span><br><span class="line">    hash = mark-&gt;hash();              <span class="comment">// this is a normal header 对象的hashcode存储在对象头里</span></span><br><span class="line">    <span class="keyword">if</span> (hash) &#123;                       <span class="comment">// if it has hash, just return it 注意这里有个cache，对于同一个Ojbect，第一次调用Object.hashCode将会执行实际的计算并记入cache，以后直接从cache中取出。</span></span><br><span class="line">      <span class="keyword">return</span> hash;</span><br><span class="line">    &#125;</span><br><span class="line">    hash = get_next_hash(Self, obj);  <span class="comment">// allocate a new hash code</span></span><br><span class="line">    temp = mark-&gt;copy_set_hash(hash); <span class="comment">// merge the hash code into header</span></span><br><span class="line">    <span class="comment">// use (machine word version) atomic operation to install the hash</span></span><br><span class="line">    test = (markOop) Atomic::cmpxchg_ptr(temp, obj-&gt;mark_addr(), mark);</span><br><span class="line">    <span class="keyword">if</span> (test == mark) &#123;</span><br><span class="line">      <span class="keyword">return</span> hash;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// If atomic operation failed, we must inflate the header</span></span><br><span class="line">    <span class="comment">// into heavy weight monitor. We could add more code here</span></span><br><span class="line">    <span class="comment">// for fast path, but it does not worth the complexity.</span></span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (mark-&gt;has_monitor()) &#123;</span><br><span class="line">    monitor = mark-&gt;monitor();</span><br><span class="line">    temp = monitor-&gt;header();</span><br><span class="line">    assert (temp-&gt;is_neutral(), <span class="string">&quot;invariant&quot;</span>) ;</span><br><span class="line">    hash = temp-&gt;hash();</span><br><span class="line">    <span class="keyword">if</span> (hash) &#123;</span><br><span class="line">      <span class="keyword">return</span> hash;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// Skip to the following code to reduce code size</span></span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (Self-&gt;is_lock_owned((address)mark-&gt;locker())) &#123;</span><br><span class="line">    temp = mark-&gt;displaced_mark_helper(); <span class="comment">// this is a lightweight monitor owned</span></span><br><span class="line">    assert (temp-&gt;is_neutral(), <span class="string">&quot;invariant&quot;</span>) ;</span><br><span class="line">    hash = temp-&gt;hash();              <span class="comment">// by current thread, check if the displaced</span></span><br><span class="line">    <span class="keyword">if</span> (hash) &#123;                       <span class="comment">// header contains hash code</span></span><br><span class="line">      <span class="keyword">return</span> hash;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// WARNING:</span></span><br><span class="line">    <span class="comment">//   The displaced header is strictly immutable.</span></span><br><span class="line">    <span class="comment">// It can NOT be changed in ANY cases. So we have</span></span><br><span class="line">    <span class="comment">// to inflate the header into heavyweight monitor</span></span><br><span class="line">    <span class="comment">// even the current thread owns the lock. The reason</span></span><br><span class="line">    <span class="comment">// is the BasicLock (stack slot) will be asynchronously</span></span><br><span class="line">    <span class="comment">// read by other threads during the inflate() function.</span></span><br><span class="line">    <span class="comment">// Any change to stack may not propagate to other threads</span></span><br><span class="line">    <span class="comment">// correctly.</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Inflate the monitor to set hash code</span></span><br><span class="line">  monitor = ObjectSynchronizer::inflate(Self, obj);</span><br><span class="line">  <span class="comment">// Load displaced header and check it has hash code</span></span><br><span class="line">  mark = monitor-&gt;header();</span><br><span class="line">  assert (mark-&gt;is_neutral(), <span class="string">&quot;invariant&quot;</span>) ;</span><br><span class="line">  hash = mark-&gt;hash();  <span class="comment">// 取出缓存</span></span><br><span class="line">  <span class="keyword">if</span> (hash == <span class="number">0</span>) &#123;</span><br><span class="line">    hash = get_next_hash(Self, obj);  <span class="comment">// 实际计算</span></span><br><span class="line">    temp = mark-&gt;copy_set_hash(hash); <span class="comment">// merge hash code into header</span></span><br><span class="line">    assert (temp-&gt;is_neutral(), <span class="string">&quot;invariant&quot;</span>) ;</span><br><span class="line">    test = (markOop) Atomic::cmpxchg_ptr(temp, monitor, mark);</span><br><span class="line">    <span class="keyword">if</span> (test != mark) &#123;</span><br><span class="line">      <span class="comment">// The only update to the header in the monitor (outside GC)</span></span><br><span class="line">      <span class="comment">// is install the hash code. If someone add new usage of</span></span><br><span class="line">      <span class="comment">// displaced header, please update this code</span></span><br><span class="line">      hash = test-&gt;hash();</span><br><span class="line">      assert (test-&gt;is_neutral(), <span class="string">&quot;invariant&quot;</span>) ;</span><br><span class="line">      assert (hash != <span class="number">0</span>, <span class="string">&quot;Trivial unexpected object/monitor header usage.&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// We finally get the hash</span></span><br><span class="line">  <span class="keyword">return</span> hash;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="get-next-hash"><a href="#get-next-hash" class="headerlink" title="get_next_hash"></a>get_next_hash</h3><p>这才是核心代码</p>
+<p>又调用的<code>get_next_hash()</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 路径: openjdk\hotspot\src\share\vm\runtime\synchronizer.cpp</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keyword">intptr_t</span> <span class="title">get_next_hash</span><span class="params">(Thread * Self, oop obj)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">intptr_t</span> value = <span class="number">0</span> ;</span><br><span class="line">  <span class="keyword">if</span> (hashCode == <span class="number">0</span>) &#123;</span><br><span class="line">     <span class="comment">// This form uses an unguarded global Park-Miller RNG,</span></span><br><span class="line">     <span class="comment">// so it&#x27;s possible for two threads to race and generate the same RNG.</span></span><br><span class="line">     <span class="comment">// On MP system we&#x27;ll have lots of RW access to a global, so the</span></span><br><span class="line">     <span class="comment">// mechanism induces lots of coherency traffic.</span></span><br><span class="line">     value = os::random() ;</span><br><span class="line">  &#125; <span class="keyword">else</span></span><br><span class="line">  <span class="keyword">if</span> (hashCode == <span class="number">1</span>) &#123;</span><br><span class="line">     <span class="comment">// This variation has the property of being stable (idempotent)</span></span><br><span class="line">     <span class="comment">// between STW operations.  This can be useful in some of the 1-0</span></span><br><span class="line">     <span class="comment">// synchronization schemes.</span></span><br><span class="line">     <span class="keyword">intptr_t</span> addrBits = <span class="keyword">intptr_t</span>(obj) &gt;&gt; <span class="number">3</span> ;</span><br><span class="line">     value = addrBits ^ (addrBits &gt;&gt; <span class="number">5</span>) ^ GVars.stwRandom ;</span><br><span class="line">  &#125; <span class="keyword">else</span></span><br><span class="line">  <span class="keyword">if</span> (hashCode == <span class="number">2</span>) &#123;</span><br><span class="line">     value = <span class="number">1</span> ;            <span class="comment">// for sensitivity testing</span></span><br><span class="line">  &#125; <span class="keyword">else</span></span><br><span class="line">  <span class="keyword">if</span> (hashCode == <span class="number">3</span>) &#123;</span><br><span class="line">     value = ++GVars.hcSequence ;</span><br><span class="line">  &#125; <span class="keyword">else</span></span><br><span class="line">  <span class="keyword">if</span> (hashCode == <span class="number">4</span>) &#123;</span><br><span class="line">     value = <span class="keyword">intptr_t</span>(obj) ;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">     <span class="comment">// Marsaglia&#x27;s xor-shift scheme with thread-specific state</span></span><br><span class="line">     <span class="comment">// This is probably the best overall implementation -- we&#x27;ll</span></span><br><span class="line">     <span class="comment">// likely make this the default in future releases.</span></span><br><span class="line">     <span class="keyword">unsigned</span> t = Self-&gt;_hashStateX ;</span><br><span class="line">     t ^= (t &lt;&lt; <span class="number">11</span>) ;</span><br><span class="line">     Self-&gt;_hashStateX = Self-&gt;_hashStateY ;</span><br><span class="line">     Self-&gt;_hashStateY = Self-&gt;_hashStateZ ;</span><br><span class="line">     Self-&gt;_hashStateZ = Self-&gt;_hashStateW ;</span><br><span class="line">     <span class="keyword">unsigned</span> v = Self-&gt;_hashStateW ;</span><br><span class="line">     v = (v ^ (v &gt;&gt; <span class="number">19</span>)) ^ (t ^ (t &gt;&gt; <span class="number">8</span>)) ;</span><br><span class="line">     Self-&gt;_hashStateW = v ;</span><br><span class="line">     value = v ;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  value &amp;= markOopDesc::hash_mask;</span><br><span class="line">  <span class="keyword">if</span> (value == <span class="number">0</span>) value = <span class="number">0xBAD</span> ;</span><br><span class="line">  assert (value != markOopDesc::no_hash, <span class="string">&quot;invariant&quot;</span>) ;</span><br><span class="line">  TEVENT (hashCode: GENERATE) ;</span><br><span class="line">  <span class="keyword">return</span> value;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>hashCode()并不是简单的返回内存地址。<br>OpenJDK一共实现了5中不同的计算hash值的方法，通过<br>这段代码中hashCode进行切换。其中hashCode == 4的是直接使用地址的（前面的实验说明OpenJDK默认情况下并没有使用这种方式，或许可以通过运行/编译时参数进行选择）。</p>
+<h3 id=""><a href="#" class="headerlink" title=""></a></h3><h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p>前面通过JNI验证已经能够得到很显然的结论，hashCode返回的并不一定是对象的（虚拟）内存地址，具体取决于运行时库和JVM的具体实现。</p>
+<h2 id="跟踪wait"><a href="#跟踪wait" class="headerlink" title="跟踪wait"></a>跟踪wait</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">JNIEXPORT <span class="keyword">void</span> JNICALL</span></span><br><span class="line"><span class="function"><span class="title">JVM_MonitorWait</span><span class="params">(JNIEnv *env, jobject obj, jlong ms)</span></span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 路径: openjdk\hotspot\src\share\vm\prims\jvm.cpp</span></span><br><span class="line">JVM_ENTRY(<span class="keyword">void</span>, JVM_MonitorWait(JNIEnv* env, jobject handle, jlong ms))</span><br><span class="line">  JVMWrapper(<span class="string">&quot;JVM_MonitorWait&quot;</span>);</span><br><span class="line">  <span class="function">Handle <span class="title">obj</span><span class="params">(THREAD, JNIHandles::resolve_non_null(handle))</span></span>;</span><br><span class="line">  assert(obj-&gt;is_instance() || obj-&gt;is_array(), <span class="string">&quot;JVM_MonitorWait must apply to an object&quot;</span>);</span><br><span class="line">  <span class="function">JavaThreadInObjectWaitState <span class="title">jtiows</span><span class="params">(thread, ms != <span class="number">0</span>)</span></span>;</span><br><span class="line">  <span class="keyword">if</span> (JvmtiExport::should_post_monitor_wait()) &#123;</span><br><span class="line">    JvmtiExport::post_monitor_wait((JavaThread *)THREAD, (oop)obj(), ms);</span><br><span class="line">  &#125;</span><br><span class="line">  ObjectSynchronizer::wait(obj, ms, CHECK);</span><br><span class="line">JVM_END</span><br></pre></td></tr></table></figure>
+
+<h2 id="跟踪notify"><a href="#跟踪notify" class="headerlink" title="跟踪notify"></a>跟踪notify</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">JNIEXPORT <span class="keyword">void</span> JNICALL</span></span><br><span class="line"><span class="function"><span class="title">JVM_MonitorNotify</span><span class="params">(JNIEnv *env, jobject obj)</span></span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 路径: openjdk\hotspot\src\share\vm\prims\jvm.cpp</span></span><br><span class="line">JVM_ENTRY(<span class="keyword">void</span>, JVM_MonitorNotify(JNIEnv* env, jobject handle))</span><br><span class="line">  JVMWrapper(<span class="string">&quot;JVM_MonitorNotify&quot;</span>);</span><br><span class="line">  <span class="function">Handle <span class="title">obj</span><span class="params">(THREAD, JNIHandles::resolve_non_null(handle))</span></span>;</span><br><span class="line">  assert(obj-&gt;is_instance() || obj-&gt;is_array(), <span class="string">&quot;JVM_MonitorNotify must apply to an object&quot;</span>);</span><br><span class="line">  ObjectSynchronizer::notify(obj, CHECK);</span><br><span class="line">JVM_END</span><br></pre></td></tr></table></figure>
+
+<h2 id="跟踪clone"><a href="#跟踪clone" class="headerlink" title="跟踪clone"></a>跟踪clone</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">JNIEXPORT jobject JNICALL</span><br><span class="line">JVM_Clone(JNIEnv *env, jobject obj);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">// 路径: openjdk\hotspot\src\share\vm\prims\jvm.cpp</span><br><span class="line">JVM_ENTRY(jobject, JVM_Clone(JNIEnv* env, jobject handle))</span><br><span class="line">  JVMWrapper(&quot;JVM_Clone&quot;);</span><br><span class="line">  Handle obj(THREAD, JNIHandles::resolve_non_null(handle));</span><br><span class="line">  const KlassHandle klass (THREAD, obj-&gt;klass());</span><br><span class="line">  JvmtiVMObjectAllocEventCollector oam;</span><br></pre></td></tr></table></figure>
+
+<h2 id="跟踪-getClass"><a href="#跟踪-getClass" class="headerlink" title="跟踪 getClass"></a>跟踪 getClass</h2><h2 id="跟踪"><a href="#跟踪" class="headerlink" title="跟踪"></a>跟踪</h2><h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><span class="exturl" data-url="aHR0cDovL2Jsb2cuY3Nkbi5uZXQveHVzaXdlaTEyMzYvYXJ0aWNsZS9kZXRhaWxzLzQ1MTUyMjAx">http://blog.csdn.net/xusiwei1236/article/details/45152201<i class="fa fa-external-link-alt"></i></span></p>
+<h2 id="byte-code"><a href="#byte-code" class="headerlink" title="byte code"></a>byte code</h2><ul>
+<li>通过编译后的jar包(即class文件)，查看byte code.</li>
+<li>运行 javap -c java.lang.Object &gt; a.txt，得到以下的byte code</li>
+</ul>
+<p>如果执行不成功，看看是否把jdk的lib加入到了classpath:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><span class="line">Compiled from &quot;Object.java&quot;</span><br><span class="line">public class java.lang.Object &#123;</span><br><span class="line">  public java.lang.Object();  // 什么都不干？不需要调用&lt;init&gt;吗？</span><br><span class="line">    Code:</span><br><span class="line">       0: return        </span><br><span class="line"></span><br><span class="line">  public final native java.lang.Class&lt;?&gt; getClass();</span><br><span class="line"></span><br><span class="line">  public native int hashCode();</span><br><span class="line"></span><br><span class="line">  public boolean equals(java.lang.Object);</span><br><span class="line">    Code:</span><br><span class="line">       0: aload_0       </span><br><span class="line">       1: aload_1       </span><br><span class="line">       2: if_acmpne     9</span><br><span class="line">       5: iconst_1      </span><br><span class="line">       6: goto          10</span><br><span class="line">       9: iconst_0      </span><br><span class="line">      10: ireturn       </span><br><span class="line"></span><br><span class="line">  protected native java.lang.Object clone() throws java.lang.CloneNotSupportedException;</span><br><span class="line"></span><br><span class="line">  public java.lang.String toString();</span><br><span class="line">    Code:</span><br><span class="line">       0: new           #1                  // class java/lang/StringBuilder</span><br><span class="line">       3: dup           </span><br><span class="line">       4: invokespecial #2                  // Method java/lang/StringBuilder.&quot;&lt;init&gt;&quot;:()V           // 注意这里，调用了&lt;init&gt;</span><br><span class="line">       7: aload_0       </span><br><span class="line">       8: invokevirtual #3                  // Method getClass:()Ljava/lang/Class;</span><br><span class="line">      11: invokevirtual #4                  // Method java/lang/Class.getName:()Ljava/lang/String;</span><br><span class="line">      14: invokevirtual #5                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;</span><br><span class="line">      17: ldc           #6                  // String @</span><br><span class="line">      19: invokevirtual #5                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;</span><br><span class="line">      22: aload_0       </span><br><span class="line">      23: invokevirtual #7                  // Method hashCode:()I</span><br><span class="line">      26: invokestatic  #8                  // Method java/lang/Integer.toHexString:(I)Ljava/lang/String;</span><br><span class="line">      29: invokevirtual #5                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;</span><br><span class="line">      32: invokevirtual #9                  // Method java/lang/StringBuilder.toString:()Ljava/lang/String;</span><br><span class="line">      35: areturn       </span><br><span class="line"></span><br><span class="line">  public final native void notify();</span><br><span class="line"></span><br><span class="line">  public final native void notifyAll();</span><br><span class="line"></span><br><span class="line">  public final native void wait(long) throws java.lang.InterruptedException;</span><br><span class="line"></span><br><span class="line">  public final void wait(long, int) throws java.lang.InterruptedException;</span><br><span class="line">    Code:</span><br><span class="line">       0: lload_1       </span><br><span class="line">       1: lconst_0      </span><br><span class="line">       2: lcmp          </span><br><span class="line">       3: ifge          16</span><br><span class="line">       6: new           #10                 // class java/lang/IllegalArgumentException</span><br><span class="line">       9: dup           </span><br><span class="line">      10: ldc           #11                 // String timeout value is negative</span><br><span class="line">      12: invokespecial #12                 // Method java/lang/IllegalArgumentException.&quot;&lt;init&gt;&quot;:(Ljava/lang/String;)V</span><br><span class="line">      15: athrow        </span><br><span class="line">      16: iload_3       </span><br><span class="line">      17: iflt          26</span><br><span class="line">      20: iload_3       </span><br><span class="line">      21: ldc           #13                 // int 999999</span><br><span class="line">      23: if_icmple     36</span><br><span class="line">      26: new           #10                 // class java/lang/IllegalArgumentException</span><br><span class="line">      29: dup           </span><br><span class="line">      30: ldc           #14                 // String nanosecond timeout value out of range</span><br><span class="line">      32: invokespecial #12                 // Method java/lang/IllegalArgumentException.&quot;&lt;init&gt;&quot;:(Ljava/lang/String;)V</span><br><span class="line">      35: athrow        </span><br><span class="line">      36: iload_3       </span><br><span class="line">      37: ldc           #15                 // int 500000</span><br><span class="line">      39: if_icmpge     52</span><br><span class="line">      42: iload_3       </span><br><span class="line">      43: ifeq          56</span><br><span class="line">      46: lload_1       </span><br><span class="line">      47: lconst_0      </span><br><span class="line">      48: lcmp          </span><br><span class="line">      49: ifne          56</span><br><span class="line">      52: lload_1       </span><br><span class="line">      53: lconst_1      </span><br><span class="line">      54: ladd          </span><br><span class="line">      55: lstore_1      </span><br><span class="line">      56: aload_0       </span><br><span class="line">      57: lload_1       </span><br><span class="line">      58: invokevirtual #16                 // Method wait:(J)V</span><br><span class="line">      61: return        </span><br><span class="line"></span><br><span class="line">  public final void wait() throws java.lang.InterruptedException;</span><br><span class="line">    Code:</span><br><span class="line">       0: aload_0       </span><br><span class="line">       1: lconst_0      </span><br><span class="line">       2: invokevirtual #16                 // Method wait:(J)V</span><br><span class="line">       5: return        </span><br><span class="line"></span><br><span class="line">  protected void finalize() throws java.lang.Throwable;</span><br><span class="line">    Code:</span><br><span class="line">       0: return        </span><br><span class="line"></span><br><span class="line">  static &#123;&#125;;</span><br><span class="line">    Code:</span><br><span class="line">       0: invokestatic  #17                 // Method registerNatives:()V</span><br><span class="line">       3: return        </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>C:\Program Files\java\jdk1.7.0_67\jre\lib\rt&gt;</p>
+<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><ul>
+<li>object header: it’s JVM dependent， 具体参考JVM</li>
+</ul>
+<h2 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h2><ul>
+<li><span class="exturl" data-url="aHR0cDovL3d3dy52b2lkY24uY29tL2Jsb2cveHVzaXdlaTEyMzYvYXJ0aWNsZS9wLTM1MjQ5Lmh0bWw=">Object.hashCode()的返回值到底是不是对象内存地址<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+
+
+      <footer class="post-footer">
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/8f038bde/" rel="prev" title="陈云霁报告 - 听课笔记">
+      <i class="fa fa-chevron-left"></i> 陈云霁报告 - 听课笔记
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/pub/8748fd7b/" rel="next" title="【java源码系列】Map">
+      【java源码系列】Map <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%B6%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Object-java"><span class="nav-number">2.</span> <span class="nav-text">Object.java</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88Object-java%E4%B8%AD%E7%9C%8B%E4%B8%8D%E5%88%B0%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0"><span class="nav-number">2.1.</span> <span class="nav-text">为什么Object.java中看不到构造函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%9C%A8stack-trace%E4%B8%AD%E7%9C%8B%E4%B8%8D%E5%88%B0%E8%B0%83%E7%94%A8Object"><span class="nav-number">2.2.</span> <span class="nav-text">为什么在stack trace中看不到调用Object.</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Object-c"><span class="nav-number">3.</span> <span class="nav-text">Object.c</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B7%9F%E8%B8%AA-hashcode"><span class="nav-number">4.</span> <span class="nav-text">跟踪 hashcode</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#FastHashCode"><span class="nav-number">4.1.</span> <span class="nav-text">FastHashCode</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#get-next-hash"><span class="nav-number">4.2.</span> <span class="nav-text">get_next_hash</span></a></li><li class="nav-item nav-level-3"><a class="nav-link"><span class="nav-number">4.3.</span> <span class="nav-text"></span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-number">4.4.</span> <span class="nav-text">结论</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B7%9F%E8%B8%AAwait"><span class="nav-number">5.</span> <span class="nav-text">跟踪wait</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B7%9F%E8%B8%AAnotify"><span class="nav-number">6.</span> <span class="nav-text">跟踪notify</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B7%9F%E8%B8%AAclone"><span class="nav-number">7.</span> <span class="nav-text">跟踪clone</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B7%9F%E8%B8%AA-getClass"><span class="nav-number">8.</span> <span class="nav-text">跟踪 getClass</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B7%9F%E8%B8%AA"><span class="nav-number">9.</span> <span class="nav-text">跟踪</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">9.1.</span> <span class="nav-text">参考</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#byte-code"><span class="nav-number">10.</span> <span class="nav-text">byte code</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B6%E4%BB%96"><span class="nav-number">11.</span> <span class="nav-text">其他</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%A9%E5%B1%95%E9%98%85%E8%AF%BB"><span class="nav-number">12.</span> <span class="nav-text">扩展阅读</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : '1c98e0dc',
+      //id          : '7acbf7d130c3eb00077bf811b4e96bab',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

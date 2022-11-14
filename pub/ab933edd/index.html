@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="背景知识 栈: 是向低地址扩展的数据结构，是一块连续的内存区域。 栈顶的地址和栈的最大容量是系统预先规定好的，在 WINDOWS 下，栈的大小是 2M （也有的说是 1M ，总之是一个编译时就确定的常数），如果申请的空间超过栈的剩余空间时，将提示 overflow 。因此，能从栈获得的空间较小。 由系统自动分配，速度较快。但程序员是无法控制的   堆：是向高地址扩展的数据结构，是不连续的内存区域。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="python c java 的变量、堆、栈">
+<meta property="og:url" content="https://blog.eson.org/pub/ab933edd/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="背景知识 栈: 是向低地址扩展的数据结构，是一块连续的内存区域。 栈顶的地址和栈的最大容量是系统预先规定好的，在 WINDOWS 下，栈的大小是 2M （也有的说是 1M ，总之是一个编译时就确定的常数），如果申请的空间超过栈的剩余空间时，将提示 overflow 。因此，能从栈获得的空间较小。 由系统自动分配，速度较快。但程序员是无法控制的   堆：是向高地址扩展的数据结构，是不连续的内存区域。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.eson.org/images/raw/Language%20-%20Python%20-%20a1box.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/Language%20-%20Python%20-%20a2box.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/Language%20-%20Python%20-%20b2box.png">
+<meta property="og:image" content="https://blog.eson.org/images/raw/Language%20-%20Python%20-%20a2box.png">
+<meta property="article:published_time" content="2018-09-15T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-21T08:48:04.051Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="机器学习, 计算机视觉, 深度学习, 自然语言处理, ESON">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.eson.org/images/raw/Language%20-%20Python%20-%20a1box.png">
+
+<link rel="canonical" href="https://blog.eson.org/pub/ab933edd/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>python c java 的变量、堆、栈 | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/ab933edd/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          python c java 的变量、堆、栈
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-09-16 00:00:00" itemprop="dateCreated datePublished" datetime="2018-09-16T00:00:00+08:00">2018-09-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/" itemprop="url" rel="index"><span itemprop="name">programing</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/programing/lan/" itemprop="url" rel="index"><span itemprop="name">lan</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="背景知识"><a href="#背景知识" class="headerlink" title="背景知识"></a>背景知识</h1><ul>
+<li><strong>栈</strong>: 是向<code>低地址扩展</code>的数据结构，是一块<code>连续的内存区域</code>。 栈顶的地址和栈的最大容量是系统预先规定好的，在 WINDOWS 下，栈的大小是 2M （也有的说是 1M ，总之是一个编译时就确定的常数），如果申请的空间超过栈的剩余空间时，将提示 overflow 。因此，能从栈获得的空间较小。<ul>
+<li>由系统自动分配，速度较快。但程序员是无法控制的</li>
+</ul>
+</li>
+<li><strong>堆</strong>：是向<code>高地址扩展</code>的数据结构，是<code>不连续的内存区域</code>。这是由于系统是用链表来存储的空闲内存地址的，自然是不连续的，而链表的遍历方向是由低地址向高地址。堆的大小受限于计算机系统中有效的虚拟内存。由此可见，堆获得的空间比较灵活，也比较大。<ul>
+<li>堆是由 new 分配的内存，一般速度比较慢，而且容易产生内存碎片 , 不过用起来最方便 。</li>
+</ul>
+</li>
+<li>变量</li>
+<li>二进制存储，数值在内存中的表示</li>
+<li></li>
+</ul>
+<h1 id="many-languages-have-“variables”"><a href="#many-languages-have-“variables”" class="headerlink" title="many languages have “variables”"></a>many languages have “variables”</h1><p>计算机内存就像是很多盒子的集合体，每个盒子都有地址。<br>在很多语言中，给变量赋值可以理解成把value放入盒子，比如：</p>
+<table width="auto !important" border="1"><colgroup><col width="120"><col width="120"></colgroup><tbody><tr><td><code>int a = 1;</code></td><td><img src="/images/raw/Language - Python - a1box.png"></td></tr></tbody></table>
+
+
+
+
+<table width="auto !important" border="1"><colgroup><col width="120"><col width="120"></colgroup><tbody><tr><td><code>a = 2;</code></td><td><img src="/images/raw/Language - Python - a2box.png"></td></tr></tbody></table>
+
+<p>只是替换了盒子里的内容。</p>
+<table width="auto !important" border="1"><colgroup><col width="120"><col width="120"><col width="120"></colgroup><tbody><tr><td><code>int b = a;</code></td><td><img src="/images/raw/Language - Python - b2box.png"></td><td><img src="/images/raw/Language - Python - a2box.png"></td></tr></tbody></table>
+
+<h1 id="C-面向过程"><a href="#C-面向过程" class="headerlink" title="C - 面向过程"></a>C - 面向过程</h1><iframe width="800" height="350" frameborder="0" src="http://pythontutor.com/iframe-embed.html#code=int%20main%28%29%20%7B%0A%20%20int%20a%20%3D%201%3B%0A%20%20a%20%3D%202%3B%0A%20%20int%20balance%5B%5D%20%3D%20%7B1,%202,%203%7D%3B%0A%20%20return%200%3B%0A%7D&codeDivHeight=400&codeDivWidth=350&curInstr=3&origin=opt-frontend.js&py=cpp&rawInputLstJSON=%5B%5D"> </iframe>
+
+
+<!-- 1. 编译器， 从静态存储区域分配内存，包括全局变量， static 变量等 -->
+<ol>
+<li>运行时，首先系统为整个<code>函数栈</code>预分配空间(一块连续的内存区域)，栈上存储该函数的<code>局部变量</code>。即变量<code>a</code>对应固定的盒子(地址)。</li>
+<li>执行 <code>int a = 1</code> 即把数值<code>1</code>放入<code>a</code>对应的盒子</li>
+<li>执行 <code>a = 2</code> 替换了<code>a</code>盒子里的内容</li>
+</ol>
+<h1 id="C-半面向对象"><a href="#C-半面向对象" class="headerlink" title="C++ - 半面向对象"></a>C++ - 半面向对象</h1><h1 id="Java-不完全-面向对象"><a href="#Java-不完全-面向对象" class="headerlink" title="Java  不完全 面向对象"></a>Java  不完全 面向对象</h1><iframe width="800" height="700" frameborder="0" src="http://pythontutor.com/iframe-embed.html#code=public%20class%20Variables%20%7B%0A%20%20%20public%20static%20void%20main%28String%5B%5D%20args%29%20%7B%20%20%20%20%20%20%0A%20%20%20%20%20%20//%20%E5%8F%98%E9%87%8F%20-%20%E5%8E%9F%E5%A7%8B%E7%B1%BB%E5%9E%8B%0A%20%20%20%20%20%20int%20x%20%3D%205%3B%0A%20%20%20%20%20%20int%20y%20%3D%2010%3B%0A%20%20%20%20%20%20int%20t%20%3D%20x%3B%0A%20%20%20%20%20%20x%20%3D%20y%3B%0A%20%20%20%20%20%20y%20%3D%20t%3B%0A%20%20%20%20%20%20%0A%20%20%20%20%20%20//%20%E5%8F%98%E9%87%8F%20-%20%E5%AF%B9%E8%B1%A1%0A%20%20%20%20%20%20Integer%20p%20%3D%205%3B%0A%20%20%20%20%20%20Integer%20q%20%3D%201000%3B%0A%20%20%20%20%20%20Integer%20r%20%3D%20p%3B%0A%20%20%20%20%20%20p%20%3D%20q%3B%0A%20%20%20%20%20%20q%20%3D%20r%3B%0A%20%20%20%20%20%20%0A%20%20%20%20%20%20//%20%E5%85%B3%E4%BA%8E%E5%B8%B8%E9%87%8F%E6%B1%A0%0A%20%20%20%20%20%20Integer%20p2%20%3D%205%3B%0A%20%20%20%20%20%20Integer%20q2%20%3D%201000%3B%20//%20%E8%B6%85%E5%87%BA%E5%B8%B8%E9%87%8F%E6%B1%A0%0A%20%20%20%20%20%20%0A%20%20%20%20%20%20String%20me%20%3D%20%22me%22%3B%0A%20%20%20%20%20%20String%20you%20%3D%20%22you%22%3B%0A%20%20%20%20%20%20String%20me2%20%3D%20%22me%22%3B%20//%20String%20%E5%B8%B8%E9%87%8F%0A%20%20%20%20%20%20%0A%20%20%20%7D%0A%7D&codeDivHeight=400&codeDivWidth=350&cumulative=false&curInstr=17&heapPrimitives=true&origin=opt-frontend.js&py=java&rawInputLstJSON=%5B%5D&textReferences=false"> </iframe>
+
+
+<ol>
+<li>Java中的原始类型 primitive type，与C语言类似，变量对应盒子</li>
+<li>运行 <code>int a = 1</code>，存储在栈中</li>
+<li>运行 <code>a = 2</code>，</li>
+<li>class，与python类似，变量</li>
+<li>运行 <code>Integer b = 1</code>，存储在栈中还是堆中？貌似有个Integer池，预分配好的。</li>
+<li>运行 <code>Integer c = 1000</code>，会new 一个Integer Object，并存储在堆中</li>
+</ol>
+<h3 id="疑问"><a href="#疑问" class="headerlink" title="疑问"></a>疑问</h3><ul>
+<li>java不预分配函数栈空间吗？</li>
+<li>java中为什么是frames和objects？为什么不是stack heap？</li>
+<li>java中的原始类型，与class类型</li>
+</ul>
+<h1 id="python-面向对象"><a href="#python-面向对象" class="headerlink" title="python - 面向对象"></a>python - 面向对象</h1><div class="note info">
+            <p>Other languages have “variables”, python has “names”.   — David Goodger</p>
+          </div>
+
+<iframe width="800" height="500" frameborder="0" src="http://pythontutor.com/iframe-embed.html#code=a%20%3D%201%0Aa%20%3D%202%0AmyList%20%3D%20%5B1,2,3%5D%0A&codeDivHeight=400&codeDivWidth=350&cumulative=true&curInstr=3&heapPrimitives=true&origin=opt-frontend.js&py=3&rawInputLstJSON=%5B%5D&textReferences=false"> </iframe>
+
+
+<ol>
+<li>python中一切皆对象，<code>a=1</code>，<code>a</code>是<code>PyIntObject</code>的对象，存储在堆中</li>
+<li>python has “names”，指的是python的变量都是代号(盒子中存的是地址，而不是value)。</li>
+<li><code>a=2</code>，是把<code>a</code>指向了对象<code>2</code></li>
+<li></li>
+</ol>
+<h2 id="疑问-1"><a href="#疑问-1" class="headerlink" title="疑问"></a>疑问</h2><ul>
+<li>python中是frame的概念，不是stack。why？</li>
+</ul>
+<h1 id="javascript"><a href="#javascript" class="headerlink" title="javascript"></a>javascript</h1><h1 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h1><ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly9kYXZpZC5nb29kZ2VyLm9yZy9wcm9qZWN0cy9weWNvbi8yMDA3L2lkaW9tYXRpYy9oYW5kb3V0Lmh0bWw=">Code Like a Pythonista: Idiomatic Python | David Goodger<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cDovL3B5dGhvbnR1dG9yLmNvbS8=">http://pythontutor.com<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly9oYmZzLndvcmRwcmVzcy5jb20vMjAxMS8wNi8xNC9weXRob24tcmVmZXJlbmNlcy12cy1jLWFuZC1jLw==">Python References vs C and C++<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+
+
+      <footer class="post-footer">
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/c6654282/" rel="prev" title="递归">
+      <i class="fa fa-chevron-left"></i> 递归
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/pub/fb455505/" rel="next" title="【比特币源码】交易 transaction">
+      【比特币源码】交易 transaction <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%E7%9F%A5%E8%AF%86"><span class="nav-number">1.</span> <span class="nav-text">背景知识</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#many-languages-have-%E2%80%9Cvariables%E2%80%9D"><span class="nav-number">2.</span> <span class="nav-text">many languages have “variables”</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#C-%E9%9D%A2%E5%90%91%E8%BF%87%E7%A8%8B"><span class="nav-number">3.</span> <span class="nav-text">C - 面向过程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#C-%E5%8D%8A%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1"><span class="nav-number">4.</span> <span class="nav-text">C++ - 半面向对象</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Java-%E4%B8%8D%E5%AE%8C%E5%85%A8-%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1"><span class="nav-number">5.</span> <span class="nav-text">Java  不完全 面向对象</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%96%91%E9%97%AE"><span class="nav-number">5.0.1.</span> <span class="nav-text">疑问</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#python-%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1"><span class="nav-number">6.</span> <span class="nav-text">python - 面向对象</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%96%91%E9%97%AE-1"><span class="nav-number">6.1.</span> <span class="nav-text">疑问</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#javascript"><span class="nav-number">7.</span> <span class="nav-text">javascript</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%89%A9%E5%B1%95%E9%98%85%E8%AF%BB"><span class="nav-number">8.</span> <span class="nav-text">扩展阅读</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : 'ab933edd',
+      //id          : '3af183c7fc97596108b49e0c00e6db0e',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

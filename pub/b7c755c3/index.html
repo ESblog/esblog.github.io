@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Overview域名系统（DNS）是一种用于 TCP&#x2F;IP应用程序的分布式数据库，它提供主机名字和IP地址之间的转换及有关电子邮件的选路信息。 通常情况下，我们是先设定DNS解析规则，然后ISP(供应商)依据指定的解析规则进行DNS解析。同样，我们通过测试解析结果，也可以反推DNS解析规则。本文以百度首页为例，分析其DNS解析规则。 DNS地址解析器的核心功能能  gethostbyname">
+<meta property="og:type" content="article">
+<meta property="og:title" content="反演 百度DNS解析规则">
+<meta property="og:url" content="https://blog.eson.org/pub/b7c755c3/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="Overview域名系统（DNS）是一种用于 TCP&#x2F;IP应用程序的分布式数据库，它提供主机名字和IP地址之间的转换及有关电子邮件的选路信息。 通常情况下，我们是先设定DNS解析规则，然后ISP(供应商)依据指定的解析规则进行DNS解析。同样，我们通过测试解析结果，也可以反推DNS解析规则。本文以百度首页为例，分析其DNS解析规则。 DNS地址解析器的核心功能能  gethostbyname">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-02-08T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-21T08:48:03.988Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="network">
+<meta property="article:tag" content="dns">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.eson.org/pub/b7c755c3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>反演 百度DNS解析规则 | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/b7c755c3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          反演 百度DNS解析规则
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-02-09 00:00:00" itemprop="dateCreated datePublished" datetime="2018-02-09T00:00:00+08:00">2018-02-09</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/network/" itemprop="url" rel="index"><span itemprop="name">network</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/network/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-OSI%E4%B8%83%E5%B1%82%E6%A8%A1%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">网络协议-OSI七层模型</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/network/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-OSI%E4%B8%83%E5%B1%82%E6%A8%A1%E5%9E%8B/1-%E7%AC%AC%E4%B8%83%E5%B1%82-%E5%BA%94%E7%94%A8%E5%B1%82/" itemprop="url" rel="index"><span itemprop="name">1. 第七层 应用层</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/network/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-OSI%E4%B8%83%E5%B1%82%E6%A8%A1%E5%9E%8B/1-%E7%AC%AC%E4%B8%83%E5%B1%82-%E5%BA%94%E7%94%A8%E5%B1%82/DNS/" itemprop="url" rel="index"><span itemprop="name">DNS</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <!--
+反函数：inverse function (or anti-function[1]) is a function that "reverses" another function
+反编译：
+
+DNS解析：host--ip，，DNS的逆应该是ip--host.
+ARP（地址解析协议） RARP（逆地址解析协议），DNS中是不是也有逆？
+
+正向 ：DNS解析规则 -- 解析结果。逆向：解析结果--解析规则
+-->
+
+<h2 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h2><p>域名系统（DNS）是一种用于 TCP/IP应用程序的分布式数据库，它提供主机名字和IP地址之间的转换及有关电子邮件的选路信息。</p>
+<p>通常情况下，我们是先设定DNS解析规则，然后ISP(供应商)依据指定的解析规则进行DNS解析。同样，我们通过测试解析结果，也可以反推DNS解析规则。本文以百度首页为例，分析其DNS解析规则。</p>
+<p>DNS地址解析器的核心功能能</p>
+<ul>
+<li>gethostbyname  主机名–&gt;ip   </li>
+<li>gethostbyaddr  ip–主机名</li>
+</ul>
+<p><strong>分析方式一：</strong><br>通过抓包，分析DNS查询和响应报文。每个响应报文对应一条DNS解析规则，通过一条或者多条记录才能完成DNS解析。</p>
+<p><strong>分析方式二：</strong><br>一堆命令，见参考博客。</p>
+<p>参考 <span class="exturl" data-url="aHR0cHM6Ly9hc2xpYnJhLmNvbS9ibG9nL3Bvc3QvdXNlX2RpZ19kbnNfY2hlY2sucGhw">https://aslibra.com/blog/post/use_dig_dns_check.php<i class="fa fa-external-link-alt"></i></span><br><span class="exturl" data-url="aHR0cHM6Ly93d3cuamlhbnNodS5jb20vcC83MWY2MTY1MmVjMjM=">通过dig命令理解DNS<i class="fa fa-external-link-alt"></i></span><br><span class="exturl" data-url="aHR0cDovL3JvY2xpbnV4LmNuLz9wPTI0NDk=">dig挖出DNS的秘密<i class="fa fa-external-link-alt"></i></span></p>
+<h2 id="百度DNS解析规则"><a href="#百度DNS解析规则" class="headerlink" title="百度DNS解析规则"></a>百度DNS解析规则</h2><table>
+<thead>
+<tr>
+<th>编号</th>
+<th>主机记录</th>
+<th>记录类型</th>
+<th>解析线路(isp)</th>
+<th>记录值</th>
+<th>TTL值(不定)</th>
+<th>备注</th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><span class="exturl" data-url="aHR0cDovL3d3dy5iYWlkdS5jb20v">www.baidu.com<i class="fa fa-external-link-alt"></i></span></td>
+<td>CNAME</td>
+<td>–</td>
+<td><span class="exturl" data-url="aHR0cDovL3d3dy5hLnNoaWZlbi5jb20v">www.a.shifen.com<i class="fa fa-external-link-alt"></i></span></td>
+<td>268</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td><span class="exturl" data-url="aHR0cDovL3d3dy5hLnNoaWZlbi5jb20v">www.a.shifen.com<i class="fa fa-external-link-alt"></i></span></td>
+<td>CNAME</td>
+<td>–</td>
+<td><span class="exturl" data-url="aHR0cDovL3d3dy53c2hpZmVuLmNvbS8=">www.wshifen.com<i class="fa fa-external-link-alt"></i></span></td>
+<td>271</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td><span class="exturl" data-url="aHR0cDovL3d3dy53c2hpZmVuLmNvbS8=">www.wshifen.com<i class="fa fa-external-link-alt"></i></span></td>
+<td>A</td>
+<td>新加坡 百度</td>
+<td>45.113.192.101</td>
+<td>160</td>
+<td>“1-2-[3</td>
+<td>4]”</td>
+</tr>
+<tr>
+<td>4</td>
+<td><span class="exturl" data-url="aHR0cDovL3d3dy53c2hpZmVuLmNvbS8=">www.wshifen.com<i class="fa fa-external-link-alt"></i></span></td>
+<td>A</td>
+<td>北京电信</td>
+<td>220.181.111.188</td>
+<td>160</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>wshifen.com</td>
+<td>NS</td>
+<td>–</td>
+<td>ns1.wshifen.com</td>
+<td>163</td>
+<td>很多name server</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>baidu.com</td>
+<td>A</td>
+<td>北京移动</td>
+<td>111.13.101.208</td>
+<td></td>
+<td>见解析方式二</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>baidu.com</td>
+<td>A</td>
+<td>北京联通…</td>
+<td>123.125.114.144</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>baidu.com</td>
+<td>SOA</td>
+<td>–</td>
+<td>dns.baidu.com</td>
+<td>900</td>
+<td>见解析方式四</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>baidu.com</td>
+<td>NS</td>
+<td>–</td>
+<td>ns1.baidu.com</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>baidu.com</td>
+<td>NS</td>
+<td>–</td>
+<td>ns2.baidu.com</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>dns.baidu.com</td>
+<td>A</td>
+<td></td>
+<td>202.108.22.220</td>
+<td>67498</td>
+<td>这里只有一个A记录吗？为什么TTL这么高？</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>ns1.baidu.com</td>
+<td>A</td>
+<td></td>
+<td>202.108.22.220</td>
+<td>27780</td>
+<td>为什么和上个记录同IP？</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>ns2.baidu.com</td>
+<td>A</td>
+<td></td>
+<td>61.135.165.235</td>
+<td>86400</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>shifen.com.</td>
+<td>NS</td>
+<td></td>
+<td>ns1.baidu.com</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>shifen.com.</td>
+<td>A</td>
+<td></td>
+<td>202.108.250.218</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>shifen.com</td>
+<td>SOA</td>
+<td></td>
+<td>dns.shifen.com</td>
+<td></td>
+<td>dig shifen.com soa</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>dns.shifen.com</td>
+<td>A</td>
+<td></td>
+<td>202.108.250.228</td>
+<td></td>
+<td>dig dns.shifen.com</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>a.shifen.com</td>
+<td>NS</td>
+<td>–</td>
+<td>ns1.a.shifen.com</td>
+<td>397</td>
+<td>见解析方式五</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>ns1.a.shifen.com</td>
+<td>A</td>
+<td></td>
+<td>61.135.165.224</td>
+<td>600</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>注：所有解析路线由ip.cn提供。</p>
+</blockquote>
+<p><span class="exturl" data-url="aHR0cDovL3d3dy53c2hpZmVuLmNvbS8=">www.wshifen.com<i class="fa fa-external-link-alt"></i></span>  没有NS记录，没有SOA记录。<br><code>dig www.wshifen.com ns</code>。没有answer，即没有ns记录<br><code>dig wshifen.com ns</code>，有answer</p>
+<p>解析方式一: 1–&gt;2 （<span class="exturl" data-url="aHR0cDovL3d3dy5iYWlkdS5jb20s5p+l6K+i57G75Z6LYSzljbPmn6Xor6JpcHY05Zyw5Z2AKS8=">www.baidu.com，查询类型A，即查询IPv4地址）<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 一会功夫变成102了</span></span><br><span class="line"><span class="comment"># DNS响应一般为多个ip，后续连接只用一个ip</span></span><br><span class="line">$ ping www.baidu.com</span><br><span class="line">PING www.wshifen.com (45.113.192.102) 56(84) bytes of data.</span><br><span class="line">64 bytes from 45.113.192.102: icmp_seq=1 ttl=43 time=87.3 ms</span><br><span class="line"></span><br><span class="line">$ wget www.baidu.com</span><br><span class="line">--2018-03-08 11:30:32--  http://www.baidu.com/</span><br><span class="line">Resolving www.baidu.com (www.baidu.com)... 45.113.192.102, 45.113.192.101</span><br><span class="line">Connecting to www.baidu.com (www.baidu.com)|45.113.192.102|:80... connected.</span><br><span class="line">HTTP request sent, awaiting response... 200 OK</span><br><span class="line"></span><br><span class="line">$ dig www.baidu.com</span><br><span class="line">;; QUESTION SECTION:</span><br><span class="line">;www.baidu.com.                 IN      A</span><br><span class="line"></span><br><span class="line">;; ANSWER SECTION:</span><br><span class="line">www.baidu.com.          337     IN      CNAME   www.a.shifen.com.</span><br><span class="line">www.a.shifen.com.       191     IN      CNAME   www.wshifen.com.</span><br><span class="line">www.wshifen.com.        110     IN      A       45.113.192.102</span><br><span class="line">www.wshifen.com.        110     IN      A       45.113.192.101</span><br></pre></td></tr></table></figure>
+
+<p>解析方式二：9  （baidu.com，查询类型A）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 这种域名一般情况下是不能做cname解析的，只能用A记录</span></span><br><span class="line">$ ping baidu.com</span><br><span class="line">PING baidu.com (111.13.101.208) 56(84) bytes of data.</span><br><span class="line">64 bytes from 111.13.101.208: icmp_seq=1 ttl=45 time=13.8 ms</span><br><span class="line"></span><br><span class="line"><span class="comment"># DNS中没有对baidu.com做CNAME记录，貌似。</span></span><br><span class="line"><span class="comment"># 为什么浏览器重定向到http://www.baidu.com/？ 后面章节会介绍</span></span><br><span class="line">$ wget baidu.com</span><br><span class="line">--2018-03-08 11:32:10--  http://baidu.com/</span><br><span class="line">Resolving baidu.com (baidu.com)... 111.13.101.208, 220.181.57.216</span><br><span class="line">Connecting to baidu.com (baidu.com)|111.13.101.208|:80... connected.</span><br><span class="line">HTTP request sent, awaiting response... 200 OK</span><br><span class="line"></span><br><span class="line"><span class="comment">#</span></span><br><span class="line">$ dig baidu.com</span><br><span class="line">;; QUESTION SECTION:</span><br><span class="line">;baidu.com.                     IN      A</span><br><span class="line"></span><br><span class="line">;; ANSWER SECTION:</span><br><span class="line">baidu.com.              345     IN      A       111.13.101.208</span><br><span class="line">baidu.com.              345     IN      A       220.181.57.216</span><br></pre></td></tr></table></figure>
+
+
+
+
+<p>解析方式三: 1–&gt;5–&gt;8  （<span class="exturl" data-url="aHR0cDovL3d3dy5iYWlkdS5jb20s5p+l6K+i57G75Z6LYWFhYSzljbPmn6Xor6JpcHY25Zyw5Z2AKS8=">www.baidu.com，查询类型AAAA，即查询IPv6地址）<i class="fa fa-external-link-alt"></i></span></p>
+<p>请求路线：</p>
+<ul>
+<li><span class="exturl" data-url="aHR0cDovL3d3dy5iYWlkdS5jb20v">www.baidu.com<i class="fa fa-external-link-alt"></i></span> 未找到AAAA记录，走CNAME记录1</li>
+<li><span class="exturl" data-url="aHR0cDovL3d3dy5hLnNoaWZlbi5jb20v">www.a.shifen.com<i class="fa fa-external-link-alt"></i></span> 未找到AAAA记录，走CNAME记录5</li>
+<li><span class="exturl" data-url="aHR0cDovL3d3dy53c2hpZmVuLmNvbS8=">www.wshifen.com<i class="fa fa-external-link-alt"></i></span> 找到NS记录，返回</li>
+</ul>
+<p>抓包内容</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 目前使用IPv6的还是极少数，所以得不到AAAA记录的。</span></span><br><span class="line"><span class="comment"># DNS响应报文中的资源记录部分：回答字段、授权字段和附加信息字段，均采用一种称为资源记录RR（ Resource Record）的相同格式。</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="string">Domain</span> <span class="string">Name</span> <span class="string">System</span> <span class="string">(response)</span></span><br><span class="line">    <span class="attr">Questions:</span> <span class="number">1</span></span><br><span class="line">    <span class="attr">Answer RRs:</span> <span class="number">2</span></span><br><span class="line">    <span class="attr">Authority RRs:</span> <span class="number">1</span></span><br><span class="line">    <span class="attr">Additional RRs:</span> <span class="number">0</span></span><br><span class="line">    <span class="string">Queries</span></span><br><span class="line">        <span class="attr">www.baidu.com:</span> <span class="string">type</span> <span class="string">AAAA,</span> <span class="string">class</span> <span class="string">IN</span></span><br><span class="line">    <span class="string">Answers</span> <span class="comment"># 回答字段</span></span><br><span class="line">        <span class="attr">www.baidu.com:</span> <span class="string">type</span> <span class="string">CNAME,</span> <span class="string">class</span> <span class="string">IN,</span> <span class="string">cname</span> <span class="string">www.a.shifen.com</span></span><br><span class="line">            <span class="attr">Name:</span> <span class="string">www.baidu.com</span></span><br><span class="line">            <span class="attr">Type:</span> <span class="string">CNAME</span> <span class="string">(Canonical</span> <span class="string">NAME</span> <span class="string">for</span> <span class="string">an</span> <span class="string">alias)</span> <span class="string">(5)</span></span><br><span class="line">            <span class="attr">CNAME:</span> <span class="string">www.a.shifen.com</span></span><br><span class="line">        <span class="attr">www.a.shifen.com:</span> <span class="string">type</span> <span class="string">CNAME,</span> <span class="string">class</span> <span class="string">IN,</span> <span class="string">cname</span> <span class="string">www.wshifen.com</span></span><br><span class="line">            <span class="attr">Name:</span> <span class="string">www.a.shifen.com</span></span><br><span class="line">            <span class="attr">Type:</span> <span class="string">CNAME</span> <span class="string">(Canonical</span> <span class="string">NAME</span> <span class="string">for</span> <span class="string">an</span> <span class="string">alias)</span> <span class="string">(5)</span></span><br><span class="line">            <span class="attr">Class:</span> <span class="string">IN</span> <span class="string">(0x0001)</span></span><br><span class="line">            <span class="attr">Time to live:</span> <span class="number">271</span></span><br><span class="line">            <span class="attr">Data length:</span> <span class="number">14</span></span><br><span class="line">            <span class="attr">CNAME:</span> <span class="string">www.wshifen.com</span></span><br><span class="line">    <span class="string">Authoritative</span> <span class="string">nameservers</span>  <span class="comment"># 授权字段</span></span><br><span class="line">        <span class="attr">wshifen.com:</span> <span class="string">type</span> <span class="string">SOA,</span> <span class="string">class</span> <span class="string">IN,</span> <span class="string">mname</span> <span class="string">ns1.wshifen.com</span></span><br><span class="line">            <span class="attr">Name:</span> <span class="string">wshifen.com</span></span><br><span class="line">            <span class="attr">Type:</span> <span class="string">SOA</span> <span class="string">(Start</span> <span class="string">Of</span> <span class="string">a</span> <span class="string">zone</span> <span class="string">of</span> <span class="string">Authority)</span> <span class="string">(6)</span></span><br><span class="line">            <span class="attr">Primary name server:</span> <span class="string">ns1.wshifen.com</span> <span class="string">baidu_dns_master.baidu.com</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>dig 内容</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ dig www.baidu.com AAAA</span><br><span class="line">;; QUESTION SECTION:</span><br><span class="line">;www.baidu.com.                 IN      AAAA</span><br><span class="line"></span><br><span class="line">;; ANSWER SECTION:</span><br><span class="line">www.baidu.com.          4       IN      CNAME   www.a.shifen.com.</span><br><span class="line">www.a.shifen.com.       174     IN      CNAME   www.wshifen.com.</span><br><span class="line"></span><br><span class="line">;; AUTHORITY SECTION:</span><br><span class="line">wshifen.com.            250     IN      SOA     ns1.wshifen.com. baidu_dns_master.baidu.com. 1803080001 60 30 2592000 3600</span><br></pre></td></tr></table></figure>
+
+
+<p>解析方式四：11  （baidu.com，查询类型AAAA）</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Domain Name System (response)</span><br><span class="line">    Questions: 1</span><br><span class="line">    Answer RRs: 0</span><br><span class="line">    Authority RRs: 1</span><br><span class="line">    Queries</span><br><span class="line">        baidu.com: <span class="built_in">type</span> AAAA, class IN</span><br><span class="line">    Authoritative nameservers</span><br><span class="line">        baidu.com: <span class="built_in">type</span> SOA, class IN, mname dns.baidu.com</span><br><span class="line">            Name: baidu.com</span><br><span class="line">            Type: SOA (Start Of a zone of Authority) (6)</span><br><span class="line">            Primary name server: dns.baidu.com</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ dig baidu.com AAAA</span><br><span class="line">;; QUESTION SECTION:</span><br><span class="line">;baidu.com.                     IN      AAAA</span><br><span class="line"></span><br><span class="line">;; AUTHORITY SECTION:</span><br><span class="line">baidu.com.              4581    IN      SOA     dns.baidu.com. sa.baidu.com. 2012138564 300 300 2592000 7200</span><br></pre></td></tr></table></figure>
+
+<p>解析方式五: 12  （<span class="exturl" data-url="aHR0cDovL3d3dy5hLnNoaWZlbi5jb20s5p+l6K+i57G75Z6LYWFhYSkv">www.a.shifen.com，查询类型AAAA）<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ dig www.a.shifen.com AAAA</span><br><span class="line">;; QUESTION SECTION:</span><br><span class="line">;www.a.shifen.com.              IN      AAAA</span><br><span class="line"></span><br><span class="line">;; ANSWER SECTION:</span><br><span class="line">www.a.shifen.com.       34      IN      CNAME   www.wshifen.com.</span><br><span class="line"></span><br><span class="line">;; AUTHORITY SECTION:</span><br><span class="line">wshifen.com.            235     IN      SOA     ns1.wshifen.com. baidu_dns_master.baidu.com. 1803080001 60 30 2592000 3600</span><br></pre></td></tr></table></figure>
+
+<h2 id="疑问-amp-剖析"><a href="#疑问-amp-剖析" class="headerlink" title="疑问 &amp; 剖析"></a>疑问 &amp; 剖析</h2><h3 id="编号1中，别名www-a-shifen-com的作用"><a href="#编号1中，别名www-a-shifen-com的作用" class="headerlink" title="编号1中，别名www.a.shifen.com的作用"></a>编号1中，别名<span class="exturl" data-url="aHR0cDovL3d3dy5hLnNoaWZlbi5jb23nmoTkvZznlKgv">www.a.shifen.com的作用<i class="fa fa-external-link-alt"></i></span></h3><p>觉得没啥用啊。看看网上的说法：</p>
+<ul>
+<li>使用CNAME有个好处就是，我IP地址去做改动的时候不需要去DNS运营商上面做改动，只需要自己的服务器做改动就好，方便自己的域名与实际IP地址做对应。    –觉得没什么道理啊</li>
+</ul>
+<ul>
+<li>百度弄的一个域名保护壳。？</li>
+<li>CDN加速节点？</li>
+</ul>
+<p>逆向思维吧。如果没什么用，为什么要保留呢？是不是还有点作用？</p>
+<h3 id="编号2-3中，多条A记录的作用"><a href="#编号2-3中，多条A记录的作用" class="headerlink" title="编号2,3中，多条A记录的作用"></a>编号2,3中，多条A记录的作用</h3><ul>
+<li>可用于多线智能解析，为了每条线路（电信、联通/网通、移动等）上的用户都能最快访问站点</li>
+<li>可用于简单的<span class="exturl" data-url="aHR0cHM6Ly9jbG91ZC50ZW5jZW50LmNvbS9kb2N1bWVudC9wcm9kdWN0LzMwMi85MDY5">负载均衡<i class="fa fa-external-link-alt"></i></span>(dns轮询)</li>
+<li>可HA(高可用)</li>
+</ul>
+<h3 id="关于返回主机-IP-的策略"><a href="#关于返回主机-IP-的策略" class="headerlink" title="关于返回主机(IP)的策略"></a>关于返回主机(IP)的策略</h3><p>考虑的因素有：</p>
+<ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly9jbG91ZC50ZW5jZW50LmNvbS9kb2N1bWVudC9wcm9kdWN0LzMwMi84NjQz">智能解析线路<i class="fa fa-external-link-alt"></i></span> 用户所在网络的网络运行商类型、区域</li>
+<li>距离–跳数</li>
+</ul>
+<p>当我一个IP到DNS上面请求DNS域名解析的时候，DNS系统会根据你的IP地址所到达的域名对应的IP地址中路由跳数最小的那个IP地址作为访问的IP地址，具体你可以用LINUX的NSLOOKUP来查看域名所对应的IP地址，然后用PC的TRACERT的功能把所有DNS解析出来的IP地址进行跳数记录，然后在访问该域名，查看具体是哪个地址解析给你的PC。</p>
+<h3 id="为什么无法直接访问www-a-shifen-com"><a href="#为什么无法直接访问www-a-shifen-com" class="headerlink" title="为什么无法直接访问www.a.shifen.com"></a>为什么无法直接访问<span class="exturl" data-url="aHR0cDovL3d3dy5hLnNoaWZlbi5jb20v">www.a.shifen.com<i class="fa fa-external-link-alt"></i></span></h3><image src="/images/raw/HTTP%20-%20Wireshark%20-%20www.a.shifen.com.png">
+
+<p>流程：</p>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> [1,2,3,4] - DNS解析</li>
+<li><input checked="" disabled="" type="checkbox"> [5,6,7] - 三次握手，建立TCP连接</li>
+<li><input checked="" disabled="" type="checkbox"> [8] - 发送HTTP Get请求</li>
+<li><input disabled="" type="checkbox"> [9] - 服务器返回RST复位信号，强制关闭TCP连接</li>
+</ul>
+<p>服务器成功收到了HTTP Get请求，后台逻辑认为这个连接不符合规范()。所谓baidu定义的规范那应该就是服务器检查host，非<code>baidu.com</code>或<code>s</code>就拒绝访问。</p>
+<h3 id="抓包貌似看不到整个路由，是吗？如何分析整个路由？"><a href="#抓包貌似看不到整个路由，是吗？如何分析整个路由？" class="headerlink" title="抓包貌似看不到整个路由，是吗？如何分析整个路由？"></a>抓包貌似看不到整个路由，是吗？如何分析整个路由？</h3><p>。。</p>
+<h3 id="为什么访问-baidu-com-会跳转到-www-baidu-com-？"><a href="#为什么访问-baidu-com-会跳转到-www-baidu-com-？" class="headerlink" title="为什么访问 baidu.com 会跳转到 www.baidu.com ？"></a>为什么访问 baidu.com 会跳转到 <span class="exturl" data-url="aHR0cDovL3d3dy5iYWlkdS5jb20v">www.baidu.com<i class="fa fa-external-link-alt"></i></span> ？</h3><p><code>baidu.com</code>返回的页面如下：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">&quot;refresh&quot;</span> <span class="attr">content</span>=<span class="string">&quot;0;url=http://www.baidu.com/&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>表示0秒之后跳转到<code>www.baidu.com</code>主页。这种叫做<code>HTML redirections</code>。并非30X 重定向。<span class="exturl" data-url="aHR0cHM6Ly9kZXZlbG9wZXIubW96aWxsYS5vcmcvZW4tVVMvZG9jcy9XZWIvSFRUUC9SZWRpcmVjdGlvbnM=">参考<i class="fa fa-external-link-alt"></i></span></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><span class="exturl" data-url="aHR0cHM6Ly93d3cuemhpaHUuY29tL3F1ZXN0aW9uLzM2ODkxNDcyL2Fuc3dlci82OTQ1NTM1Ng==">https://www.zhihu.com/question/36891472/answer/69455356<i class="fa fa-external-link-alt"></i></span></p>
+<p><span class="exturl" data-url="aHR0cDovL3NreXJvdmVyLm1lLzIwMTcvMDIvMTkvQkFJRFUlRTclOUElODRETlMlRTglQTclQTMlRTYlOUUlOTAv">http://skyrover.me/2017/02/19/BAIDU%E7%9A%84DNS%E8%A7%A3%E6%9E%90/<i class="fa fa-external-link-alt"></i></span></p>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/2902c89e/" rel="bookmark">DNS解析实例之 Coding Pages</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/5e6131fb/" rel="bookmark">网络分层</a></div>
+    </li>
+  </ul>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/network/" rel="tag"># network</a>
+              <a href="/tags/dns/" rel="tag"># dns</a>
+          </div>
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/ac890a3f/" rel="prev" title="矢量图的制作">
+      <i class="fa fa-chevron-left"></i> 矢量图的制作
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/pub/fae97115/" rel="next" title="经典的web编辑器--CKEditor">
+      经典的web编辑器--CKEditor <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%99%BE%E5%BA%A6DNS%E8%A7%A3%E6%9E%90%E8%A7%84%E5%88%99"><span class="nav-number">2.</span> <span class="nav-text">百度DNS解析规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%96%91%E9%97%AE-amp-%E5%89%96%E6%9E%90"><span class="nav-number">3.</span> <span class="nav-text">疑问 &amp; 剖析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E5%8F%B71%E4%B8%AD%EF%BC%8C%E5%88%AB%E5%90%8Dwww-a-shifen-com%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-number">3.1.</span> <span class="nav-text">编号1中，别名www.a.shifen.com的作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E5%8F%B72-3%E4%B8%AD%EF%BC%8C%E5%A4%9A%E6%9D%A1A%E8%AE%B0%E5%BD%95%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-number">3.2.</span> <span class="nav-text">编号2,3中，多条A记录的作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E%E8%BF%94%E5%9B%9E%E4%B8%BB%E6%9C%BA-IP-%E7%9A%84%E7%AD%96%E7%95%A5"><span class="nav-number">3.3.</span> <span class="nav-text">关于返回主机(IP)的策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%97%A0%E6%B3%95%E7%9B%B4%E6%8E%A5%E8%AE%BF%E9%97%AEwww-a-shifen-com"><span class="nav-number">3.4.</span> <span class="nav-text">为什么无法直接访问www.a.shifen.com</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8A%93%E5%8C%85%E8%B2%8C%E4%BC%BC%E7%9C%8B%E4%B8%8D%E5%88%B0%E6%95%B4%E4%B8%AA%E8%B7%AF%E7%94%B1%EF%BC%8C%E6%98%AF%E5%90%97%EF%BC%9F%E5%A6%82%E4%BD%95%E5%88%86%E6%9E%90%E6%95%B4%E4%B8%AA%E8%B7%AF%E7%94%B1%EF%BC%9F"><span class="nav-number">3.5.</span> <span class="nav-text">抓包貌似看不到整个路由，是吗？如何分析整个路由？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%AE%BF%E9%97%AE-baidu-com-%E4%BC%9A%E8%B7%B3%E8%BD%AC%E5%88%B0-www-baidu-com-%EF%BC%9F"><span class="nav-number">3.6.</span> <span class="nav-text">为什么访问 baidu.com 会跳转到 www.baidu.com ？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : 'b7c755c3',
+      //id          : '2886bb865d820e52ceaf14108accff4a',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

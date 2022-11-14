@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="学而不思则罔，思而不学则殆">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ESON">
+<meta property="og:url" content="https://blog.eson.org/page/9/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="学而不思则罔，思而不学则殆">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="机器学习, 计算机视觉, 深度学习, 自然语言处理, ESON">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.eson.org/page/9/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : true,
+    isPost : false,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content index posts-expand">
+            
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/dddac94c/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/pub/dddac94c/" class="post-title-link" itemprop="url">单播，组播(多播)，广播以及任播</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-03-13 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-13T00:00:00+08:00">2018-03-13</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/network/" itemprop="url" rel="index"><span itemprop="name">network</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/network/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-OSI%E4%B8%83%E5%B1%82%E6%A8%A1%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">网络协议-OSI七层模型</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/network/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-OSI%E4%B8%83%E5%B1%82%E6%A8%A1%E5%9E%8B/5-%E7%AC%AC%E4%B8%89%E5%B1%82-%E7%BD%91%E7%BB%9C%E5%B1%82/" itemprop="url" rel="index"><span itemprop="name">5. 第三层 网络层</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>563</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="路由形式"><a href="#路由形式" class="headerlink" title="路由形式"></a>路由形式</h1><ul>
+<li>单播（原文：unicast）是指数据包在计算机网络的传输中，目的地址为单一目标的一种传输方式。它是现今网络应用最为广泛，通常所使用的网络协议或服务大多采用单播传输，例如一切基于TCP的协议。</li>
+<li>任播（英语：anycast）是一种网络定址和路由的策略，使得资料可以根据路由拓扑来决定送到“最近”或“最好”的目的地。</li>
+</ul>
+<table style="background-color:white; float:center; margin:1em; border:thin solid black; clear:both; text-align:center;"><tbody><tr><th style="background-color:#CCCCCC; border-bottom:thin solid gray;"><p><span class="exturl" data-url="aHR0cHM6Ly96aC53aWtpcGVkaWEub3JnL3dpa2kvJUU4JUI3JUFGJUU3JTk0JUIx">路由<i class="fa fa-external-link-alt"></i></span>形式<br> <a class="image" href="https://zh.wikipedia.org/wiki/File:Cast.svg"><img alt="Cast.svg" data-file-height="750" data-file-width="1125" height="67" src="//upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Cast.svg/100px-Cast.svg.png" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Cast.svg/150px-Cast.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Cast.svg/200px-Cast.svg.png 2x" width="100"></a></p></th><th style="margin:1em; border-bottom:thin solid gray;"><p><a class="mw-selflink selflink">任播</a><br> <a class="image" href="https://zh.wikipedia.org/wiki/File:Anycast.svg"><img alt="Anycast.svg" data-file-height="750" data-file-width="1125" height="67" src="//upload.wikimedia.org/wikipedia/commons/thumb/4/43/Anycast.svg/100px-Anycast.svg.png" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/4/43/Anycast.svg/150px-Anycast.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/4/43/Anycast.svg/200px-Anycast.svg.png 2x" width="100"></a></p></th><th style="margin:1em; border-bottom:thin solid gray;"><p><span class="exturl" data-url="aHR0cHM6Ly96aC53aWtpcGVkaWEub3JnL3dpa2kvJUU1JUJCJUEzJUU2JTkyJUFEXyglRTclQjYlQjIlRTglQjclQUYp">广播<i class="fa fa-external-link-alt"></i></span><br> <a class="image" href="https://zh.wikipedia.org/wiki/File:Broadcast.svg"><img alt="Broadcast.svg" data-file-height="750" data-file-width="1125" height="67" src="//upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Broadcast.svg/100px-Broadcast.svg.png" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Broadcast.svg/150px-Broadcast.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Broadcast.svg/200px-Broadcast.svg.png 2x" width="100"></a></p></th><th style="margin:1em; border-bottom:thin solid gray;"><p><span class="exturl" data-url="aHR0cHM6Ly96aC53aWtpcGVkaWEub3JnL3dpa2kvJUU1JUE0JTlBJUU2JTkyJUFE">多播<i class="fa fa-external-link-alt"></i></span><br> <a class="image" href="https://zh.wikipedia.org/wiki/File:Multicast.svg"><img alt="Multicast.svg" data-file-height="750" data-file-width="1125" height="67" src="//upload.wikimedia.org/wikipedia/commons/thumb/3/30/Multicast.svg/100px-Multicast.svg.png" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/3/30/Multicast.svg/150px-Multicast.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/3/30/Multicast.svg/200px-Multicast.svg.png 2x" width="100"></a></p></th><th style="margin:1em; border-bottom:thin solid gray;"><p><span class="exturl" data-url="aHR0cHM6Ly96aC53aWtpcGVkaWEub3JnL3dpa2kvJUU1JTk2JUFFJUU2JTkyJUFE">单播<i class="fa fa-external-link-alt"></i></span><br> <a class="image" href="https://zh.wikipedia.org/wiki/File:Unicast.svg"><img alt="Unicast.svg" data-file-height="750" data-file-width="1125" height="67" src="//upload.wikimedia.org/wikipedia/commons/thumb/7/75/Unicast.svg/100px-Unicast.svg.png" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/7/75/Unicast.svg/150px-Unicast.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/7/75/Unicast.svg/200px-Unicast.svg.png 2x" width="100"></a></p></th><th style="margin:1em;"><p><span class="exturl" data-url="aHR0cHM6Ly96aC53aWtpcGVkaWEub3JnL3dpa2kvR2VvY2FzdA==">geocast<i class="fa fa-external-link-alt"></i></span><br> <a class="image" href="https://zh.wikipedia.org/wiki/File:Geocast.svg"><img alt="Geocast.svg" data-file-height="750" data-file-width="1125" height="67" src="//upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Geocast.svg/100px-Geocast.svg.png" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Geocast.svg/150px-Geocast.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Geocast.svg/200px-Geocast.svg.png 2x" width="100"></a></p></th></tr></tbody></table>
+
+
+<p>bgp anycast就是<br>利用一个（多个） as号码在不同的地区广播相同的一个ip段。<br>利用bgp的寻路原则，短的as path 会选成最优路径（bgp寻路原则之n），从而优化了访问速度。<br>其实bgp anycast是不同服务器用了相同的ip地址。</p>
+<p>阿里的DNS 就是使用了BGP AnyCast<br>“其实bgp anycast是不同服务器用了相同的ip地址。”</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/pub/dddac94c/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/65131a14/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/pub/65131a14/" class="post-title-link" itemprop="url">如何托管你的网站 - 托管服务器</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-03-08 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-08T00:00:00+08:00">2018-03-08</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/" itemprop="url" rel="index"><span itemprop="name">web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/%E5%BB%BA%E7%AB%99/" itemprop="url" rel="index"><span itemprop="name">建站</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/%E5%BB%BA%E7%AB%99/host/" itemprop="url" rel="index"><span itemprop="name">host</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Host-网站托管"><a href="#Host-网站托管" class="headerlink" title="Host - 网站托管"></a>Host - 网站托管</h1><p>web hosting (service)可以被翻译为：网站托管。这里的host，类似于“主持、主办、提供”的含义。</p>
+<p>大体分Iaas和PaaS两种</p>
+<ul>
+<li>IaaS：云主机(或虚拟机) - 权限大，费用贵<ul>
+<li>阿里云主机、Google云主机(GCE)、腾讯云主机等</li>
+</ul>
+</li>
+<li>PaaS：云平台(运行软件的平台) - 权限小，便宜或免费<ul>
+<li>动态网站托管平台：SAE、GAE等</li>
+<li>静态网站托管平台：github pages服务、coding pages服务</li>
+</ul>
+</li>
+</ul>
+<!-- Saas：云应用(软件)。我们的网站本身就是应用级别的，要搭建在平台或主机上。-->
+<blockquote>
+<p><strong>注意区分</strong>：<br>github的仓库(repo)是版本控制软件，是github提供的SaaS服务。<br>github的Pages服务用于网站托管，是github提供的PaaS服务。</p>
+</blockquote>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/pub/65131a14/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/41fcf36a/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/pub/41fcf36a/" class="post-title-link" itemprop="url">将Hexo博客到同时部署到Github和Coding实现全球快速访问。</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-03-06 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-06T00:00:00+08:00">2018-03-06</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/" itemprop="url" rel="index"><span itemprop="name">web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/%E5%BB%BA%E7%AB%99/" itemprop="url" rel="index"><span itemprop="name">建站</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/%E5%BB%BA%E7%AB%99/host/" itemprop="url" rel="index"><span itemprop="name">host</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.1k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>coding.net采用https<br>github pages怎样采用https呢？</p>
+<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>多线，指多条解析线路(isp)。</p>
+<p>如果访问量特别大，可以多线部署，比如分别部署电信、网通等多条线路，或者不同省份的线路。这里我们仅采用国内线路、海外线路两种。</p>
+<p>一个主机头可以分别解析不同的线路、不同IP，当用户访问网站的时候，智能DNS会判断出他们的线路并解析给他们对应线路的IP，以达到最快的访问速度</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/pub/41fcf36a/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/2902c89e/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/pub/2902c89e/" class="post-title-link" itemprop="url">DNS解析实例之 Coding Pages</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-03-06 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-06T00:00:00+08:00">2018-03-06</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/network/" itemprop="url" rel="index"><span itemprop="name">network</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/network/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-OSI%E4%B8%83%E5%B1%82%E6%A8%A1%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">网络协议-OSI七层模型</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/network/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-OSI%E4%B8%83%E5%B1%82%E6%A8%A1%E5%9E%8B/1-%E7%AC%AC%E4%B8%83%E5%B1%82-%E5%BA%94%E7%94%A8%E5%B1%82/" itemprop="url" rel="index"><span itemprop="name">1. 第七层 应用层</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/network/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-OSI%E4%B8%83%E5%B1%82%E6%A8%A1%E5%9E%8B/1-%E7%AC%AC%E4%B8%83%E5%B1%82-%E5%BA%94%E7%94%A8%E5%B1%82/DNS/" itemprop="url" rel="index"><span itemprop="name">DNS</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.9k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="coding-page跳转至首页"><a href="#coding-page跳转至首页" class="headerlink" title="coding page跳转至首页"></a>coding page跳转至首页</h2><p>DNS配置<br><img src="/images/raw/建站 - DNS解析 - 配置.png"></p>
+<p>coding.net域名配置<br><img src="/images/raw/建站 - Coding Pages - 域名配置.png"></p>
+<p><code>首选</code>域名，一次到达</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ wget https://blog.eson.org</span><br><span class="line"><span class="comment"># 这个不需要重定向</span></span><br><span class="line">--2018-03-02 18:51:26--  https://blog.eson.org/</span><br><span class="line">Resolving blog.eson.org (blog.eson.org)... 107.150.121.91, 107.150.121.231, 103.72.147.89, ...</span><br><span class="line">Connecting to blog.eson.org (blog.eson.org)|107.150.121.91|:443... connected.</span><br><span class="line">HTTP request sent, awaiting response... 200 OK</span><br><span class="line">Length: 72536 (71K) [text/html]</span><br><span class="line">Saving to: ‘index.html.1’</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/pub/2902c89e/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/8b29356c/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/pub/8b29356c/" class="post-title-link" itemprop="url">Hexo中的SEO技巧</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-03-04 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-04T00:00:00+08:00">2018-03-04</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/" itemprop="url" rel="index"><span itemprop="name">web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/%E5%BB%BA%E7%AB%99/" itemprop="url" rel="index"><span itemprop="name">建站</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/%E5%BB%BA%E7%AB%99/seo/" itemprop="url" rel="index"><span itemprop="name">seo</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>795</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="关于keywords"><a href="#关于keywords" class="headerlink" title="关于keywords"></a>关于keywords</h2><p>为每个post添加tag，因为tag会被放入页面的<code>keywords</code></p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">&#123;% if page.keywords %&#125;</span><br><span class="line">  <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;keywords&quot;</span> <span class="attr">content</span>=<span class="string">&quot;&#123;&#123; page.keywords &#125;&#125;&quot;</span> /&gt;</span></span><br><span class="line">&#123;% elif page.tags and page.tags.length %&#125;</span><br><span class="line">  <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;keywords&quot;</span> <span class="attr">content</span>=<span class="string">&quot;&#123;% for tag in page.tags %&#125;&#123;&#123; tag.name &#125;&#125;,&#123;% endfor %&#125;&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+<p>每个页面 keywords 的选择顺序，是按照如下优先顺序进行</p>
+<ol>
+<li>page 中定义的 keywords</li>
+<li>page 中定义的 tags</li>
+<li>_config.yml 中定义的 keywords (hexo中定义的keyword，不是theme的config)</li>
+</ol>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/pub/8b29356c/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/c08a993/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/pub/c08a993/" class="post-title-link" itemprop="url">SSL证书</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-03-03 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-03T00:00:00+08:00">2018-03-03</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/" itemprop="url" rel="index"><span itemprop="name">web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/%E5%BB%BA%E7%AB%99/" itemprop="url" rel="index"><span itemprop="name">建站</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/%E5%BB%BA%E7%AB%99/SSL%E8%AF%81%E4%B9%A6/" itemprop="url" rel="index"><span itemprop="name">SSL证书</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>3.2k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>3 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <div class="post-gallery" itemscope itemtype="http://schema.org/ImageGallery">
+            <img src="https://pic2.zhimg.com/v2-dcdb73f0c00439b83f756d7423df917d_1200x500.jpg" itemprop="contentUrl">
+        </div>
+          <h1 id="为什么要用HTTPS？"><a href="#为什么要用HTTPS？" class="headerlink" title="为什么要用HTTPS？"></a>为什么要用HTTPS？</h1><p>HTTP 协议是不加密传输数据的，也就是用户跟你的网站之间传递数据有可能在途中<strong>被截获</strong>，破解传递的真实内容，所以使用不加密的 HTTP 的网站是不太安全的。所以， Google 的 Chrome 浏览器将在 2017 年 1 月开始，标记使用不加密的 HTTP 协议的网站为 Not Secure，不安全。</p>
+<p>HTTPS 会为您的网站建立加密的信息安全通道，保证数据传输的安全，防止传输内容被第三方冒充或篡改。</p>
+<p>部署 HTTPS 网站的时候需要证书，证书由 CA 机构签发，大部分传统 CA 机构签发证书是需要收费的，这不利于推动 HTTPS 协议的使用。</p>
+<h2 id="证书的类型"><a href="#证书的类型" class="headerlink" title="证书的类型"></a>证书的类型</h2>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/pub/c08a993/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/d2f02b9b/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/pub/d2f02b9b/" class="post-title-link" itemprop="url">Coding Pages托管静态博客-原理浅析</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-03-02 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-02T00:00:00+08:00">2018-03-02</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/" itemprop="url" rel="index"><span itemprop="name">web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/%E5%BB%BA%E7%AB%99/" itemprop="url" rel="index"><span itemprop="name">建站</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/%E5%BB%BA%E7%AB%99/host/" itemprop="url" rel="index"><span itemprop="name">host</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/%E5%BB%BA%E7%AB%99/host/coding-pages/" itemprop="url" rel="index"><span itemprop="name">coding-pages</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>1.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>参考 DNS解析实例-ESON</p>
+<blockquote>
+<p>github page不支持多个域名，因此不存在重定向</p>
+</blockquote>
+<h2 id="301，302-区别"><a href="#301，302-区别" class="headerlink" title="301，302 区别"></a>301，302 区别</h2><h3 id="对于用户"><a href="#对于用户" class="headerlink" title="对于用户"></a>对于用户</h3><p>301，302对用户来说没有区别，他们看到效果只是一个跳转，浏览器中旧的URL变成了新的URL。页面跳到了这个新的url指向的地方。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/pub/d2f02b9b/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/275d8a6f/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/pub/275d8a6f/" class="post-title-link" itemprop="url">修宪 - 2018</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-02-27 00:00:00" itemprop="dateCreated datePublished" datetime="2018-02-27T00:00:00+08:00">2018-02-27</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/others/" itemprop="url" rel="index"><span itemprop="name">others</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/others/politics/" itemprop="url" rel="index"><span itemprop="name">politics</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/others/politics/china/" itemprop="url" rel="index"><span itemprop="name">china</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>92</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <ul>
+<li><span class="exturl" data-url="aHR0cDovL2NuLmdpdGh1Yi5pby9jb25zdGl0dXRpb24vMTk4Mi0xMi0wNC5odG1s">中华人民共和国宪法 (1982-12-04)<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cDovL2NuLmdpdGh1Yi5pby9jb25zdGl0dXRpb24vMjAwNC0wMy0xNC5odG1s">中华人民共和国宪法 (2004-03-14)<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+<h1 id="2018年修宪"><a href="#2018年修宪" class="headerlink" title="2018年修宪"></a>2018年修宪</h1><p>全名：<span class="exturl" data-url="aHR0cHM6Ly96aC53aWtpcGVkaWEub3JnL3dpa2kvJUU0JUI4JUFEJUU1JThEJThFJUU0JUJBJUJBJUU2JUIwJTkxJUU1JTg1JUIxJUU1JTkyJThDJUU1JTlCJUJEJUU1JUFFJUFBJUU2JUIzJTk1JUU0JUJGJUFFJUU2JUFEJUEzJUU2JUExJTg4XygyMDE4JUU1JUI5JUI0KQ==">《中华人民共和国宪法修正案》（2018年）<i class="fa fa-external-link-alt"></i></span></p>
+<ul>
+<li>2017年9月29日 - 成立宪法修改小组<!--
+宪法修改小组，由张德江任组长，栗战书、王沪宁任副组长。
+同年10月18日，中共十九大召开，栗战书及王沪宁当选新一届政治局常委</li>
+<li>-&gt;</li>
+<li>2018年1月30日 - 由人大常委会提请申报成功，全票通过《中华人民共和国宪法修正案（草案）》</li>
+<li>2018年2月25日 - 由<span class="exturl" data-url="aHR0cDovL3d3dy54aW5odWFuZXQuY29tL3BvbGl0aWNzLzIwMTgtMDIvMjUvY18xMTIyNDUxMTg3Lmh0bQ==">新华社<i class="fa fa-external-link-alt"></i></span>和新闻联播于公布 《中国共产党中央委员会关于修改宪法部分内容的建议》</li>
+</ul>
+<p><span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL2NuL2NvbnN0aXR1dGlvbi9wdWxsLzIvY29tbWl0cy84MTE1NDg0ZDE4NDhkMzA5ZjY4YzcwOWQ4ZWExNzYzNzRiMmIxMTYw">划重点<i class="fa fa-external-link-alt"></i></span></p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">第七十九条</span><br><span class="line"><span class="deletion">- 中华人民共和国主席、副主席每届任期同全国人民代表大会每届任期相同，连续任职不得超过两届。</span></span><br><span class="line"><span class="addition">+ 中华人民共和国主席、副主席每届任期同全国人民代表大会每届任期相同。</span></span><br><span class="line"></span><br><span class="line"><span class="deletion">- 在马克思列宁主义、毛泽东思想、邓小平理论和“三个代表”重要思想指引下</span></span><br><span class="line"><span class="addition">+ 在马克思列宁主义、毛泽东思想、邓小平理论、“三个代表”重要思想、科学发展观、习近平新时代中国特色社会主义思想指引下</span></span><br><span class="line"></span><br><span class="line">第六十三条 全国人民代表大会有权罢免下列人员：</span><br><span class="line">   主席、副主席、国务院总理、副总理、军事委员会主席、最高人民法院院长、最高人民检察院检察长</span><br><span class="line"><span class="addition">+ （四）国家监察委员会主任；</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>宪法第七十九条第三款，删除<code>“国家主席、副主席连续任职不得超过两届”</code>，而引起国际关注。外界普遍将之视为邓小平时代提出的“废除干部领导职务终身制”的结束。</li>
+<li>宪法序言增写<code>“科学发展观”</code>、<code>“习近平新时代中国特色社会主义思想”</code>及<code>“富强民主文明和谐美丽的社会主义现代化强国”</code>字样</li>
+</ul>
+<h2 id="关于-监察机关-国家监察委员会"><a href="#关于-监察机关-国家监察委员会" class="headerlink" title="关于 监察机关 国家监察委员会"></a>关于 监察机关 国家监察委员会</h2><figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="addition">+ 第一百二十三条 中华人民共和国各级监察委员会是国家的监察机关。</span></span><br><span class="line"><span class="addition">+ 第一百二十四条 中华人民共和国设立国家监察委员会和地方各级监察委员会。监察委员会由下列人员组成</span></span><br><span class="line"><span class="addition">+  主任，</span></span><br><span class="line"><span class="addition">+  副主任若干人，</span></span><br><span class="line"><span class="addition">+  委员若干人。</span></span><br><span class="line"><span class="addition">+  监察委员会主任每届任期同本级人民代表大会每届任期相同。国家监察委员会主任连续任职不得超过两届。</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="关于修宪历史"><a href="#关于修宪历史" class="headerlink" title="关于修宪历史"></a>关于修宪历史</h1><p>中国现行宪法制定于1982年。当时，为废除实际存在的领导职务终身制，吸取文革个人崇拜的教训，宪法规定了国家主席连续任职不得超过两届，在客观上限定了中国国家元首任职不能超过十年。</p>
+<p>中共于1988年、1993年、1999年、2004年对现行宪法进行了四次修改</p>
+<h2 id="1988年修宪：为“私营经济”正名"><a href="#1988年修宪：为“私营经济”正名" class="headerlink" title="1988年修宪：为“私营经济”正名"></a>1988年修宪：为“私营经济”正名</h2><h2 id="1993年修宪"><a href="#1993年修宪" class="headerlink" title="1993年修宪"></a>1993年修宪</h2><p>1993年，中共总书记、中央军委主席江泽民接替杨尚昆出任国家主席，定下了总书记、国家主席、中央军委主席“三位一体”的最高领导模式。</p>
+<p>国家的奋斗目标，则由建设“高度文明、高度民主的社会主义国家”变为建设“富强、民主、文明的社会主义国家”。两个字的增加、两个词顺序的变化，看似微小，却深意可见。</p>
+<p>“市场经济”一词的入宪、“计划经济”一词的淡出。</p>
+<h2 id="1999年修宪：为“法治”鼓与呼"><a href="#1999年修宪：为“法治”鼓与呼" class="headerlink" title="1999年修宪：为“法治”鼓与呼"></a>1999年修宪：为“法治”鼓与呼</h2><p>“依法治国”。</p>
+<h2 id="2004-第四次修改，"><a href="#2004-第四次修改，" class="headerlink" title="2004- 第四次修改，"></a>2004- 第四次修改，</h2><h2 id="关于连任"><a href="#关于连任" class="headerlink" title="关于连任"></a>关于连任</h2><ul>
+<li><p>根据邓小平在1980年提倡的“废除干部领导职务终身制”，重新设立的国家主席和副主席任期为五年一届，连任不能超过两届。</p>
+</li>
+<li><p>党总书记、军委主席是中国政治体系中拥有最大权力的两个职务，没有连任次数的限制。</p>
+</li>
+</ul>
+<h1 id="扩展阅读"><a href="#扩展阅读" class="headerlink" title="扩展阅读"></a>扩展阅读</h1><ul>
+<li><span class="exturl" data-url="aHR0cDovL21wLndlaXhpbi5xcS5jb20vcz9fX2Jpej1Nak01TWpBeE5ETTRNQT09Jm1pZD0yNjY2MTg5NTE2JmlkeD0xJnNuPWZlMmVmZTdmNzYyYTg3YWY0MGM2ODFlYTA1ZDczZTI3JmNoa3NtPWJkYjJiYjhmOGFjNTMyOTk0OGU4NjBiMDJiMjJjMDAwMzc4MDE2MDIxODc3OTFmMGMwYmUxZmMxNjAwYWY4NWZjYjI0ZDQ1YWJmNDAmbXBzaGFyZT0x">修宪前后完整对比<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly93d3cuemhpaHUuY29tL3F1ZXN0aW9uLzIyMzQ5MTQ4">为什么美国的 1787 宪法可以至今沿用?<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/51a8c99e/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/pub/51a8c99e/" class="post-title-link" itemprop="url">如何解决百度爬虫无法爬取搭建在Github上的个人博客的问题</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-02-27 00:00:00" itemprop="dateCreated datePublished" datetime="2018-02-27T00:00:00+08:00">2018-02-27</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/" itemprop="url" rel="index"><span itemprop="name">web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/%E5%BB%BA%E7%AB%99/" itemprop="url" rel="index"><span itemprop="name">建站</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/%E5%BB%BA%E7%AB%99/seo/" itemprop="url" rel="index"><span itemprop="name">seo</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>578</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>1 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="现状-amp-原因"><a href="#现状-amp-原因" class="headerlink" title="现状 &amp; 原因"></a>现状 &amp; 原因</h2><h3 id="github做了什么。"><a href="#github做了什么。" class="headerlink" title="github做了什么。"></a>github做了什么。</h3><ul>
+<li><code>robots.txt</code> 中屏蔽了baidu</li>
+<li>即使百度爬虫无视robots协议强抓github，github也会通过<code>检查UA</code>，返回<code>403 forbidden</code>，即<code>拒绝访问</code>。(当然如果要想强抓是拦不住的，伪装一下UA即可)</li>
+</ul>
+<h3 id="造成的现状"><a href="#造成的现状" class="headerlink" title="造成的现状"></a>造成的现状</h3><ul>
+<li>robots.txt 失效</li>
+<li>sitemap 失效</li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/pub/51a8c99e/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/c429c70d/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/pub/c429c70d/" class="post-title-link" itemprop="url">禁止搜索引擎收录的方法</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-02-27 00:00:00" itemprop="dateCreated datePublished" datetime="2018-02-27T00:00:00+08:00">2018-02-27</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/" itemprop="url" rel="index"><span itemprop="name">web</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/%E5%BB%BA%E7%AB%99/" itemprop="url" rel="index"><span itemprop="name">建站</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/web/%E5%BB%BA%E7%AB%99/seo/" itemprop="url" rel="index"><span itemprop="name">seo</span></a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.4k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="什么是robots协议"><a href="#什么是robots协议" class="headerlink" title="什么是robots协议"></a>什么是robots协议</h1><p>Robots协议（也称为爬虫协议、机器人协议等）的全称是“网络爬虫排除标准”（Robots Exclusion Protocol），网站通过Robots协议告诉搜索引擎哪些页面可以抓取，哪些页面不能抓取。搜索引擎抓取网站内容前会先抓取robots.txt，据此“自觉地”抓取或者不抓取该网页内容，其目的是保护网站数据和敏感信息、确保用户个人信息和隐私不被侵犯。</p>
+<p>需要注意的是robots协议并非是规范，只是行业内一个约定俗成的协议。什么意思呢?Robots协议不是什么技术壁垒，而只是一种互相尊重的协议，好比私家花园的门口挂着“闲人免进”，尊重者绕道而行，不尊重者依然可以推门而入，比如说360。</p>
+<p>如果网站有数据需要保密，必需采取技术措施，比如说：用户验证，加密，ip拦截，访问频率控制等。</p>
+<h1 id="为什么要禁止搜索引擎收录"><a href="#为什么要禁止搜索引擎收录" class="headerlink" title="为什么要禁止搜索引擎收录"></a>为什么要禁止搜索引擎收录</h1>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/pub/c429c70d/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+
+  
+  <nav class="pagination">
+    <a class="extend prev" rel="prev" href="/page/8/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><span class="space">&hellip;</span><a class="page-number" href="/page/14/">14</a><a class="extend next" rel="next" href="/page/10/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+  </nav>
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+</body>
+</html>

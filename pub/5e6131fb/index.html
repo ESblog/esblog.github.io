@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-song.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-song.png">
+  <link rel="mask-icon" href="/images/logo-song.svg" color="#222">
+  <meta name="google-site-verification" content="emtKuCBSwP_Lnea7aB-7zRLW9DcVrzBUJlbMxRP_VrY">
+  <meta name="msvalidate.01" content="D07545095E3B3DED99406636136B159E">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"blog.eson.org","root":"/","scheme":"Gemini","version":"7.8.0","exturl":true,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Overview基本概念&amp;nbsp;数据单元&#x2F;格式TCP&#x2F;IP层OSI层功能TCP&#x2F;IP协议族典型设备主机层Dagta(数据)应用层7. 应用层网络进程到应用程序。针对特定应用规定各层协议、时序、表示等，进行封装。在端系统中用软件来实现，如HTTP等DHCP、Telnet、FTP、HTTP、SNMP、DNS网关6. 表示层数据表示形式，加密和解密，把机器相关的数据转换成独立于机器的数据。规定数据的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="网络分层">
+<meta property="og:url" content="https://blog.eson.org/pub/5e6131fb/index.html">
+<meta property="og:site_name" content="ESON">
+<meta property="og:description" content="Overview基本概念&amp;nbsp;数据单元&#x2F;格式TCP&#x2F;IP层OSI层功能TCP&#x2F;IP协议族典型设备主机层Dagta(数据)应用层7. 应用层网络进程到应用程序。针对特定应用规定各层协议、时序、表示等，进行封装。在端系统中用软件来实现，如HTTP等DHCP、Telnet、FTP、HTTP、SNMP、DNS网关6. 表示层数据表示形式，加密和解密，把机器相关的数据转换成独立于机器的数据。规定数据的">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-02-22T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-21T08:48:03.992Z">
+<meta property="article:author" content="ESON">
+<meta property="article:tag" content="network">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://blog.eson.org/pub/5e6131fb/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>网络分层 | ESON</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-115875587-1"></script>
+    <script>
+      if (CONFIG.hostname === location.hostname) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-115875587-1');
+      }
+    </script>
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?4144ca6f2a9b60f1feea7806f82aa6d0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ESON</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Daily Notes</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.eson.org/pub/5e6131fb/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="ESON">
+      <meta itemprop="description" content="学而不思则罔，思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ESON">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          网络分层
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-02-23 00:00:00" itemprop="dateCreated datePublished" datetime="2018-02-23T00:00:00+08:00">2018-02-23</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/" itemprop="url" rel="index"><span itemprop="name">CS</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/network/" itemprop="url" rel="index"><span itemprop="name">network</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/CS/network/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-OSI%E4%B8%83%E5%B1%82%E6%A8%A1%E5%9E%8B/" itemprop="url" rel="index"><span itemprop="name">网络协议-OSI七层模型</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h2><h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><table border="1" cellpadding="1" cellspacing="1" ><thead><tr><th scope="row">&nbsp;</th><th scope="col">数据单元/格式</th><th scope="col">TCP/IP层</th><th scope="col">OSI层</th><th scope="col">功能</th><th scope="col">TCP/IP协议族</th><th scope="col">典型设备</th></tr></thead><tbody><tr><th colspan="1" rowspan="4" scope="row">主机层</th><td colspan="1" rowspan="3">Dagta(数据)</td><td colspan="1" rowspan="3">应用层</td><td>7. 应用层</td><td>网络进程到应用程序。针对特定应用规定各层协议、时序、表示等，进行封装。在端系统中用软件来实现，如HTTP等</td><td>DHCP、Telnet、FTP、HTTP、SNMP、DNS</td><td>网关</td></tr><tr><td>6. 表示层</td><td>数据表示形式，加密和解密，把机器相关的数据转换成独立于机器的数据。规定数据的格式化表示，数据格式的转换等</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>5. 会话层</td><td>主机间通讯，管理应用程序之间的会话。规定通信时序；数据交换的定界、同步，创建检查点等</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>Segments(数据段)</td><td>传输层</td><td>4. 传输层</td><td>在网络的各个节点之间可靠的分发数据包。所有传输遗留问题；复用；流量控制；可靠</td><td>TCP UDP TLS/SSL</td><td>&nbsp;</td></tr><tr><th colspan="1" rowspan="3" scope="row">媒介层</th><td>&nbsp;</td><td>网络层 Internet</td><td>3. 网络层</td><td>负责IP地址。在网络的各个节点之间进行地址分配、路由和(不一定可靠的)分发报文。路由(IP寻址)；拥塞控制分割和重新组合数据包</td><td>IP ICMP BGP RIP</td><td>路由器</td></tr><tr><td>Bit/Frame数据帧</td><td colspan="1" rowspan="2">链路层</td><td>2. 数据链路层</td><td>负责MAC地址。一个可靠的点对点数据直链。检错与纠错(CRC码)；多路访问；寻址</td><td>WiFi ARP</td><td>交换机、网桥、网卡</td></tr><tr><td>Bit 比特流</td><td>1.物理层</td><td>一个(不一定可靠的)点对点数据直链。定义机械特性；电气特性；功能特性；过程特性</td><td>&nbsp;</td><td>调制解调器、中继器、集线器、同轴电缆、双绞线</td></tr></tbody></table>
+
+
+
+
+
+
+<p><span class="exturl" data-url="aHR0cHM6Ly9lbi53aWtpcGVkaWEub3JnL3dpa2kvSW50ZXJuZXRfcHJvdG9jb2xfc3VpdGU=">https://en.wikipedia.org/wiki/Internet_protocol_suite<i class="fa fa-external-link-alt"></i></span></p>
+<p><span class="exturl" data-url="aHR0cHM6Ly93d3cubm92ZWxsLmNvbS9kb2N1bWVudGF0aW9uL253NjUvbnR3a19pcHY0X253L2RhdGEvaGJudXVidHQuaHRtbA==">Overview of TCP/IP Protocol<i class="fa fa-external-link-alt"></i></span><br><image src="/images/raw/TCP%20IP%20-%204LayerModel%20-%20novell.com.gif"></p>
+<h2 id="Architectural-Overview-of-the-TCP-IP-Protocol-Suite"><a href="#Architectural-Overview-of-the-TCP-IP-Protocol-Suite" class="headerlink" title="Architectural Overview of the TCP/IP Protocol Suite"></a><span class="exturl" data-url="aHR0cHM6Ly90ZWNobmV0Lm1pY3Jvc29mdC5jb20vZW4tdXMvbGlicmFyeS9iYjcyNjk5My5hc3B4">Architectural Overview of the TCP/IP Protocol Suite<i class="fa fa-external-link-alt"></i></span></h2><p><image src="/images/raw/TCP%20IP%20-%20architecture%20-%20Microsoft.gif
+"></p>
+<h2 id="Overview-of-TCP-IP-protocols-摘自《Unix网络编程-chapter2》"><a href="#Overview-of-TCP-IP-protocols-摘自《Unix网络编程-chapter2》" class="headerlink" title="Overview of TCP/IP protocols,摘自《Unix网络编程 chapter2》"></a>Overview of TCP/IP protocols,摘自《Unix网络编程 chapter2》</h2><image src="/images/raw/TCP%20IP%20-%20overview%20-%20unix%20network%20programing.gif">
+
+<h2 id="七层-应用层"><a href="#七层-应用层" class="headerlink" title="七层 应用层"></a>七层 应用层</h2><p>应用层（Application Layer）提供为应用软件而设的界面，以设置与另一应用软件之间的通信。<br>针对某个特定的用户应用程序（FTP、Telnet等）<br>比如</p>
+<ul>
+<li>HTTP Client与HTTP Server通信。</li>
+<li>DNS client与DNS Server通信。</li>
+</ul>
+<h2 id="六层-表示层"><a href="#六层-表示层" class="headerlink" title="六层 表示层"></a>六层 表示层</h2><p>表示层（Presentation Layer）把数据转换为能与接收者的系统格式兼容并适合传输的格式。</p>
+<h2 id="五层-会话层"><a href="#五层-会话层" class="headerlink" title="五层 会话层"></a>五层 会话层</h2><p>会话层（Session Layer）负责在数据传输中设置和维护电脑网络中两台电脑之间的通信连接。</p>
+<h2 id="四层-传输层"><a href="#四层-传输层" class="headerlink" title="四层 传输层"></a>四层 传输层</h2><p>传输层（Transport Layer）把传输表头（TH）加至数据以形成数据包。传输表头包含了所使用的协议等发送信息。例如:传输控制协议（TCP）等。</p>
+<p>TCP使用不可靠的IP服务，但是它提供一种可靠的运输层服务；UDP为应用程序接收和发送数据报。但是UDP是不可靠的，它不保证数据报能安全无误的到达目的地。</p>
+<h2 id="三层-网络层"><a href="#三层-网络层" class="headerlink" title="三层 网络层"></a>三层 网络层</h2><p>在计算机网络中进行通信的两个计算机之间可能会经过很多个数据链路，也可能还要经过很多通信子网。网络层的任务就是选择合适的网间路由和交换结点，确保数据及时传送。网络层将解封数据链路层收到的帧，提取数据包，包中封装有网络层包头，其中含有逻辑地址信息- -源站点和目的站点地址的网络地址。</p>
+<p>IP是网际层的主要协议，同时被TCP和UDP使用；ICMP是IP的附属协议。IP层用它来与其他主机或路由器交换错误报文和其他重要的信息；IGMP是Internet组管理协议。它用来把一个UDP数据报多播到多个主机。</p>
+<p>数据的路径选择(分组的<code>选路</code>)、转发，将网络表头（NH）加至数据包，以形成分组。网络表头包含了网络数据。例如:互联网协议（IP）等。</p>
+<h3 id="寻址"><a href="#寻址" class="headerlink" title="寻址"></a>寻址</h3><p>路由器<code>根据IP地址进行寻址</code>，通过路由表路由协议产生</p>
+<p>对网络层而言使用IP地址来唯一标识互联网上的设备，网络层依靠IP地址进行相互通信。</p>
+<h3 id="路由-转发"><a href="#路由-转发" class="headerlink" title="路由/转发"></a>路由/转发</h3><p>在同一个网络中的内部通信并不需要网络层设备，仅仅靠数据链路层就可以完成相互通信，对于不同的网络之间相互通信则必须借助路由器等三层设备。</p>
+<p>数据包的转发，<code>不在同一个局域网</code>，他们彼此之间是不认识的，那么就不得不通过其他媒介，寻找到适当的方式才可以传输数据。</p>
+<h2 id="二层-链路层"><a href="#二层-链路层" class="headerlink" title="二层 链路层"></a>二层 链路层</h2><p>二层<code>交换</code>，只能解决<code>同一个局域网</code>(彼此认识，mac地址)内的数据交换。</p>
+<p><code>物理地址寻址</code>、数据的成帧、流量控制、数据的检错、重发等</p>
+<p>网络层（Network Layer）决定数据的路径选择和转寄，将网络表头（NH）加至数据包，以形成分组。网络表头包含了网络数据。例如:互联网协议（IP）等。</p>
+<p>设备驱动程序及接口卡</p>
+<p>ARP（地址解析协议）和RARP（逆地址解析协议）是某些网络接口使用的特殊协议，用来转换IP层和网络接口层使用的地址。</p>
+<p>交换机<code>根据MAC地址寻址</code>，通过站表选择路由，站表的建立和维护由交换机自动进行</p>
+<h2 id="一层-物理层"><a href="#一层-物理层" class="headerlink" title="一层 物理层"></a>一层 物理层</h2><p>物理层（Physical Layer）在局部局域网上传送帧，它负责管理电脑通信设备和网络媒体之间的互通。包括了针脚、电压、线缆规范、集线器、中继器、网卡、主机适配器等</p>
+<h2 id="疑问"><a href="#疑问" class="headerlink" title="疑问"></a>疑问</h2><p><strong>为什么要平行层通信？</strong><br>因为其它层看不懂该协议。(其他协议看不懂)</p>
+<p>我觉得，也可以理解成相邻层之间的协议。比如</p>
+<p>web中的后台与前台协定的数据格式，是不同层之间的协议。因为后台数据是给前台用的，前台http。</p>
+<p>网络协议中，相邻层之间的</p>
+<p><strong>VPN算在哪个层？算网路协议吗？</strong><br>按道理应该算协议，客户端和服务端都要遵守的约定。应该算在应用层吧。–by xs</p>
+<p>vpn在IP层工作，而ss在TCP层工作</p>
+<p><strong>proxy</strong>算在哪个层？<br>应用层吧，至少socket之上</p>
+<p><strong>html5提出的websocket协议</strong><br>属于应用层</p>
+<h2 id="待看-其他参考"><a href="#待看-其他参考" class="headerlink" title="待看/其他参考"></a>待看/其他参考</h2><ul>
+<li><span class="exturl" data-url="aHR0cHM6Ly96aC53aWtpcGVkaWEub3JnL3dpa2kvT1NJJUU2JUE4JUExJUU1JTlFJThC">OSI-7层模型-wiki<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly96aC53aWtpcGVkaWEub3JnL3dpa2kvJUU3JUJEJTkxJUU3JUJCJTlDJUU0JUJDJUEwJUU4JUJFJTkzJUU1JThEJThGJUU4JUFFJUFF">网络传输协议-四层模型-wiki<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly93d3cuemhpaHUuY29tL3F1ZXN0aW9uLzM4NTE3MDQw">所有的网络请求底层协议是不是都是TCP/IP？<i class="fa fa-external-link-alt"></i></span></li>
+<li><span class="exturl" data-url="aHR0cHM6Ly91cGxvYWRmaWxlcy5ub3djb2Rlci5uZXQvaW1hZ2VzLzIwMTcwODEwLzE3Njc3MjdfMTUwMjM2MjgzNjQ4MV8xQ0ZFQzAwNkIyOUNCQUVBNkFGRUQyNkFCNDNEMTZBNw==">ss<i class="fa fa-external-link-alt"></i></span></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+      
+  <div class="popular-posts-header">相关文章</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/b7c755c3/" rel="bookmark">反演 百度DNS解析规则</a></div>
+    </li>
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="/pub/2902c89e/" rel="bookmark">DNS解析实例之 Coding Pages</a></div>
+    </li>
+  </ul>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/network/" rel="tag"># network</a>
+          </div>
+
+        
+  <div class="post-widgets">
+    <div class="wp_rating">
+      <div id="wpac-rating"></div>
+    </div>
+  </div>
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pub/5799c0b3/" rel="prev" title="路由器">
+      <i class="fa fa-chevron-left"></i> 路由器
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/pub/9c3f29da/" rel="next" title="【建站】汇总">
+      【建站】汇总 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Overview"><span class="nav-number">1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-number">2.</span> <span class="nav-text">基本概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Architectural-Overview-of-the-TCP-IP-Protocol-Suite"><span class="nav-number">3.</span> <span class="nav-text">Architectural Overview of the TCP&#x2F;IP Protocol Suite</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Overview-of-TCP-IP-protocols-%E6%91%98%E8%87%AA%E3%80%8AUnix%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-chapter2%E3%80%8B"><span class="nav-number">4.</span> <span class="nav-text">Overview of TCP&#x2F;IP protocols,摘自《Unix网络编程 chapter2》</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83%E5%B1%82-%E5%BA%94%E7%94%A8%E5%B1%82"><span class="nav-number">5.</span> <span class="nav-text">七层 应用层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD%E5%B1%82-%E8%A1%A8%E7%A4%BA%E5%B1%82"><span class="nav-number">6.</span> <span class="nav-text">六层 表示层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E5%B1%82-%E4%BC%9A%E8%AF%9D%E5%B1%82"><span class="nav-number">7.</span> <span class="nav-text">五层 会话层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E5%B1%82-%E4%BC%A0%E8%BE%93%E5%B1%82"><span class="nav-number">8.</span> <span class="nav-text">四层 传输层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E5%B1%82-%E7%BD%91%E7%BB%9C%E5%B1%82"><span class="nav-number">9.</span> <span class="nav-text">三层 网络层</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%BB%E5%9D%80"><span class="nav-number">9.1.</span> <span class="nav-text">寻址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B7%AF%E7%94%B1-%E8%BD%AC%E5%8F%91"><span class="nav-number">9.2.</span> <span class="nav-text">路由&#x2F;转发</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E5%B1%82-%E9%93%BE%E8%B7%AF%E5%B1%82"><span class="nav-number">10.</span> <span class="nav-text">二层 链路层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E5%B1%82-%E7%89%A9%E7%90%86%E5%B1%82"><span class="nav-number">11.</span> <span class="nav-text">一层 物理层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%96%91%E9%97%AE"><span class="nav-number">12.</span> <span class="nav-text">疑问</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BE%85%E7%9C%8B-%E5%85%B6%E4%BB%96%E5%8F%82%E8%80%83"><span class="nav-number">13.</span> <span class="nav-text">待看&#x2F;其他参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ESON"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">ESON</p>
+  <div class="site-description" itemprop="description">学而不思则罔，思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">136</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">145</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">121</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="aHR0cHM6Ly9naXRodWIuY29tL3h1LXNvbmc=" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;xu-song"><i class="fab fa-github fa-fw"></i>GitHub</span>
+      </span>
+      <span class="links-of-author-item">
+        <span class="exturl" data-url="bWFpbHRvOnh1c29uZy52aXBAZ21haWwuY29t" title="E-Mail → mailto:xusong.vip@gmail.com"><i class="fa fa-envelope fa-fw"></i>E-Mail</span>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="fa fa-link fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <span class="exturl" data-url="aHR0cHM6Ly9rZXh1ZS5mbS8=" title="https:&#x2F;&#x2F;kexue.fm&#x2F;">科学空间</span>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ESON</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">308k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:40</span>
+</div>
+  <div class="powered-by">由 <span class="exturl theme-link" data-url="aHR0cHM6Ly9oZXhvLmlv">Hexo</span> & <span class="exturl theme-link" data-url="aHR0cHM6Ly90aGVtZS1uZXh0Lm9yZw==">NexT.Gemini</span> 强力驱动
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var canonicalURL, curProtocol;
+      //Get the <link> tag
+      var x=document.getElementsByTagName("link");
+		//Find the last canonical URL
+		if(x.length > 0){
+			for (i=0;i<x.length;i++){
+				if(x[i].rel.toLowerCase() == 'canonical' && x[i].href){
+					canonicalURL=x[i].href;
+				}
+			}
+		}
+    //Get protocol
+	    if (!canonicalURL){
+	    	curProtocol = window.location.protocol.split(':')[0];
+	    }
+	    else{
+	    	curProtocol = canonicalURL.split(':')[0];
+	    }
+      //Get current URL if the canonical URL does not exist
+	    if (!canonicalURL) canonicalURL = window.location.href;
+	    //Assign script content. Replace current URL with the canonical URL
+      !function(){var e=/([http|https]:\/\/[a-zA-Z0-9\_\.]+\.baidu\.com)/gi,r=canonicalURL,t=document.referrer;if(!e.test(r)){var n=(String(curProtocol).toLowerCase() === 'https')?"https://sp0.baidu.com/9_Q4simg2RQJ8t7jm9iCKT-xh_/s.gif":"//api.share.baidu.com/s.gif";t?(n+="?r="+encodeURIComponent(document.referrer),r&&(n+="&l="+r)):r&&(n+="?l="+r);var i=new Image;i.src=n}}(window);})();
+  </script>
+
+
+
+  <script>
+  if (CONFIG.page.isPost) {
+    wpac_init = window.wpac_init || [];
+    wpac_init.push({
+      widget: 'Rating',
+      id    : 14529,
+      el    : 'wpac-rating',
+      color : 'fc6423'
+    });
+    (function() {
+      if ('WIDGETPACK_LOADED' in window) return;
+      WIDGETPACK_LOADED = true;
+      var mc = document.createElement('script');
+      mc.type = 'text/javascript';
+      mc.async = true;
+      mc.src = '//embed.widgetpack.com/widget.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+    })();
+  }
+  </script>
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : 'c31951062c3889e56634',
+      clientSecret: '0b79048e345e580a15240a3a647b14736b7c0135',
+      repo        : 'esblog.github.io',
+      owner       : 'ESblog',
+      admin       : ['ESblog'],
+      id          : '5e6131fb',
+      //id          : 'bea359f03aafc917e3209762fd53a914',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>
